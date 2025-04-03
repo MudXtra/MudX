@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35919.96
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX", "MudX\MudX.csproj", "{5500F3F4-24D0-432B-A74F-C41F20815DF8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.UnitTests", "..\tests\MudX.UnitTests\MudX.UnitTests.csproj", "{AA9717B7-5B94-43B4-A43B-2FF9776D74B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.DependsOn", "MudX.DependsOn\MudX.DependsOn.csproj", "{7F456A16-15E7-4F4F-942F-020835F74A7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.Docs", "MudX.Docs\MudX.Docs.csproj", "{D297B770-0306-4EB9-8D6D-82AADAE0C58C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.Docs.Server", "MudX.Docs.Server\MudX.Docs.Server.csproj", "{E22D8B3B-8869-4C3D-907E-BF2328924361}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5500F3F4-24D0-432B-A74F-C41F20815DF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5500F3F4-24D0-432B-A74F-C41F20815DF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5500F3F4-24D0-432B-A74F-C41F20815DF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5500F3F4-24D0-432B-A74F-C41F20815DF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA9717B7-5B94-43B4-A43B-2FF9776D74B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA9717B7-5B94-43B4-A43B-2FF9776D74B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA9717B7-5B94-43B4-A43B-2FF9776D74B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA9717B7-5B94-43B4-A43B-2FF9776D74B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F456A16-15E7-4F4F-942F-020835F74A7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F456A16-15E7-4F4F-942F-020835F74A7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F456A16-15E7-4F4F-942F-020835F74A7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F456A16-15E7-4F4F-942F-020835F74A7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D297B770-0306-4EB9-8D6D-82AADAE0C58C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D297B770-0306-4EB9-8D6D-82AADAE0C58C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D297B770-0306-4EB9-8D6D-82AADAE0C58C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D297B770-0306-4EB9-8D6D-82AADAE0C58C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E22D8B3B-8869-4C3D-907E-BF2328924361}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E22D8B3B-8869-4C3D-907E-BF2328924361}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E22D8B3B-8869-4C3D-907E-BF2328924361}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E22D8B3B-8869-4C3D-907E-BF2328924361}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AA9717B7-5B94-43B4-A43B-2FF9776D74B4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BB550C29-5235-4C19-AEA3-E6323F31E958}
+	EndGlobalSection
+EndGlobal
