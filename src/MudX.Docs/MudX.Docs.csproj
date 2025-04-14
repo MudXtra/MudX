@@ -16,14 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Components\" />
-    <Folder Include="Shared\" />
-    <Folder Include="Pages\" />
-    <Folder Include="wwwroot\" />
+    <ProjectReference Include="..\MudX\MudX.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MudX\MudX.csproj" />
+    <Folder Include="Pages\" />
   </ItemGroup>
 
 </Project>

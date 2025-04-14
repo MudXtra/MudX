@@ -1,0 +1,45 @@
+@namespace MudX
+@inherits MudComponentBase
+
+@if (HeaderContent != null)
+{
+    @HeaderContent
+}
+
+@* This is the actual document that is tracked *@
+<MudContainer MaxWidth="MaxWidth.Large">
+    <div id="@_tocId" class="mud-toc-content">
+        <CascadingValue Value="this" IsFixed="true">
+            @ChildContent
+        </CascadingValue>
+    </div>
+</MudContainer>
+
+@if (ScrollToTopVisible)
+{
+    <MudScrollToTop Visible="true" />
+}
+
+@if (FooterContent != null)
+{
+    @FooterContent
+}
+
+@* This is the clickable scroll tracking Table Of Contents *@
+<MudDrawer Class="mud-toc-nav-drawer"
+           @bind-Open="_contentDrawerOpen"
+           Breakpoint="@Breakpoint" 
+           Anchor="@Anchor" 
+           ClipMode="@DrawerClipMode"
+           Elevation="0"
+           Color="Color.Transparent">
+        @if (_displayView)
+        {
+            <MudText Typo="Typo.subtitle1" Class="mud-toc-title" GutterBottom="true">
+                @Headline
+            </MudText>
+        }
+        <MudPageContentNavigation @ref="_contentNavigation"
+                                  SectionClassSelector="toc-section-anchor"  
+                                  ActivateFirstSectionAsDefault="true" />             
+</MudDrawer>

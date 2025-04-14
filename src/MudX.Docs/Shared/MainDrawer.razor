@@ -1,0 +1,99 @@
+@using Microsoft.AspNetCore.Components.Routing
+@using MudX.Docs.Data.Models
+@inject NavigationManager NavManager
+
+<MudTextField Class="my-2" @bind-Value="_searchTerm" Placeholder="Search" Variant="Variant.Text" />
+<MudNavMenu Dense="true">
+    @foreach (var nav in NavList!)
+    {
+        @RenderNavItem(nav)
+    }
+</MudNavMenu>
+@code {
+    private string? _searchTerm;
+    private List<NavItem> NavList = [];
+
+    protected override void OnInitialized()
+    {
+        if (NavList.Count > 0)
+        {
+            return;
+        }
+        var navItems = GeneratedNavList();
+
+        NavList = navItems
+        .Where(x => x.IsActive == true)
+        .Where(m => !m.ParentId.HasValue)
+        //.Where some sort of Role logic here if used
+        .ToList();
+    }
+
+    private void NavigateTo(NavItem nav)
+    {
+        NavManager.NavigateTo(nav.Route);
+    }
+
+    RenderFragment RenderNavItem(NavItem nav)
+    {
+        return builder =>
+        {
+            if (nav.ChildNavItems.Any())
+            {
+                builder.OpenComponent<MudNavGroup>(3);
+                builder.AddAttribute(4, "Title", nav.Title);
+                builder.AddAttribute(5, "Icon", nav.Icon);
+
+                builder.AddAttribute(6, "ChildContent", (RenderFragment)(childBuilder =>
+                {
+                    foreach (var child in nav.ChildNavItems)
+                    {
+                        childBuilder.AddContent(0, RenderNavItem(child));
+                    }
+                }));
+                if (!nav.ParentId.HasValue)
+                {
+                    builder.AddAttribute(7, "Class", "parent-nav-item");
+                }
+                builder.CloseComponent();
+            }
+            else
+            {
+                builder.OpenComponent<MudNavLink>(2);
+                builder.AddAttribute(3, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, e => NavigateTo(nav)));
+                builder.AddAttribute(4, "Icon", nav.Icon ?? string.Empty);
+                builder.AddAttribute(5, "Match", NavLinkMatch.All);
+                builder.AddAttribute(6, "Target", nav.IsNewWindow ? "_blank" : null);
+
+                builder.AddAttribute(7, "ChildContent", (RenderFragment)(innerBuilder =>
+                {
+                    innerBuilder.AddContent(0, nav.Title);
+                }));
+
+                if (!nav.ParentId.HasValue)
+                {
+                    builder.AddAttribute(8, "Class", "parent-nav-item");
+                }
+
+                builder.CloseComponent();
+            }
+        };
+    }
+
+    // TODO: Replace with generated code
+    private List<NavItem> GeneratedNavList()
+    {
+        return 
+        [
+            // Parent Levels
+            new NavItem() { NavItemId=1, Title="Home", Action="/", OrderById=0, IsActive=true },
+            new NavItem() { NavItemId=2, Title="API", OrderById=1, IsActive=true },
+            new NavItem() { NavItemId=3, Title="Docs", OrderById=2, IsActive=true },
+            new NavItem() { NavItemId=4, Title="About", Action="/about", OrderById=3, IsActive=true },
+            // Child Levels
+            new NavItem() { NavItemId=5, Title="Breadcrumbs", Action="/docs/breadcrumbs", ParentId=2, OrderById=0, IsActive=true },
+            new NavItem() { NavItemId=6, Title="Table Of Contents", Action="/docs/tableofcontents", ParentId=2, OrderById=1, IsActive=true },
+            new NavItem() { NavItemId=7, Title="Security Code", Action="/docs/securitycode", ParentId=2, OrderById=2, IsActive=true },
+        ];
+    }
+
+}
