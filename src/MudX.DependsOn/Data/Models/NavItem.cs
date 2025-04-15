@@ -1,9 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MudX.Docs.Data.Models
+namespace MudX.DependsOn.Data.Models
 {
-    internal class NavItem
+    public class NavItem
     {
+        [Key]
         public int NavItemId { get; set; }
         public int OrderById { get; set; }
         public string Title { get; set; } = default!;

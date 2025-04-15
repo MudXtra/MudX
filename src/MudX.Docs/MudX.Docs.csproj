@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -20,7 +20,32 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Components\Docs\Breadcrumbs\" />
+    <Folder Include="Components\Docs\SignalCode\" />
+    <Folder Include="Components\Docs\TableOfContents\" />
     <Folder Include="Pages\" />
   </ItemGroup>
+
+    <Target Name="GenerateNavJsonBeforeBuild" BeforeTargets="PreBuildEvent">
+        <Message Importance="high" Text="MudX.Docs.NavGenerator: Starting navigation generation..." />
+
+        <!-- Define paths -->
+        <PropertyGroup>
+            <NavGeneratorPath>$(MSBuildThisFileDirectory)..\MudX.Docs.NavGenerator\MudX.Docs.NavGenerator.csproj</NavGeneratorPath>
+            <OutputJsonPath>$(MSBuildThisFileDirectory)wwwroot\nav-structure.json</OutputJsonPath>
+            <PagesDirectory>$(MSBuildThisFileDirectory)Components</PagesDirectory>
+        </PropertyGroup>
+
+        <!-- Build and run in one command - framework version independent -->
+        <Exec Command="dotnet run --project &quot;$(NavGeneratorPath)&quot; --configuration Release -- &quot;$(OutputJsonPath)&quot; &quot;$(PagesDirectory)&quot;"
+              ConsoleToMSBuild="true"
+              ContinueOnError="false" />
+
+        <Message Importance="high" Text="MudX.Docs.NavGenerator: Finished navigation generation..." />
+    </Target>
+
+    <ItemGroup>
+        <EmbeddedResource Include="wwwroot\nav-structure.json" />
+    </ItemGroup>
 
 </Project>

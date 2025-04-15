@@ -1,31 +1,85 @@
 @using Microsoft.AspNetCore.Components.Routing
-@using MudX.Docs.Data.Models
+@using System.Text.Json;
+@using MudX.DependsOn.Data.Models
 @inject NavigationManager NavManager
 
-<MudTextField Class="my-2" @bind-Value="_searchTerm" Placeholder="Search" Variant="Variant.Text" />
-<MudNavMenu Dense="true">
-    @foreach (var nav in NavList!)
+<MudTextField Class="my-2" Value="@_searchTerm" ValueChanged="@((string s) => OnSearchTextChanged(s))" Placeholder="Search" Variant="Variant.Text" Immediate="true" />
+<MudNavMenu Class="mud-height-full mt-2">
+    @foreach (var nav in _filteredNavList!)
     {
         @RenderNavItem(nav)
     }
 </MudNavMenu>
 @code {
     private string? _searchTerm;
-    private List<NavItem> NavList = [];
+    private List<NavItem> _navList = [];
+    private Dictionary<int, NavItem> navItemsById = [];
+    private List<NavItem> _filteredNavList = [];
 
     protected override void OnInitialized()
     {
-        if (NavList.Count > 0)
+        if (_navList.Count > 0)
         {
             return;
         }
-        var navItems = GeneratedNavList();
 
-        NavList = navItems
-        .Where(x => x.IsActive == true)
-        .Where(m => !m.ParentId.HasValue)
-        //.Where some sort of Role logic here if used
-        .ToList();
+        _navList = GeneratedNavList();
+
+        // Create a dictionary for fast lookups by NavItemId
+        navItemsById = _navList.ToDictionary(x => x.NavItemId);
+
+        OnSearchTextChanged(string.Empty);
+
+    }
+
+    private void OnSearchTextChanged(string searchTerm)
+    {
+        _searchTerm = searchTerm;
+
+        // If search is empty, use the original ordered list
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var navList = CombineNavList(_navList);
+            _filteredNavList = navList
+                .Where(x => x.IsActive && !x.ParentId.HasValue)
+                .ToList();
+            return;
+        }
+
+        // Find all items matching the search term
+        var matchingItems = _navList
+            .Where(x => x.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            .ToHashSet();
+
+        // Add all parent items of matching children
+        var parentsToAdd = new HashSet<NavItem>();
+        foreach (var item in matchingItems)
+        {
+            var currentItem = item;
+            while (currentItem.ParentId.HasValue)
+            {
+                if (navItemsById.TryGetValue(currentItem.ParentId.Value, out var parent))
+                {
+                    parentsToAdd.Add(parent);
+                    currentItem = parent;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        // Combine all matching items
+        var filteredList = matchingItems.Union(parentsToAdd).ToList();
+
+        // Add children
+        filteredList = CombineNavList(filteredList);
+
+        // Final filtering for top-level active items
+        _filteredNavList = filteredList
+            .Where(x => x.IsActive && !x.ParentId.HasValue)
+            .ToList();
     }
 
     private void NavigateTo(NavItem nav)
@@ -54,6 +108,8 @@
                 {
                     builder.AddAttribute(7, "Class", "parent-nav-item");
                 }
+                builder.AddAttribute(8, "ExpandIcon", Icons.Material.Filled.ExpandMore);
+                builder.AddAttribute(9, "Expanded", !string.IsNullOrWhiteSpace(_searchTerm));
                 builder.CloseComponent();
             }
             else
@@ -79,21 +135,53 @@
         };
     }
 
-    // TODO: Replace with generated code
+    // TODO: Replace API with generated code
     private List<NavItem> GeneratedNavList()
     {
-        return 
-        [
-            // Parent Levels
-            new NavItem() { NavItemId=1, Title="Home", Action="/", OrderById=0, IsActive=true },
-            new NavItem() { NavItemId=2, Title="API", OrderById=1, IsActive=true },
-            new NavItem() { NavItemId=3, Title="Docs", OrderById=2, IsActive=true },
-            new NavItem() { NavItemId=4, Title="About", Action="/about", OrderById=3, IsActive=true },
-            // Child Levels
-            new NavItem() { NavItemId=5, Title="Breadcrumbs", Action="/docs/breadcrumbs", ParentId=2, OrderById=0, IsActive=true },
-            new NavItem() { NavItemId=6, Title="Table Of Contents", Action="/docs/tableofcontents", ParentId=2, OrderById=1, IsActive=true },
-            new NavItem() { NavItemId=7, Title="Security Code", Action="/docs/securitycode", ParentId=2, OrderById=2, IsActive=true },
-        ];
+        var navItems = new List<NavItem> {
+            // Parent Levels (Static)
+            new NavItem() { NavItemId=90, Title="Home", Action="", OrderById=0, IsActive=true },
+            new NavItem() { NavItemId=91, Title="API", OrderById=5, IsActive=true },
+            new NavItem() { NavItemId=99, Title="About", Action="about", OrderById=99, IsActive=true },
+        };
+
+        // load generated docs
+        var assembly = typeof(MudX.Docs.Shared.MainDrawer).Assembly;
+        var resourceName = "MudX.Docs.wwwroot.nav-structure.json"; // Adjust if needed
+        using var stream = assembly.GetManifestResourceStream(resourceName);
+        using var reader = new StreamReader(stream!);
+        var json = reader.ReadToEnd();
+        var navStructure = JsonSerializer.Deserialize<List<NavItem>>(json) ?? [];
+        navItems.AddRange(navStructure);
+
+        return navItems
+            .OrderBy(m => m.NavItemId)
+            .ThenBy(m => !m.ParentId.HasValue ? int.MaxValue : m.ParentId) // Handle null ParentId which will ensure parent's are sorted by orderbyId
+            .ThenBy(m => m.OrderById) // sort children by orderbyID
+            .ToList();
+    }
+
+    private List<NavItem> CombineNavList(List<NavItem> navItems)
+    {
+        // Clear ChildNavItems property
+        foreach (var navItem in navItems)
+        {
+            navItem.ChildNavItems.Clear();
+        }
+        // Populate ChildNavItems property
+        foreach (var navItem in navItems)
+        {
+            if (navItem.ParentId.HasValue)
+            {
+                var parentNavItem = navItems.FirstOrDefault(n => n.NavItemId == navItem.ParentId);
+                if (parentNavItem != null)
+                {
+                    parentNavItem.ChildNavItems.Add(navItem);
+                }
+            }
+        }
+
+        return navItems.OrderBy(x => x.OrderById).ToList();
     }
 
 }

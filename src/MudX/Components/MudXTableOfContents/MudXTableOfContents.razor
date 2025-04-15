@@ -1,45 +1,53 @@
+@using Microsoft.AspNetCore.Components.Routing
 @namespace MudX
 @inherits MudComponentBase
 
-@if (HeaderContent != null)
-{
-    @HeaderContent
-}
+<div class="mudx-toc-document" @attributes="@UserAttributes">
+    @if (HeaderContent != null)
+    {
+        @HeaderContent
+    }
 
-@* This is the actual document that is tracked *@
-<MudContainer MaxWidth="MaxWidth.Large">
-    <div id="@_tocId" class="mud-toc-content">
-        <CascadingValue Value="this" IsFixed="true">
-            @ChildContent
-        </CascadingValue>
-    </div>
-</MudContainer>
+    @* This is the actual document that is tracked *@
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <div id="@_tocId" class="mudx-toc-content">
+            <CascadingValue Value="this" IsFixed="true">
+                @ChildContent
+            </CascadingValue>
+        </div>
+    </MudContainer>
 
-@if (ScrollToTopVisible)
-{
-    <MudScrollToTop Visible="true" />
-}
+    @if (ScrollToTopVisible)
+    {
+        <MudScrollToTop Visible="true" />
+    }
 
-@if (FooterContent != null)
-{
-    @FooterContent
-}
+    @if (FooterContent != null)
+    {
+        @FooterContent
+    }
+</div>
 
 @* This is the clickable scroll tracking Table Of Contents *@
-<MudDrawer Class="mud-toc-nav-drawer"
+<MudDrawer Class="mudx-toc-nav-drawer"
            @bind-Open="_contentDrawerOpen"
-           Breakpoint="@Breakpoint" 
-           Anchor="@Anchor" 
+           Breakpoint="@Breakpoint"
+           Anchor="@Anchor"
            ClipMode="@DrawerClipMode"
-           Elevation="0"
+           Elevation="@Elevation"
            Color="Color.Transparent">
-        @if (_displayView)
+    <MudText Typo="Typo.subtitle1" Class="mudx-toc-title" GutterBottom="true">
+        @Headline
+    </MudText>
+    <div class="mudx-toc-nav-links">
+        @foreach (var docSection in _sections.OrderBy(x => x.LevelSortingValue))
         {
-            <MudText Typo="Typo.subtitle1" Class="mud-toc-title" GutterBottom="true">
-                @Headline
-            </MudText>
+            <MudNavLink @key="docSection.Id"
+                        Match="NavLinkMatch.All"
+                        Class="@GetNavLinkClass(docSection)"
+                        OnClick="@(e => OnNavLinkClick(docSection._id))">
+                @docSection.Title
+            </MudNavLink>
         }
-        <MudPageContentNavigation @ref="_contentNavigation"
-                                  SectionClassSelector="toc-section-anchor"  
-                                  ActivateFirstSectionAsDefault="true" />             
+    </div>
 </MudDrawer>
