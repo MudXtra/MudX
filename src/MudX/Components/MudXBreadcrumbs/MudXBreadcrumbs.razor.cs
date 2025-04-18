@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using MudBlazor;
 
 namespace MudX
@@ -8,7 +9,7 @@ namespace MudX
     /// 
     /// </summary>
     /// <remarks>Should be placed in MainLayout or similar</remarks>
-    public partial class MudXBreadcrumbs : MudComponentBase
+    public partial class MudXBreadcrumbs : MudComponentBase, IDisposable
     {
         internal List<BreadcrumbItem> crumbs = [];
 
@@ -63,13 +64,29 @@ namespace MudX
         [Parameter]
         public Func<string, string>? FormatFunc { get; set; }
 
+        /// <summary>
+        /// The text to display for the home link ( or "/" ).
+        /// </summary>
+        /// <remarks>Defaults to "Home".</remarks>
+        [Parameter]
+        public string HomeText { get; set; } = "Home";
 
         protected override void OnInitialized()
         {
-            NavManager.LocationChanged += (sender, e) => BuildBreadcrumbs();
+            NavManager.LocationChanged += OnLocationChanged;
             BuildBreadcrumbs();
 
             base.OnInitialized();
+        }
+
+        private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+        {
+            BuildBreadcrumbs();
+        }
+
+        public void Dispose()
+        {
+            NavManager.LocationChanged -= OnLocationChanged;
         }
 
         private void BuildBreadcrumbs()
@@ -79,7 +96,8 @@ namespace MudX
 
             if (string.IsNullOrEmpty(uri))
             {
-                crumbs.Add(new BreadcrumbItem("Home", "/", true));
+                crumbs.Add(new BreadcrumbItem(HomeText, "/", true));
+                StateHasChanged();
                 return;
             }
 

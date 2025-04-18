@@ -8,13 +8,11 @@
 <MudLayout>
     <MudAppBar Elevation="4" Fixed=true Dense="true">
         <MudIconButton Color="Color.Inherit" Icon="@Icons.Material.Outlined.Menu" Edge="Edge.Start" OnClick="@(() => _drawer = !_drawer)" />
-        <MudButton Href="/" Variant="Variant.Text">
+        <MudButton Class="ml-2" Href="/" Variant="Variant.Text">
             <MudImage Src="/_content/MudX.Docs/images/MudX_Transparent_Logo.png" Alt="An image of the MudX logo!"
-                      Style="width: 32px; height: 32px; margin-right: 8px;" />
-            <MudText Typo="Typo.h6">
-                MudX <span class="mud-warning-text">(</span>for
-                MudBlazor<span class="mud-warning-text">)</span>
-            </MudText>
+                      Style="width: 32px; height: 32px;" Class="mr-4 ml-n2" />
+            <MudText Typo="Typo.h4" Class="mudx-outlined-text mr-2">MudX</MudText>
+            <MudText Typo="Typo.h5"> for MudBlazor</MudText>
         </MudButton>
         <MudSpacer />
         <MudTooltip Text="Try MudX Online">
@@ -50,6 +48,17 @@
 <CascadingValue Name="IsDarkTheme" Value="@_isDarkMode" IsFixed="false">
 
 </CascadingValue>
+
+<style>
+    .mudx-outlined-text {
+        letter-spacing: 2px;
+        color: #594ae2;
+        text-shadow: -.5px -.5px var(--mud-palette-divider), 
+                      .5px -.5px var(--mud-palette-divider), 
+                     -.5px .5px var(--mud-palette-divider), 
+                      .5px .5px var(--mud-palette-divider);
+    }
+</style>
 
 @code {
     private bool _isDarkMode = false;

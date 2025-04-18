@@ -11,9 +11,6 @@ builder.Services.AddMudServices();
 
 var app = builder.Build();
 
-// AdditionalAssemblies
-
-
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -24,10 +21,10 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddAdditionalAssemblies(typeof(MudX.Docs.Shared.MainLayout).Assembly);

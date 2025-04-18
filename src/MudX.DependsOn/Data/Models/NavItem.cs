@@ -51,19 +51,24 @@ namespace MudX.DependsOn.Data.Models
         {
             get
             {
-                string href = string.IsNullOrWhiteSpace(OverrideHref) ? string.Empty : OverrideHref;
-                if (string.IsNullOrWhiteSpace(href))
-                {
-                    href = "/";
-                    var segments = new List<string>();
-                    if (!string.IsNullOrWhiteSpace(Application)) segments.Add(Application);
-                    if (!string.IsNullOrWhiteSpace(Controller)) segments.Add(Controller);
-                    if (!string.IsNullOrWhiteSpace(Action)) segments.Add(Action);
-                    href += segments.Count > 0 ? string.Join("/", segments) : string.Empty;
-                }
+                // Prefer OverrideHref if it is set
+                if (!string.IsNullOrWhiteSpace(OverrideHref))
+                    return OverrideHref;
 
-                return string.IsNullOrWhiteSpace(href) ? "/" : href;
+                // Build route from Application, Controller, Action
+                var segments = new List<string>();
+                if (!string.IsNullOrWhiteSpace(Application)) segments.Add(Application);
+                if (!string.IsNullOrWhiteSpace(Controller)) segments.Add(Controller);
+                if (!string.IsNullOrWhiteSpace(Action)) segments.Add(Action);
+
+                // If no segments, return home "/"
+                if (segments.Count == 0)
+                    return "/";
+
+                // Otherwise, combine segments with "/" prefix
+                return "/" + string.Join("/", segments);
             }
         }
+
     }
 }

@@ -2,20 +2,22 @@
 using MudBlazor;
 using MudBlazor.State;
 using MudBlazor.Utilities;
+using MudX.Components.MudXOutline;
+using MudX.Extensions;
 
 namespace MudX
 {
-    public partial class MudXTableOfContents : MudComponentBase, IAsyncDisposable
+    public partial class MudXOutline : MudComponentBase, IAsyncDisposable, IOutlineContainer
     {
         private bool _contentDrawerOpen = true;
         private readonly string _tocId = Guid.NewGuid().ToString();
 
         private readonly ParameterState<bool> _contentDrawerOpenState;
 
-        private List<MudXTableOfContentsSection> _sections = [];
+        internal List<MudXOutlineSection> _sections = [];
         private IScrollSpy? _scrollSpy;
 
-        public MudXTableOfContents()
+        public MudXOutline()
         {
             using var registerScope = CreateRegisterScope();
             _contentDrawerOpenState = registerScope.RegisterParameter<bool>(nameof(ContentDrawerOpen))
@@ -23,11 +25,15 @@ namespace MudX
                 .WithChangeHandler(HandleContentDrawerOpenChanged);
         }
 
-        protected string GetNavLinkClass(MudXTableOfContentsSection section) =>
+        protected static string GetNavLinkClass(MudXOutlineSection section) =>
             new CssBuilder("mudx-toc-nav-navlink")
                 .AddClass("active", section.Active)
-                .AddClass($"navigation-level-{section.Level}")
+                .AddClass($"navigation-level-{Math.Min(5, section.Level - 1)}", section.Level > 1)
                 .Build();
+
+        protected string GetNavLinksClass => new CssBuilder("mudx-toc-nav-links")
+            .AddClass($"mudx-style-{StyleVariant.ToDescription()}", StyleVariant != OutlineStyleVariant.None)
+            .Build();
 
         [Inject]
         private IScrollSpyFactory ScrollSpyFactory { get; set; } = null!;
@@ -109,7 +115,16 @@ namespace MudX
         /// The class name (without .) to identify the HTML elements that should be observed for viewport changes
         /// </summary>
         [Parameter]
-        public string SectionClassSelector { get; set; } = "mudx-table-of-contents";
+        public string SectionClassSelector { get; set; } = "mudx-toc-section";
+
+        /// <summary>
+        /// The Style Variant to apply to the Table of Contents area. Options are Bullet, Scroll, Minimal, and None.
+        /// </summary>
+        /// <remarks>Defaults to <see cref="OutlineStyleVariant.Scroll"/></remarks>
+        [Parameter]
+        public OutlineStyleVariant StyleVariant { get; set; } = OutlineStyleVariant.Scroll;
+
+        public int Level { get; } = 0;
 
         // If the user toggles the content drawer, update the drawer open variable
         private void HandleContentDrawerOpenChanged(ParameterChangedEventArgs<bool> args)
@@ -128,6 +143,10 @@ namespace MudX
         {
             if (firstRender)
             {
+                // make sure each level is put in the correct order regardless if nested
+                BuildLevelStructure();
+                // make sure each section has a unique SectionId for ScrollSpy 
+                BuildSectionIdsUnique();
                 if (_scrollSpy is not null)
                 {
                     _scrollSpy.ScrollSectionSectionCentered += ScrollSpy_ScrollSectionSectionCentered;
@@ -142,10 +161,53 @@ namespace MudX
             }
         }
 
+        private void BuildLevelStructure()
+        {
+            // Set the Level structure so hierarchial sections can be rendered correctly in the Table of Contents
+            foreach (var section in _sections)
+            {
+                section.SetLevelStructure();
+            }
+        }
+
+        /// <summary>
+        /// Ensure each section has a unique SectionId both for ScrollSpy and @key declarations
+        /// </summary>
+        internal void BuildSectionIdsUnique()
+        {
+            var idCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            BuildSectionIdsUniqueInternal(_sections, idCounts);
+        }
+
+        private void BuildSectionIdsUniqueInternal(List<MudXOutlineSection> sections, Dictionary<string, int> idCounts)
+        {
+            foreach (var section in sections)
+            {
+                var baseId = section.SectionId;
+                if (!idCounts.TryGetValue(baseId, out int _))
+                {
+                    idCounts[baseId] = 1;
+                    section.SectionId = baseId;
+                }
+                else
+                {
+                    idCounts[baseId]++;
+                    section.SectionId = $"{baseId}-{idCounts[baseId]}";
+                    // Queue up a state change
+                    StateHasChanged();
+                }
+
+                if (section._subSections.Count > 0)
+                {
+                    BuildSectionIdsUniqueInternal(section._subSections, idCounts);
+                }
+            }
+        }
+
         /// <summary>
         /// Adds a section to the Table of Contents
         /// </summary>
-        public async Task AddSectionAsync(MudXTableOfContentsSection section)
+        public async Task RegisterSectionAsync(MudXOutlineSection section)
         {
             // Add section logic
             _sections.Add(section);
@@ -169,7 +231,7 @@ namespace MudX
                 return;
             }
 
-            var activeLink = _sections.FirstOrDefault(x => x.Id == id);
+            var activeLink = _sections.FirstOrDefault(x => x.SectionId == id);
             if (activeLink == null)
             {
                 return;

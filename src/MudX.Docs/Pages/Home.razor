@@ -1,3 +1,46 @@
 @page "/"
 
 <PageTitle>Home</PageTitle>
+
+    <MudText Typo="Typo.h3">Welcome to <span style="color: #594ae2ff;">MudX</span></MudText>
+
+    <MudText>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    </MudText>
+
+    <MudSelect T="string" @bind-Value="selectedValue" Placeholder="Select a type">
+        <MudSelectItem Value=@("Generated")>Generated</MudSelectItem>
+        <MudSelectItem Value=@("Received")>Received</MudSelectItem>
+        <MudSelectItem Value=@("Carrier")>Carrier</MudSelectItem>
+    </MudSelect>
+
+<style id="customstyle">
+    .custom-css .mud-typography-h3 {
+        color: var(--custom-color);
+    }
+
+    .custom-css .custom-css {
+        color: greenyellow;
+    }
+</style>
+
+<style id="setstyle">
+    @CustomColor 
+</style>
+
+@code{
+    private string selectedValue = "Generated";
+
+    private string CustomColor => $":root {{--custom-color: {selectedColor()};}}";
+
+    private string selectedColor()
+    {
+return selectedValue switch
+        {
+            "Generated" => "red",
+            "Received" => "green",
+            "Carrier" => "blue",
+            _ => "red"
+        };
+    }
+}

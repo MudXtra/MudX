@@ -35,23 +35,6 @@
   },
   {
     "NavItemId": 3,
-    "OrderById": 11,
-    "Title": "Signal Code",
-    "Icon": null,
-    "Application": null,
-    "Controller": "docs",
-    "Action": "signalcode",
-    "Role": null,
-    "OverrideHref": null,
-    "IsNewWindow": false,
-    "IsActive": true,
-    "ChildNavItems": [],
-    "ParentId": 1,
-    "ParentNavItem": null,
-    "Route": "/docs/signalcode"
-  },
-  {
-    "NavItemId": 4,
     "OrderById": 12,
     "Title": "Table Of Contents",
     "Icon": null,
@@ -66,5 +49,22 @@
     "ParentId": 1,
     "ParentNavItem": null,
     "Route": "/docs/tableofcontents"
+  },
+  {
+    "NavItemId": 4,
+    "OrderById": 11,
+    "Title": "Signal Code",
+    "Icon": null,
+    "Application": null,
+    "Controller": "docs",
+    "Action": "signalcode",
+    "Role": null,
+    "OverrideHref": null,
+    "IsNewWindow": false,
+    "IsActive": true,
+    "ChildNavItems": [],
+    "ParentId": 1,
+    "ParentNavItem": null,
+    "Route": "/docs/signalcode"
   }
 ]

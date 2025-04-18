@@ -39,13 +39,13 @@
     <MudText Typo="Typo.subtitle1" Class="mudx-toc-title" GutterBottom="true">
         @Headline
     </MudText>
-    <div class="mudx-toc-nav-links">
+    <div class="@GetNavLinksClass">
         @foreach (var docSection in _sections.OrderBy(x => x.LevelSortingValue))
         {
-            <MudNavLink @key="docSection.Id"
+            <MudNavLink @key="docSection._id"
                         Match="NavLinkMatch.All"
                         Class="@GetNavLinkClass(docSection)"
-                        OnClick="@(e => OnNavLinkClick(docSection._id))">
+                        OnClick="@(e => OnNavLinkClick(docSection.SectionId))">
                 @docSection.Title
             </MudNavLink>
         }
