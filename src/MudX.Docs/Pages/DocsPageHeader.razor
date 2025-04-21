@@ -1,0 +1,19 @@
+@namespace MudX.Docs
+
+<div class="docs-page-header">
+    <MudText Typo="@Typo.h4">@Title</MudText>
+    @if (Description != null)
+    {
+        <MudText Typo="@Typo.body1">@Description</MudText>
+    }
+    else
+    {
+        <MudText Typo="@Typo.body1">@DescriptionText</MudText>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = default!;
+    [Parameter] public string DescriptionText { get; set; } = default!;
+    [Parameter] public RenderFragment? Description { get; set; }
+}

@@ -1,0 +1,13 @@
+@namespace MudX.Docs
+@inherits MudComponentBase
+
+<MudXOutlineSection Class="@($"{Class} docs-page-section")" Style="@Style" @attributes="UserAttributes"
+                    Title="@Title">
+    <MudText Typo="Typo.h6" Class="docs-page-section-title">@Title</MudText>
+    @ChildContent
+</MudXOutlineSection>
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter, EditorRequired] public string Title { get; set; } = default!;
+}

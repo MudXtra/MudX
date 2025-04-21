@@ -3,10 +3,6 @@
 @inherits MudComponentBase
 
 <div class="mudx-toc-document" @attributes="@UserAttributes">
-    @if (HeaderContent != null)
-    {
-        @HeaderContent
-    }
 
     @* This is the actual document that is tracked *@
     <MudContainer MaxWidth="MaxWidth.Large">
@@ -20,11 +16,6 @@
     @if (ScrollToTopVisible)
     {
         <MudScrollToTop Visible="true" />
-    }
-
-    @if (FooterContent != null)
-    {
-        @FooterContent
     }
 </div>
 

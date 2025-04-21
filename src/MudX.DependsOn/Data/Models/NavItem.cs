@@ -28,25 +28,6 @@ namespace MudX.DependsOn.Data.Models
         [ForeignKey("ParentId")]
         public virtual NavItem? ParentNavItem { get; set; }
 
-        public NavItem()
-        {
-
-        }
-        public NavItem(NavItem item)
-        {
-            NavItemId = item.NavItemId;
-            OrderById = item.OrderById;
-            Title = item.Title;
-            Icon = item.Icon;
-            Application = item.Application;
-            Controller = item.Controller;
-            Action = item.Action;
-            Role = item.Role;
-            OverrideHref = item.OverrideHref;
-            IsNewWindow = item.IsNewWindow;
-            IsActive = item.IsActive;
-            ParentId = item.ParentId ?? -1;
-        }
         public string Route
         {
             get

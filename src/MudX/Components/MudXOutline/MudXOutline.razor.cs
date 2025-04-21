@@ -94,18 +94,6 @@ namespace MudX
         public DrawerClipMode DrawerClipMode { get; set; } = DrawerClipMode.Always;
 
         /// <summary>
-        /// The Header for the Table of Contents Items
-        /// </summary>
-        [Parameter]
-        public RenderFragment? HeaderContent { get; set; }
-
-        /// <summary>
-        /// The Footer for the Table of Contents Items
-        /// </summary>
-        [Parameter]
-        public RenderFragment? FooterContent { get; set; }
-
-        /// <summary>
         /// The CSS selector used to identify the scroll container
         /// </summary>
         [Parameter]

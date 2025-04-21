@@ -3,7 +3,7 @@
 @using MudX.DependsOn.Data.Models
 @inject NavigationManager NavManager
 
-<MudTextField Class="my-2" Value="@_searchTerm" ValueChanged="@((string s) => OnSearchTextChanged(s))" Placeholder="Search" Variant="Variant.Text" Immediate="true" />
+<MudTextField Class="my-2" Value="@_searchTerm" ValueChanged="@((string s) => OnSearchTextChanged(s))" Placeholder="Search" Variant="Variant.Filled" Immediate="true" />
 <MudNavMenu Class="mud-height-full mt-2">
     @foreach (var nav in _filteredNavList!)
     {

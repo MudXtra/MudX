@@ -1,0 +1,18 @@
+@namespace MudX.Docs
+
+<code class="docs-code @(SecondaryColor? $"docs-code-secondary {Class}": $"docs-code-primary {Class}")">
+    @if (Tag) { <span>&lt;</span> }@Code@ChildContent@if (Tag) { <span>&gt;</span> }
+</code>
+
+@code
+{
+    [Parameter, EditorRequired] public required RenderFragment ChildContent { get; set; }
+
+    [Parameter] public string Code { get; set; } = string.Empty;
+
+    [Parameter] public bool SecondaryColor { get; set; }
+
+    [Parameter] public string Class { get; set; } = string.Empty;
+
+    [Parameter] public bool Tag { get; set; } = true;
+}

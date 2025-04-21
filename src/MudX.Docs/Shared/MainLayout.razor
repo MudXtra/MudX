@@ -6,13 +6,13 @@
 <MudPopoverProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="4" Fixed=true Dense="true">
+    <MudAppBar Elevation="4" Fixed=true>
         <MudIconButton Color="Color.Inherit" Icon="@Icons.Material.Outlined.Menu" Edge="Edge.Start" OnClick="@(() => _drawer = !_drawer)" />
         <MudButton Class="ml-2" Href="/" Variant="Variant.Text">
             <MudImage Src="/_content/MudX.Docs/images/MudX_Transparent_Logo.png" Alt="An image of the MudX logo!"
-                      Style="width: 32px; height: 32px;" Class="mr-4 ml-n2" />
-            <MudText Typo="Typo.h4" Class="mudx-outlined-text mr-2">MudX</MudText>
-            <MudText Typo="Typo.h5"> for MudBlazor</MudText>
+                      Style="width: 48px; height: 48px;" Class="mr-5 ml-n2" />
+            <MudText Typo="Typo.h3" Class="mudx-outlined-text mr-5">MudX</MudText>
+            <MudText Typo="Typo.h4" Class="mb-n1"> for MudBlazor</MudText>
         </MudButton>
         <MudSpacer />
         <MudTooltip Text="Try MudX Online">
@@ -35,14 +35,8 @@
     <MudDrawer @bind-Open="_drawer" ClipMode="DrawerClipMode.Docked" Variant="DrawerVariant.Persistent" Class="pt-4 pa-2">
         <MainDrawer />
     </MudDrawer>
-    <MudMainContent Class="pt-12 pa-4">
-        <ErrorBoundary>
-            <ChildContent>
-                <MudXBreadcrumbs />
-                @Body
-            </ChildContent>
-        </ErrorBoundary>
-    </MudMainContent>
+    <MudXBreadcrumbs />
+    @Body
 </MudLayout>
 
 <CascadingValue Name="IsDarkTheme" Value="@_isDarkMode" IsFixed="false">
@@ -52,7 +46,7 @@
 <style>
     .mudx-outlined-text {
         letter-spacing: 2px;
-        color: #594ae2;
+        color: var(--mud-palette-primary);
         text-shadow: -.5px -.5px var(--mud-palette-divider), 
                       .5px -.5px var(--mud-palette-divider), 
                      -.5px .5px var(--mud-palette-divider), 

@@ -32,6 +32,12 @@
    Base NavLink
 ========================= */
 
+    .mudx-toc-nav-links .mud-nav-item.mudx-toc-nav-navlink .mud-nav-link:hover,
+    .mudx-toc-nav-links .mud-nav-item.mudx-toc-nav-navlink .mud-nav-link:active,
+    .mudx-toc-nav-links .mud-nav-item.mudx-toc-nav-navlink .mud-nav-link:focus {
+        background-color: inherit;
+    }
+
     .mudx-toc-nav-links .mudx-toc-nav-navlink {
         position: relative;
         margin-bottom: 0.1rem;
@@ -60,14 +66,14 @@
 }
 
     .mudx-style-bullet .mudx-toc-nav-navlink {
-        padding-left: 0.6rem; /* tighter space between bullet and text */
+        padding-left: 1rem; /* tighter space between bullet and text */
     }
 
         .mudx-style-bullet .mudx-toc-nav-navlink::before {
             content: "";
             position: absolute;
             top: 0.55rem;
-            left: 0rem;
+            left: .4rem;
             width: 10px;
             height: 10px;
             background-color: var(--mud-palette-primary-text);

@@ -22,7 +22,6 @@
   <ItemGroup>
     <Folder Include="Components\Docs\Breadcrumbs\" />
     <Folder Include="Components\Docs\SignalCode\" />
-    <Folder Include="Pages\" />
   </ItemGroup>
 
     <Target Name="GenerateNavJsonBeforeBuild" BeforeTargets="PreBuildEvent">
