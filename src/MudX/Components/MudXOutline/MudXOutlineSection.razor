@@ -2,5 +2,8 @@
 @namespace MudX
 
 <div id="@SectionId" class="@($"{Class} mudx-toc-section")" style="@Style" @attributes="@UserAttributes">
-    @ChildContent
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
 </div>

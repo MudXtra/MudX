@@ -1,0 +1,41 @@
+@using MudX.Models
+@namespace MudX.Docs
+
+<MudPaper Elevation="4" Class="docs-section-content">
+    <MudToolBar>
+        <MudSpacer />
+        <MudTooltip Text="Online Playground" Arrow="true" Color="Color.Dark" Placement="Placement.Top" Delay="300" Duration="500" ShowOnFocus="false">
+            <MudButton OnClick="RunOnTryMudX" StartIcon="@Icons.Material.Rounded.PlayArrow" IconColor="Color.Success" Color="Color.Default" Size="Size.Small">Run</MudButton>
+        </MudTooltip>
+        <MudButton OnClick="OnShowCode" StartIcon="@(ShowCode ? @Icons.Material.Rounded.CodeOff : Icons.Material.Rounded.Code)" Color="Color.Default" Size="Size.Small">
+            @(ShowCode ? "Hide code" : "Show code")
+        </MudButton>
+    </MudToolBar>
+    <div class="docs-section-inner">
+        @ChildContent
+    </div>
+    @if (ShowCode && Codes.Count() > 0)
+    {
+        <MudXCodeDisplay Codes="@Codes" />
+    }
+</MudPaper>
+
+@code {
+    private bool _hasCode;
+
+    [Parameter] public IEnumerable<CodeFile> Codes { get; set; }
+    [Parameter] public bool ShowCode { get; set; }
+    [Parameter, EditorRequired] public required RenderFragment ChildContent { get; set; }
+
+    protected override void OnParametersSet()
+    {
+
+    }
+
+    private void OnShowCode() => ShowCode = !ShowCode;
+
+    private async Task RunOnTryMudX()
+    {
+        
+    }
+}

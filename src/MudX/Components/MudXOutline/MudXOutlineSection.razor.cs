@@ -32,7 +32,7 @@ namespace MudX
         /// <summary>
         /// The content of the Document Sections
         /// </summary>
-        [Parameter, EditorRequired]
+        [Parameter]
         public RenderFragment? ChildContent { get; set; }
 
         public string SectionId { get; internal set; } = string.Empty;

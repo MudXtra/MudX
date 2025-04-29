@@ -34,9 +34,15 @@
     </MudAppBar>
     <MudDrawer @bind-Open="_drawer" ClipMode="DrawerClipMode.Docked" Variant="DrawerVariant.Persistent" Class="pt-4 pa-2">
         <MainDrawer />
-    </MudDrawer>
-    <MudXBreadcrumbs />
-    @Body
+    </MudDrawer>    
+    <MudMainContent Class="pt-15 pa-4">
+        <ErrorBoundary>
+            <ChildContent>
+                <MudXBreadcrumbs />
+                @Body
+            </ChildContent>
+        </ErrorBoundary>
+    </MudMainContent>
 </MudLayout>
 
 <CascadingValue Name="IsDarkTheme" Value="@_isDarkMode" IsFixed="false">

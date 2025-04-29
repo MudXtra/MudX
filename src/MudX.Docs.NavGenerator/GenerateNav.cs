@@ -1,5 +1,5 @@
 ﻿using System.Text.RegularExpressions;
-using MudX.DependsOn.Data.Models;
+using MudX.Models;
 
 namespace MudX.Docs.NavGenerator
 {
@@ -14,7 +14,7 @@ namespace MudX.Docs.NavGenerator
             int skippedFileCount = 0;
 
             var razorFiles = Directory.GetFiles(rootDirectory, "*DocPage.razor", SearchOption.AllDirectories);
-            Console.WriteLine($"- Found {razorFiles.Length} DocPage.razor files to process");
+            //Console.WriteLine($"- Found {razorFiles.Length} DocPage.razor files to process");
 
             foreach (var filePath in razorFiles)
             {
@@ -26,7 +26,7 @@ namespace MudX.Docs.NavGenerator
                     var pageParts = ExtractPageDirective(fileContent);
                     if (pageParts == null)
                     {
-                        Console.WriteLine($"  - Skipping {fileName} (no @page directive)");
+                        //Console.WriteLine($"  - Skipping {fileName} (no @page directive)");
                         skippedFileCount++;
                         continue;
                     }
@@ -44,7 +44,7 @@ namespace MudX.Docs.NavGenerator
                         int controllerId = nextId++;
                         controllerToNavId[controller] = controllerId;
 
-                        Console.WriteLine($"  - Creating controller nav item: \"{controller}\" (ID: {controllerId})");
+                        //Console.WriteLine($"  - Creating controller nav item: \"{controller}\" (ID: {controllerId})");
 
                         navItems.Add(new NavItem
                         {
@@ -106,7 +106,7 @@ namespace MudX.Docs.NavGenerator
             }
 
 
-            Console.WriteLine($"- Navigation items generated: {processedFileCount} files processed, {skippedFileCount} files skipped");
+            //Console.WriteLine($"- Navigation items generated: {processedFileCount} files processed, {skippedFileCount} files skipped");
 
             return navItems;
         }

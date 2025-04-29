@@ -1,4 +1,5 @@
 @page "/docs/tableofcontents"
+@using Mudx.Docs.Outline
 
 <PageTitle>Table Of Contents</PageTitle>
 
@@ -11,10 +12,21 @@
         </Description>
     </DocsPageHeader>
 
+    <DocsPageSection Title="Basic Usage">
+        <Description>
+            The outline is a scrollspy control for displaying an index or table of contents on either side of the text content.
+            The <CodeInline>MudXOutline</CodeInline> is a wrapper for a number of <CodeInline>MudXOutlineSection</CodeInline>. 
+            Each <CodeInline>MudXOutlineSection</CodeInline> has a <CodeInline>Title</CodeInline> that is used for the index 
+            and whatever content is supplied inside is what is displayed in the main content area.
+        </Description>
+        <SectionContent>
+            <OutlineBasicExample />
+        </SectionContent>
+    </DocsPageSection>
 
 </DocsPage>
 
-<MudSelect @bind-Value="@selectedStyle" Placeholder="Select Style">
+@* <MudSelect @bind-Value="@selectedStyle" Placeholder="Select Style">
     <MudSelectItem Value="OutlineStyleVariant.None">None</MudSelectItem>
     <MudSelectItem Value="OutlineStyleVariant.Bullet">Bullet</MudSelectItem>
     <MudSelectItem Value="OutlineStyleVariant.Scroll">Scroll</MudSelectItem>
@@ -60,7 +72,7 @@
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         <br /><br /><br /><br /><br />
     </MudXOutlineSection>
-</MudXOutline>
+</MudXOutline> *@
 
 @code {
     private static string __title__ = "Table Of Contents";

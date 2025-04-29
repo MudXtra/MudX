@@ -2,7 +2,7 @@
 using System.Text.Json;
 using MudX.Docs.NavGenerator;
 
-Console.WriteLine("******");
+//Console.WriteLine("******");
 if (args.Length < 2)
 {
     Console.WriteLine();
@@ -30,10 +30,10 @@ try
     });
 
     File.WriteAllText(outputFileName, json);
-    Console.WriteLine();
+    //Console.WriteLine();
     Console.WriteLine("MudX.Docs.NavGenerator: Nav structure written to {" + outputDirectory + "/" + outputFileName + "}");
-    Console.WriteLine();
-    Console.WriteLine("******");
+    //Console.WriteLine();
+    //Console.WriteLine("******");
     return 0;
 }
 catch (Exception ex)

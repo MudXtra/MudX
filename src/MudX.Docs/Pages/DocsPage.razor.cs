@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components;
-using MudBlazor;
 
 namespace MudX.Docs
 {
-    public partial class DocsPage : MudComponentBase
+    public partial class DocsPage
     {
 
         [Parameter, EditorRequired]

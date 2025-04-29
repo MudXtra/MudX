@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MudX.DependsOn.Data.Models
+namespace MudX.Models
 {
     public class NavItem
     {
