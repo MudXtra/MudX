@@ -1,13 +1,8 @@
+@using Microsoft.AspNetCore.Components.Rendering
+@using MudX.Components
+@inherits MudXBreadcrumbsBase
 @namespace MudX
-@inherits MudComponentBase
 
-<MudBreadcrumbs Separator="@Separator" 
-                Items="@crumbs" 
-                MaxItems="@MaxItems" 
-                Class="@Class" 
-                ItemTemplate="@ItemTemplate">
-    <SeparatorTemplate>
-        <MudIcon Icon="@Icons.Material.Filled.ChevronRight" />
-    </SeparatorTemplate>
-</MudBreadcrumbs>
-
+<div class="mudx-breadcrumbs-wrapper">
+   @((RenderTreeBuilder builder) => base.BuildRenderTree(builder))
+</div>

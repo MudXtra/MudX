@@ -1,6 +1,6 @@
 @namespace MudX.Docs
 
-<div class="docs-page-header">
+<div class="docs-page-header mb-8">
     <MudText Typo="@Typo.h4">@Title</MudText>
     @if (Description != null)
     {
@@ -13,7 +13,7 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public string Title { get; set; } = default!;
+    [Parameter] public string Title { get; set; } = "Overview";
     [Parameter] public string DescriptionText { get; set; } = default!;
     [Parameter] public RenderFragment? Description { get; set; }
 }

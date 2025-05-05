@@ -1,6 +1,6 @@
 @namespace MudX.Docs
 
-<div class="docs-page-section-container my-2">
+<div class="docs-page-section-container my-5">
     <MudXOutlineSection Class="docs-page-section" Title="@Title">
         <MudText Typo="Typo.h6" Class="docs-page-section-title">@Title</MudText>
         @if (Description != null)
@@ -11,7 +11,9 @@
         {
             <MudText Class="mb-2" Typo="@Typo.body1">@DescriptionText</MudText>
         }
-        @SectionContent
+        <DocsPageSectionContent>
+            @SectionContent
+        </DocsPageSectionContent>
     </MudXOutlineSection>
 </div>
 
