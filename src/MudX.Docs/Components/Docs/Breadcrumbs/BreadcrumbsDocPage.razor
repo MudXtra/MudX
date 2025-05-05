@@ -6,8 +6,17 @@
 <DocsPage>
     <DocsPageHeader>
         <Description>
-            Extends <CodeInline>MudBreadcrumb</CodeInline> to automatically listen to route changes and update 
-            the breadcrumbs to a label and optional route. It is best placed inside a <CodeInline>MainLayout</CodeInline>.            
+            Extends <CodeInline>MudBreadcrumb</CodeInline> to automatically listen to route changes and update
+            breadcrumbs. Best placed inside a <CodeInline>MainLayout</CodeInline>.
+
+            Key differences from <CodeInline>MudBreadcrumb</CodeInline>:
+            <ul class="ml-10">
+                <li><strong>New Properties</strong>: <CodeInline>HomeText</CodeInline> and <CodeInline>FormatFunc</CodeInline> are optional.</li>
+                <li><strong>Restricted Properties</strong>: <CodeInline>Items</CodeInline> cannot be set directly.</li>
+            </ul>
+
+            The component automatically updates breadcrumbs based on your navigation state. As long as your <CodeInline>@@page</CodeInline>
+            routes are properly configured, breadcrumbs will display correctly without manual intervention.
         </Description>
     </DocsPageHeader>
 
@@ -25,7 +34,9 @@
         <Description>
             Most settings carry over from the <CodeInline>MudBreadcrumb</CodeInline> component. 
             Obviously <CodeInline>Items</CodeInline>, <CodeInline>ItemTemplate</CodeInline>, 
-            and <CodeInline>Icons</CodeInline> do not transfer.
+            and <CodeInline>Icons</CodeInline> do not transfer. You can place this anywhere and so
+            long as your <CodeInline>page</CodeInline> declarations are setup in a manner to be mapped
+            it will work naturally. 
         </Description>
         <SectionContent>
             <BreadcrumbsSettingsExample />

@@ -13,8 +13,6 @@ namespace MudX.Components
     {
         [Inject] private NavigationManager NavManager { get; set; } = default!;
 
-        private readonly List<BreadcrumbItem> _items = [];
-
         /// <summary>
         /// Optional function to format each segment label.
         /// </summary>
@@ -58,13 +56,9 @@ namespace MudX.Components
         private void BuildBreadcrumbs()
         {
             var uri = NavManager.ToBaseRelativePath(NavManager.Uri);
-            _items.Clear();
-
-            if (string.IsNullOrEmpty(uri))
-            {
-                _items.Add(new BreadcrumbItem(HomeText, "/", true));
-            }
-            else
+            var _items = new List<BreadcrumbItem>();
+            _items.Add(new BreadcrumbItem(HomeText, "/", string.IsNullOrEmpty(uri)));
+            if (!string.IsNullOrEmpty(uri))
             {
                 var segments = uri.Split('/', StringSplitOptions.RemoveEmptyEntries);
                 var path = "";
