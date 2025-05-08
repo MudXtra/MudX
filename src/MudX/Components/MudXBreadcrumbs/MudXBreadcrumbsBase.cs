@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using MudBlazor;
+using MudBlazor.State;
 
 namespace MudX.Components
 {
@@ -11,13 +12,16 @@ namespace MudX.Components
     /// <remarks>Should be placed in MainLayout or similar</remarks>
     public class MudXBreadcrumbsBase : MudBreadcrumbs, IDisposable
     {
+        private ParameterState<string> _homeTextState;
+        public MudXBreadcrumbsBase()
+        {
+            using var registerScope = CreateRegisterScope();
+            _homeTextState = registerScope.RegisterParameter<string>(nameof(HomeText))
+                .WithParameter(() => HomeText)
+                .WithEventCallback(() => HomeTextChanged)
+                .WithChangeHandler(HomeTextHandleChanged);
+        }
         [Inject] private NavigationManager NavManager { get; set; } = default!;
-
-        /// <summary>
-        /// Optional function to format each segment label.
-        /// </summary>
-        [Parameter]
-        public Func<string, string>? FormatFunc { get; set; }
 
         /// <summary>
         /// The text to display for the home link ( or "/" ).
@@ -25,6 +29,14 @@ namespace MudX.Components
         /// <remarks>Defaults to "Home".</remarks>
         [Parameter]
         public string HomeText { get; set; } = "Home";
+
+        /// <summary>
+        /// Event callback for HomeText changes.
+        /// </summary>
+        [Parameter]
+        public EventCallback<string> HomeTextChanged { get; set; }
+
+        private void HomeTextHandleChanged(ParameterChangedEventArgs<string> args) => BuildBreadcrumbs();
 
         /// <summary>
         /// Read-only list of BreadcrumbItems, hidden from Parameters
@@ -66,7 +78,7 @@ namespace MudX.Components
                 {
                     path += "/" + segments[i];
                     var isCurrent = i == segments.Length - 1;
-                    var label = FormatFunc?.Invoke(segments[i]) ?? FormatLabel(segments[i]);
+                    var label = FormatLabel(segments[i]);
                     _items.Add(new BreadcrumbItem(label, path, isCurrent));
                 }
             }

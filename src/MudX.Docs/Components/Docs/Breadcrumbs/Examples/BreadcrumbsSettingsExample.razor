@@ -24,7 +24,7 @@
             <MudSelectItem Value="@Icons.Material.Filled.ArrowRight">ArrowRight</MudSelectItem>
         </MudSelect>
     </div>
-    <div>
+    <div style="min-width: 200px;">
         <MudTextField Label="Separator" ShrinkLabel="true" Immediate @bind-Value="_separator" @bind-Value:after="@(() => _counter++)" FullWidth="false" MaxLength="1" Clearable />
     </div>    
 </MudStack>

@@ -1,5 +1,25 @@
 .docs-section-content {
     background-color: var(--mud-palette-surface);
     max-height: 400px;
-    overflow-y: auto;
+}
+
+.mudx-outlined-text {
+    letter-spacing: 2px;
+    color: var(--mud-palette-primary);
+    text-shadow: -.5px -.5px var(--mud-palette-divider), .5px -.5px var(--mud-palette-divider), -.5px .5px var(--mud-palette-divider), .5px .5px var(--mud-palette-divider);
+}
+
+.mudx-button-gradient-primary {
+    position: relative;
+    background-image: linear-gradient( 82deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary) 100%, var(--mud-palette-primary) 200% );
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .mudx-button-gradient-primary:hover {
+        box-shadow: 0.3px 0.5px 0.4px hsla(247deg, 59%, 41%, 0.62), 0.3px 0.6px 0.5px -0.7px hsla(247deg, 59%, 41%, 0.54), 0.8px 1.6px 1.3px -1.4px hsla(247deg, 59%, 41%, 0.46), 2px 4.1px 3.4px -2.1px hsla(247deg, 59%, 41%, 0.38), 4.5px 9px 7.5px -2.9px hsla(247deg, 59%, 41%, 0.31), 8.5px 17.1px 14.3px -3.6px hsla(247deg, 59%, 41%, 0.23), 14.6px 29.2px 24.5px -4.3px hsla(247deg, 59%, 41%, 0.15), 23px 46px 38.6px -5px hsla(247deg, 59%, 41%, 0.08);
+    }
+}
+
+.mudx-button-gradient-primary:active {
+    box-shadow: 0.3px 0.5px 0.4px hsla(247deg, 59%, 41%, 0.62), 0.3px 0.6px 0.5px -0.7px hsla(247deg, 59%, 41%, 0.54), 0.8px 1.6px 1.3px -1.4px hsla(247deg, 59%, 41%, 0.46), 2px 4.1px 3.4px -2.1px hsla(247deg, 59%, 41%, 0.38), 4.5px 9px 7.5px -2.9px hsla(247deg, 59%, 41%, 0.31), 8.5px 17.1px 14.3px -3.6px hsla(247deg, 59%, 41%, 0.23), 14.6px 29.2px 24.5px -4.3px hsla(247deg, 59%, 41%, 0.15), 23px 46px 38.6px -5px hsla(247deg, 59%, 41%, 0.08);
 }

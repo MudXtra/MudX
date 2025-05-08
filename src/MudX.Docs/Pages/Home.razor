@@ -1,46 +1,43 @@
 @page "/"
+@using MudX.Docs.Data
 
 <PageTitle>Home</PageTitle>
 
-    <MudText Typo="Typo.h3">Welcome to <span style="color: var(--mud-palette-primary);">MudX</span></MudText>
-
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudText Class="mb-4 mt-4" Typo="Typo.h3">Welcome to <span class="mudx-outlined-text">MudX</span></MudText>
     <MudText>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        A third party extension library for MudBlazor. MudX is an open source project that is not affiliated with MudBlazor. 
+        We offer extensions that build on top of MudBlazor components and stand alone extensions using MudBlazor styles
+        and components.
     </MudText>
+    <MudText Class="mt-1" Typo="Typo.subtitle1">
+        <MudLink OnClick="@(() => _versionsShow = !_versionsShow)">
+            Library Versions Supported
+            <MudPopover @bind-Open="_versionsShow" AnchorOrigin="Origin.CenterRight" Class="ml-3" TransformOrigin="Origin.CenterLeft">
+                <MudList T="string">
+                    @foreach (var version in versionList.Versions)
+                    {
+                        <MudListItem Href="@version.Url" Target="_blank">@version.ToString()</MudListItem>
+                    }
+                </MudList>
+            </MudPopover>
+        </MudLink>
+            <div class="d-flex py-4 mb-16 mb-md-0">
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="mudx-button-gradient-primary" Size="Size.Large" Href="/installation">Get started</MudButton>
+                <MudButton Color="Color.Default" Variant="Variant.Outlined" StartIcon="@Icons.Custom.Brands.GitHub" Size="Size.Large" Class="ms-4" Href="https://github.com/Versile2/MudX/" Target="_blank">Star on GitHub</MudButton>
+            </div>
+    </MudText>
+</MudContainer>
 
-    <MudSelect T="string" @bind-Value="selectedValue" Placeholder="Select a type">
-        <MudSelectItem Value=@("Generated")>Generated</MudSelectItem>
-        <MudSelectItem Value=@("Received")>Received</MudSelectItem>
-        <MudSelectItem Value=@("Carrier")>Carrier</MudSelectItem>
-    </MudSelect>
+<MudOverlay @bind-Visible="_versionsShow" AutoClose Modal />
 
-<style id="customstyle">
-    .custom-css .mud-typography-h3 {
-        color: var(--custom-color);
-    }
+@code {
+    private bool _versionsShow = false;
+    private VersionsList versionList = new();
 
-    .custom-css .custom-css {
-        color: greenyellow;
-    }
-</style>
-
-<style id="setstyle">
-    @CustomColor 
-</style>
-
-@code{
-    private string selectedValue = "Generated";
-
-    private string CustomColor => $":root {{--custom-color: {selectedColor()};}}";
-
-    private string selectedColor()
+    protected override void OnInitialized()
     {
-return selectedValue switch
-        {
-            "Generated" => "red",
-            "Received" => "green",
-            "Carrier" => "blue",
-            _ => "red"
-        };
+        base.OnInitialized();
+
     }
 }

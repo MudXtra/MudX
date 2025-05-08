@@ -35,7 +35,7 @@
         </MudDrawer>
         @* This is the actual document that is tracked *@
         <div class="d-flex justify-center align-center mud-height-full">
-            <MudContainer MaxWidth="MaxWidth.Large">
+            <MudContainer MaxWidth="MaxWidth.Large" Style="overflow-y: scroll">
                 <div id="@_tocId" class="mudx-toc-content">
                     <CascadingValue Value="this" IsFixed="true">
                         @ChildContent

@@ -217,12 +217,16 @@ namespace MudX
             await Task.CompletedTask;
         }
 
-        private Task OnNavLinkClick(string id)
+        private async Task OnNavLinkClick(string id)
         {
+            if (_scrollSpy is not null)
+            {
+                // stop the event from changing the active section in case it doesn't "center" the section
+                _scrollSpy.ScrollSectionSectionCentered -= ScrollSpy_ScrollSectionSectionCentered;
+                await _scrollSpy.ScrollToSection(id);
+                _scrollSpy.ScrollSectionSectionCentered += ScrollSpy_ScrollSectionSectionCentered;
+            }
             SelectActiveSection(id);
-            return _scrollSpy is not null
-                ? _scrollSpy.ScrollToSection(id)
-                : Task.CompletedTask;
         }
 
         private void ScrollSpy_ScrollSectionSectionCentered(object? sender, ScrollSectionCenteredEventArgs e) =>

@@ -40,4 +40,10 @@
         <EmbeddedResource Include="wwwroot\nav-structure.json" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="8.2.0" />
+      <PackageReference Include="MudBlazor.Extensions" Version="8.6.0" />
+      <PackageReference Include="MudBlazor.Markdown" Version="8.6.0" />
+    </ItemGroup>
+
 </Project>

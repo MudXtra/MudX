@@ -42,9 +42,9 @@ namespace MudX
         /// </summary>
         public bool Active { get; private set; }
 
-        protected override void OnParametersSet()
+        protected override void OnAfterRender(bool firstRender)
         {
-            if (string.IsNullOrWhiteSpace(SectionId))
+            if (firstRender)
             {
                 var sectionId = Id ?? GetId();
                 SectionId = sectionId;
@@ -53,7 +53,6 @@ namespace MudX
                     outline.BuildSectionIdsUnique();
                 }
             }
-            base.OnParametersSet();
         }
 
         private IOutlineContainer? Root

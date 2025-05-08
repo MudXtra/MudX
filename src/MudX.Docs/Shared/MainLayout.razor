@@ -13,9 +13,13 @@
                       Style="width: 48px; height: 48px;" Class="mr-5 ml-n2" />
             <MudText Typo="Typo.h3" Class="mudx-outlined-text mr-5">MudX</MudText>
             <MudText Typo="Typo.h4" Class="mb-n1"> for MudBlazor</MudText>
-        </MudButton>
+        </MudButton>    
         <MudSpacer />
-        <MudTooltip Text="Try MudX Online">
+        <MudTooltip Text="Search the Documentation">
+            <MudIconButton Color="Color.Inherit" Target="_blank" Icon="@Icons.Material.Outlined.Search" OnClick="@(() => _searchOpen = true)" />
+        </MudTooltip>
+        <MudDivider Vertical="true" />
+            <MudTooltip Text="Try MudX Online">
             <MudIconButton Color="Color.Inherit" Target="_blank" Icon="@Icons.Material.Outlined.PlayCircleOutline" Href="https://try.arctechonline.tech" />
         </MudTooltip>
         <MudDivider Vertical="true" />
@@ -45,22 +49,21 @@
     </MudMainContent>
 </MudLayout>
 
+<MudOverlay Visible="@_searchOpen" Absolute ZIndex="1600" Style="position: fixed; top: 64px; right: 50%;">
+    <MudTextField hidden="@(!_searchOpen)" Variant="Variant.Outlined" Style="width: 350px" Placeholder="Search..." ValueChanged="@((string query) => Search(query))" />
+</MudOverlay>
+
 <CascadingValue Name="IsDarkTheme" Value="@_isDarkMode" IsFixed="false">
 
 </CascadingValue>
 
-<style>
-    .mudx-outlined-text {
-        letter-spacing: 2px;
-        color: var(--mud-palette-primary);
-        text-shadow: -.5px -.5px var(--mud-palette-divider), 
-                      .5px -.5px var(--mud-palette-divider), 
-                     -.5px .5px var(--mud-palette-divider), 
-                      .5px .5px var(--mud-palette-divider);
-    }
-</style>
-
 @code {
     private bool _isDarkMode = false;
     private bool _drawer = true;
+    private bool _searchOpen = false;
+
+    private void Search(string query) 
+    {
+        Console.WriteLine(query);
+    }
 }

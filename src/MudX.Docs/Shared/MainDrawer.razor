@@ -3,7 +3,8 @@
 @using MudX.Models
 @inject NavigationManager NavManager
 
-<MudTextField Class="my-2" Value="@_searchTerm" ValueChanged="@((string s) => OnSearchTextChanged(s))" Placeholder="Search" Variant="Variant.Filled" Immediate="true" />
+<MudTextField Class="my-2" Value="@_searchTerm" ValueChanged="@((string s) => OnSearchTextChanged(s))" 
+              Placeholder="Search" Variant="Variant.Filled" Immediate="true" Clearable />
 <MudNavMenu Class="mud-height-full mt-2">
     @foreach (var nav in _filteredNavList!)
     {
@@ -141,7 +142,8 @@
         var navItems = new List<NavItem> {
             // Parent Levels (Static)
             new NavItem() { NavItemId=90, Title="Home", Action="", OrderById=0, IsActive=true },
-            new NavItem() { NavItemId=91, Title="API", Action="api", OrderById=5, IsActive=true },
+            new NavItem() { NavItemId=91, Title="Install", Action="api", OrderById=1, IsActive=true },
+            new NavItem() { NavItemId=92, Title="API", Action="api", OrderById=5, IsActive=true },
             new NavItem() { NavItemId=99, Title="About", Action="about", OrderById=99, IsActive=true },
         };
 

@@ -210,16 +210,16 @@ namespace MudX.Docs
                 },
                 Body1 = new Body1Typography
                 {
-                    FontWeight = "400",
-                    FontSize = "1rem",
-                    LineHeight = "1.5",
+                    FontWeight = "500",
+                    FontSize = "1.1rem",
+                    LineHeight = "1.75",
                     LetterSpacing = ".00938em",
                     TextTransform = "none",
                 },
                 Body2 = new Body2Typography
                 {
                     FontWeight = "400",
-                    FontSize = ".875rem",
+                    FontSize = "1rem",
                     LineHeight = "1.43",
                     LetterSpacing = ".01071em",
                     TextTransform = "none",
