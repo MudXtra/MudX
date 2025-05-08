@@ -9,7 +9,6 @@ namespace MudX
 {
     public partial class MudXOutline : MudComponentBase, IAsyncDisposable, IOutlineContainer
     {
-        private bool _contentDrawerOpen = true;
         private readonly string _tocId = Guid.NewGuid().ToString();
 
         private readonly ParameterState<bool> _contentDrawerOpenState;
@@ -44,6 +43,20 @@ namespace MudX
         /// <remarks>Defaults to <see langword="true"/></remarks>
         [Parameter]
         public bool ContentDrawerOpen { get; set; } = true;
+
+        /// <summary>
+        /// The width of the Table of Contents drawer in pixels.
+        /// </summary>
+        /// <remarks>Defaults to 200. Values such as 200 or 300 become 200px or 300px respectively.</remarks>
+        [Parameter]
+        public int Width { get; set; } = 200;
+
+        /// <summary>
+        /// The color of the Table of Contents drawer
+        /// </summary>
+        /// <remarks>Defaults to <see cref="Color.Transparent"/></remarks>
+        [Parameter]
+        public Color Color { get; set; } = Color.Transparent;
 
         /// <summary>
         /// The text displayed above the section links, this will display at the top of the MudDrawer if there is at least one section.
@@ -91,7 +104,7 @@ namespace MudX
         /// </summary>
         /// <remarks>Defaults to <see cref="DrawerClipMode.Always"/></remarks>
         [Parameter]
-        public DrawerClipMode DrawerClipMode { get; set; } = DrawerClipMode.Always;
+        public DrawerClipMode DrawerClipMode { get; set; } = DrawerClipMode.Never;
 
         /// <summary>
         /// The CSS selector used to identify the scroll container
@@ -117,7 +130,7 @@ namespace MudX
         // If the user toggles the content drawer, update the drawer open variable
         private void HandleContentDrawerOpenChanged(ParameterChangedEventArgs<bool> args)
         {
-            _contentDrawerOpen = args.Value;
+            StateHasChanged();
         }
 
         // Setup the scrollspy
@@ -144,7 +157,9 @@ namespace MudX
                         await _scrollSpy.StartSpying(ScrollContainerSelector, SectionClassSelector);
                     }
 
-                    SelectActiveSection(_scrollSpy.CenteredSection);
+                    var section = _sections.FirstOrDefault();
+                    if (section is { SectionId: not null })
+                        SelectActiveSection(section.SectionId);
                 }
             }
         }
@@ -204,6 +219,7 @@ namespace MudX
 
         private Task OnNavLinkClick(string id)
         {
+            SelectActiveSection(id);
             return _scrollSpy is not null
                 ? _scrollSpy.ScrollToSection(id)
                 : Task.CompletedTask;
@@ -225,10 +241,10 @@ namespace MudX
                 return;
             }
 
-            _sections.ToList().ForEach(item => item.Deactive());
+            _sections.ForEach(item => item.Deactivate());
             activeLink.Activate();
 
-            StateHasChanged();
+            InvokeAsync(StateHasChanged);
         }
 
         /// <summary>

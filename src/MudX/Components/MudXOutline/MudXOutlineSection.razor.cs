@@ -77,7 +77,7 @@ namespace MudX
 
         protected internal void Activate() => Active = true;
 
-        protected internal void Deactive() => Active = false;
+        protected internal void Deactivate() => Active = false;
 
         protected override async Task OnInitializedAsync()
         {

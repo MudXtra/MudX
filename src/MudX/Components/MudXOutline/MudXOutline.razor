@@ -2,44 +2,51 @@
 @namespace MudX
 @inherits MudComponentBase
 
-<div class="mudx-toc-document" @attributes="@UserAttributes">
-
-    @* This is the actual document that is tracked *@
-    <MudContainer MaxWidth="MaxWidth.Large">
-        <div id="@_tocId" class="mudx-toc-content">
-            <CascadingValue Value="this" IsFixed="true">
-                @ChildContent
-            </CascadingValue>
+<div class="mudx-toc-document" @attributes="@UserAttributes" style="position: relative;">
+    <MudDrawerContainer Class="mud-height-full">
+        @* This is the clickable scroll tracking Table Of Contents *@
+        <MudDrawer Class="mudx-toc-nav-drawer"                   
+                   Open="_contentDrawerOpenState.Value"
+                   Color="@Color"
+                   Breakpoint="@Breakpoint"
+                   Width="@($"{Width}px")"
+                   Anchor="@Anchor"
+                   ClipMode="@DrawerClipMode"
+                   Elevation="@Elevation"
+                   Variant="DrawerVariant.Persistent">
+            <div style="position: fixed;">
+                <MudDrawerHeader>
+                    <MudText Typo="Typo.subtitle1" Class="mudx-toc-title" GutterBottom="true">
+                        @Headline
+                    </MudText>
+                </MudDrawerHeader>
+                <div class="@GetNavLinksClass">
+                    @foreach (var docSection in _sections.OrderBy(x => x.LevelSortingValue))
+                    {
+                        <MudNavLink @key="docSection._id"
+                                    Match="NavLinkMatch.All"
+                                    Class="@GetNavLinkClass(docSection)"
+                                    OnClick="@(e => OnNavLinkClick(docSection.SectionId))">
+                            @docSection.Title
+                        </MudNavLink>
+                    }
+                </div>
+            </div>
+        </MudDrawer>
+        @* This is the actual document that is tracked *@
+        <div class="d-flex justify-center align-center mud-height-full">
+            <MudContainer MaxWidth="MaxWidth.Large">
+                <div id="@_tocId" class="mudx-toc-content">
+                    <CascadingValue Value="this" IsFixed="true">
+                        @ChildContent
+                    </CascadingValue>
+                </div>
+            </MudContainer>
         </div>
-    </MudContainer>
+    </MudDrawerContainer>
 
     @if (ScrollToTopVisible)
     {
         <MudScrollToTop Visible="true" />
     }
 </div>
-
-@* This is the clickable scroll tracking Table Of Contents *@
-<MudDrawer Class="mudx-toc-nav-drawer mt-4"
-           @bind-Open="_contentDrawerOpen"
-           Breakpoint="@Breakpoint"
-           Fixed="true"
-           Anchor="@Anchor"
-           ClipMode="@DrawerClipMode"
-           Elevation="@Elevation"
-           Color="Color.Transparent">
-    <MudText Typo="Typo.subtitle1" Class="mudx-toc-title" GutterBottom="true">
-        @Headline
-    </MudText>
-    <div class="@GetNavLinksClass">
-        @foreach (var docSection in _sections.OrderBy(x => x.LevelSortingValue))
-        {
-            <MudNavLink @key="docSection._id"
-                        Match="NavLinkMatch.All"
-                        Class="@GetNavLinkClass(docSection)"
-                        OnClick="@(e => OnNavLinkClick(docSection.SectionId))">
-                @docSection.Title
-            </MudNavLink>
-        }
-    </div>
-</MudDrawer>
