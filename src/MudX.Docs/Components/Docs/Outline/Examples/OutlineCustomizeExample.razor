@@ -3,10 +3,8 @@
 <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceEvenly" Breakpoint="Breakpoint.Md">
     <div class="docs-stack-col">
         <MudSelect T="Anchor" Label="TOC Anchor" @bind-Value="@_outlineAnchor">
-            <MudSelectItem Value="Anchor.Start">Start</MudSelectItem>
-            <MudSelectItem Value="Anchor.End">End</MudSelectItem>
-            <MudSelectItem Value="Anchor.Top">Top</MudSelectItem>
-            <MudSelectItem Value="Anchor.Bottom">Bottom</MudSelectItem>
+            <MudSelectItem Value="Anchor.Left">Left</MudSelectItem>
+            <MudSelectItem Value="Anchor.Right">Right</MudSelectItem>
         </MudSelect>
     </div>
     <div>
@@ -42,7 +40,7 @@
     [CascadingParameter(Name = "ContentId")]
     public string ContentId { get; set; } = default!;
 
-    private Anchor _outlineAnchor = Anchor.End;
+    private Anchor _outlineAnchor = Anchor.Right;
     private bool _showOutline = true;
     private int _width = 200;
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.State;
@@ -10,10 +11,18 @@ namespace MudX
 {
     public partial class MudXOutline : MudComponentBase, IAsyncDisposable, IOutlineContainer
     {
+        private bool _shouldRepositionPopover = false;
+        private string _scrollContainerSelector = "html";
+        private ElementReference _anchorRef;
+        private JsonElement? Corners;
         private readonly ParameterState<bool> _contentDrawerOpenState;
         private Anchor _anchor = Anchor.End;
         internal List<MudXOutlineSection> _sections = [];
         private IScrollSpy? _scrollSpy;
+
+        private double? _top;
+        private double? _left;
+        private double? _right;
 
         public MudXOutline()
         {
@@ -38,14 +47,16 @@ namespace MudX
             .Build();
 
         protected string PopoverStyleName => new StyleBuilder()
+            .AddStyle("top", $"{_top}px", _top.HasValue && _contentDrawerOpenState.Value)
+            .AddStyle("left", $"{_left}px", _anchor == Anchor.Left && _left.HasValue && _contentDrawerOpenState.Value)
+            .AddStyle("left", $"{_right}px", _anchor == Anchor.Right && _right.HasValue && _contentDrawerOpenState.Value)
             .AddStyle("width", $"{Width}px", _contentDrawerOpenState.Value)
             .AddStyle("max-width", $"{Width}px", _contentDrawerOpenState.Value)
-            // .AddStyle("border", "1px solid black")
             .Build();
 
         protected string NavDrawerStyle => new StyleBuilder()
-            .AddStyle("margin-right", $"{Width}px", _anchor == Anchor.End || _anchor == Anchor.Right)
-            .AddStyle("margin-left", $"{Width}px", _anchor == Anchor.Start || _anchor == Anchor.Left)
+            .AddStyle("margin-right", $"{Width}px", _contentDrawerOpenState.Value && _anchor == Anchor.Right)
+            .AddStyle("margin-left", $"{Width}px", _contentDrawerOpenState.Value && _anchor == Anchor.Left)
             .Build();
 
         [Inject]
@@ -95,17 +106,9 @@ namespace MudX
         /// <summary>
         /// Where you want the Table of Contents to be rendered
         /// </summary>
-        /// <remarks>Defaults to <see cref="Anchor.End"/>. Only Valid values are <see cref="Anchor.Start"/>, <see cref="Anchor.Left"/>, <see cref="Anchor.Right"/>, and <see cref="Anchor.End"/></remarks>
+        /// <remarks>Defaults to <see cref="Anchor.Right"/>. Only Valid values are <see cref="Anchor.Left"/> and <see cref="Anchor.Right"/>.</remarks>
         [Parameter]
-        public Anchor Anchor { get; set; } = Anchor.End;
-
-        /// <summary>
-        /// Whether the Table of Contents popover is enabled. If <see langword="true"/> the Table of Contents will be rendered in a
-        /// <see cref="MudPopover"/>, if <see langword="false"/> the Table of Contents will be rendered in a <see cref="MudDrawer"/>
-        /// </summary>
-        /// <remarks>Defaults to <see langword="false"/></remarks>
-        [Parameter]
-        public bool EnablePopover { get; set; }
+        public Anchor Anchor { get; set; } = Anchor.Right;
 
         /// <summary>
         /// The CSS selector used to identify the scroll container, if using an element id use "#" first and ensure the element starts
@@ -130,9 +133,9 @@ namespace MudX
         [Parameter]
         public OutlineStyleVariant StyleVariant { get; set; } = OutlineStyleVariant.Scroll;
 
-        private Origin PopoverAnchor => _anchor == Anchor.Start || _anchor == Anchor.Left ? Origin.TopLeft : Origin.TopRight;
+        private Origin PopoverAnchor => _anchor == Anchor.Left ? Origin.TopLeft : Origin.TopRight;
 
-        private Origin PopoverTransform => _anchor == Anchor.Start || _anchor == Anchor.Left ? Origin.TopRight : Origin.TopLeft;
+        private Origin PopoverTransform => _anchor == Anchor.Left ? Origin.TopRight : Origin.TopLeft;
 
         public int Level { get; } = 0;
 
@@ -148,24 +151,31 @@ namespace MudX
             switch (Anchor)
             {
                 case Anchor.Top:
-                    _anchor = Anchor.Start;
+                case Anchor.Start:
+                    _anchor = Anchor.Left;
                     break;
+                case Anchor.End:
                 case Anchor.Bottom:
-                    _anchor = Anchor.End;
+                    _anchor = Anchor.Right;
                     break;
                 default:
                     _anchor = Anchor;
                     break;
             }
+            if (string.IsNullOrEmpty(ScrollContainerSelector))
+            {
+                _scrollContainerSelector = "html";
+            }
+            else
+            {
+                _scrollContainerSelector = ScrollContainerSelector;
+            }
+            _shouldRepositionPopover = true;
         }
 
         // After IJsRuntime is available, start the scrollspy on elments with the specified classes
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (string.IsNullOrEmpty(ScrollContainerSelector))
-            {
-                ScrollContainerSelector = "html";
-            }
             if (firstRender)
             {
                 // make sure each level is put in the correct order regardless if nested
@@ -179,7 +189,7 @@ namespace MudX
 
                     if (!string.IsNullOrEmpty(SectionClassSelector))
                     {
-                        await _scrollSpy.StartSpying(ScrollContainerSelector, SectionClassSelector);
+                        await _scrollSpy.StartSpying(_scrollContainerSelector, SectionClassSelector);
                     }
 
                     var section = _sections.FirstOrDefault();
@@ -187,6 +197,22 @@ namespace MudX
                         SelectActiveSection(section.SectionId);
                 }
             }
+            if (_shouldRepositionPopover)
+            {
+                await PositionPopover();
+                _shouldRepositionPopover = false;
+            }
+        }
+
+        private async Task PositionPopover()
+        {
+            if (IsJSRuntimeAvailable)
+            {
+                Corners = await JsRuntime!.InvokeAsync<JsonElement>("getViewportCorners", _anchorRef);
+            }
+            _top = Corners?.GetProperty("topLeft").GetProperty("y").GetDouble();
+            _left = Corners?.GetProperty("topLeft").GetProperty("x").GetDouble();
+            _right = Corners?.GetProperty("topRight").GetProperty("x").GetDouble();
         }
 
         private void BuildLevelStructure()
