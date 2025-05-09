@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.State;
 using MudBlazor.Utilities;
@@ -10,6 +11,7 @@ namespace MudX
     public partial class MudXOutline : MudComponentBase, IAsyncDisposable, IOutlineContainer
     {
         private readonly ParameterState<bool> _contentDrawerOpenState;
+        private Anchor _anchor = Anchor.End;
         internal List<MudXOutlineSection> _sections = [];
         private IScrollSpy? _scrollSpy;
 
@@ -31,8 +33,23 @@ namespace MudX
             .AddClass($"mudx-style-{StyleVariant.ToDescription()}", StyleVariant != OutlineStyleVariant.None)
             .Build();
 
+        protected string PopoverClassName => new CssBuilder("mudx-toc-nav-popover")
+            .AddClass($"mud-theme-{Color.ToDescriptionString()}")
+            .Build();
+
+        protected string PopoverStyleName => new StyleBuilder()
+            .AddStyle("width", $"{Width}px", _contentDrawerOpenState.Value)
+            .AddStyle("max-width", $"{Width}px", _contentDrawerOpenState.Value)
+            // .AddStyle("border", "1px solid black")
+            .Build();
+
+        protected string NavDrawerStyle => new StyleBuilder()
+            .AddStyle("margin-right", $"{Width}px", _anchor == Anchor.End || _anchor == Anchor.Right)
+            .AddStyle("margin-left", $"{Width}px", _anchor == Anchor.Start || _anchor == Anchor.Left)
+            .Build();
+
         [Inject]
-        private IScrollSpyFactory ScrollSpyFactory { get; set; } = null!;
+        private IJSRuntime? JsRuntime { get; set; }
 
         /// <summary>
         /// Whether the Table of Contents drawer is open or closed
@@ -78,23 +95,17 @@ namespace MudX
         /// <summary>
         /// Where you want the Table of Contents to be rendered
         /// </summary>
-        /// <remarks>Defaults to <see cref="Anchor.End"/></remarks>
+        /// <remarks>Defaults to <see cref="Anchor.End"/>. Only Valid values are <see cref="Anchor.Start"/>, <see cref="Anchor.Left"/>, <see cref="Anchor.Right"/>, and <see cref="Anchor.End"/></remarks>
         [Parameter]
         public Anchor Anchor { get; set; } = Anchor.End;
 
         /// <summary>
-        /// The Elevation of the Table of Contents Mud Drawer
+        /// Whether the Table of Contents popover is enabled. If <see langword="true"/> the Table of Contents will be rendered in a
+        /// <see cref="MudPopover"/>, if <see langword="false"/> the Table of Contents will be rendered in a <see cref="MudDrawer"/>
         /// </summary>
-        /// <remarks>Defaults to <see langword="0"/></remarks>
+        /// <remarks>Defaults to <see langword="false"/></remarks>
         [Parameter]
-        public int Elevation { get; set; }
-
-        /// <summary>
-        /// The Breakpoint at which the Table of Contents should be hidden
-        /// </summary>
-        /// <remarks>Defaults to <see cref="Breakpoint.Lg"/></remarks>
-        [Parameter]
-        public Breakpoint Breakpoint { get; set; } = Breakpoint.Lg;
+        public bool EnablePopover { get; set; }
 
         /// <summary>
         /// The CSS selector used to identify the scroll container, if using an element id use "#" first and ensure the element starts
@@ -119,6 +130,10 @@ namespace MudX
         [Parameter]
         public OutlineStyleVariant StyleVariant { get; set; } = OutlineStyleVariant.Scroll;
 
+        private Origin PopoverAnchor => _anchor == Anchor.Start || _anchor == Anchor.Left ? Origin.TopLeft : Origin.TopRight;
+
+        private Origin PopoverTransform => _anchor == Anchor.Start || _anchor == Anchor.Left ? Origin.TopRight : Origin.TopLeft;
+
         public int Level { get; } = 0;
 
         // If the user toggles the content drawer, update the drawer open variable
@@ -127,10 +142,21 @@ namespace MudX
             StateHasChanged();
         }
 
-        // Setup the scrollspy
-        protected override void OnInitialized()
+        protected override void OnParametersSet()
         {
-            _scrollSpy = ScrollSpyFactory.Create();
+            base.OnParametersSet();
+            switch (Anchor)
+            {
+                case Anchor.Top:
+                    _anchor = Anchor.Start;
+                    break;
+                case Anchor.Bottom:
+                    _anchor = Anchor.End;
+                    break;
+                default:
+                    _anchor = Anchor;
+                    break;
+            }
         }
 
         // After IJsRuntime is available, start the scrollspy on elments with the specified classes
@@ -146,6 +172,7 @@ namespace MudX
                 BuildLevelStructure();
                 // make sure each section has a unique SectionId for ScrollSpy 
                 BuildSectionIdsUnique();
+                _scrollSpy = new OutlineScrollSpy(JsRuntime!);
                 if (_scrollSpy is not null)
                 {
                     _scrollSpy.ScrollSectionSectionCentered += ScrollSpy_ScrollSectionSectionCentered;
