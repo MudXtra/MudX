@@ -1,7 +1,7 @@
 @using MudX.Models
 @namespace MudX.Docs
 
-<MudPaper Elevation="4" Class="docs-section-content pb-6">
+<MudPaper id="@_contentId" Elevation="4" Class="docs-section-content pb-6">
     <MudToolBar>
         <MudSpacer />
         <MudButton OnClick="OnShowCode" StartIcon="@(ShowCode ? @Icons.Material.Rounded.CodeOff : Icons.Material.Rounded.Code)" Color="Color.Default" Size="Size.Small">
@@ -12,7 +12,9 @@
         </MudTooltip>
     </MudToolBar>
     <div class="docs-section-inner">
-        @ChildContent
+        <CascadingValue Name="ContentId" Value="ContentId" IsFixed="true">
+            @ChildContent
+        </CascadingValue>        
     </div>
     @if (ShowCode && Codes.Count() > 0)
     {
@@ -22,10 +24,15 @@
 
 @code {
     private bool _hasCode;
-
+    private string _contentId = $"content-{Guid.NewGuid().ToString()}";
     [Parameter] public IEnumerable<CodeFile> Codes { get; set; } = [];
     [Parameter] public bool ShowCode { get; set; }
     [Parameter, EditorRequired] public required RenderFragment ChildContent { get; set; }
+
+    /// <summary>
+    /// The Id of the content
+    /// </summary>
+    public string ContentId { get => _contentId; }
 
     protected override void OnParametersSet()
     {

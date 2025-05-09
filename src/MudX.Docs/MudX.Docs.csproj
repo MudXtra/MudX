@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Components\Docs\Outline\Examples\" />
     <Folder Include="Components\Docs\SignalCode\" />
   </ItemGroup>
 

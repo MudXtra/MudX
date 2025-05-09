@@ -2,16 +2,17 @@
 @namespace MudX
 @inherits MudComponentBase
 
-<div class="mudx-toc-document" @attributes="@UserAttributes" style="position: relative;">
+<div class="mudx-toc-document" @attributes="@UserAttributes" style="position: relative">
     <MudDrawerContainer Class="mud-height-full">
         @* This is the clickable scroll tracking Table Of Contents *@
-        <MudDrawer Class="mudx-toc-nav-drawer"                   
-                   Open="_contentDrawerOpenState.Value"
+        <MudDrawer id="@($"{Guid.NewGuid().ToString()}")"
+                   Class="mudx-toc-nav-drawer"
+                   Open="@_contentDrawerOpenState.Value"
                    Color="@Color"
                    Breakpoint="@Breakpoint"
                    Width="@($"{Width}px")"
                    Anchor="@Anchor"
-                   ClipMode="@DrawerClipMode"
+                   ClipMode="@DrawerClipMode.Never"
                    Elevation="@Elevation"
                    Variant="DrawerVariant.Persistent">
             <div style="position: fixed;">
@@ -35,8 +36,8 @@
         </MudDrawer>
         @* This is the actual document that is tracked *@
         <div class="d-flex justify-center align-center mud-height-full">
-            <MudContainer MaxWidth="MaxWidth.Large" Style="overflow-y: scroll">
-                <div id="@_tocId" class="mudx-toc-content">
+            <MudContainer MaxWidth="MaxWidth.Large">
+                <div class="mudx-toc-content">
                     <CascadingValue Value="this" IsFixed="true">
                         @ChildContent
                     </CascadingValue>
@@ -44,9 +45,9 @@
             </MudContainer>
         </div>
     </MudDrawerContainer>
-
-    @if (ScrollToTopVisible)
-    {
-        <MudScrollToTop Visible="true" />
-    }
 </div>
+
+@if (ScrollToTopVisible)
+{
+    <MudScrollToTop Visible="true" />
+}

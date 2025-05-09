@@ -17,10 +17,23 @@
             The outline is a scrollspy control for displaying an index or table of contents on either side of the text content.
             The <CodeInline>MudXOutline</CodeInline> is a wrapper for a number of <CodeInline>MudXOutlineSection</CodeInline>. 
             Each <CodeInline>MudXOutlineSection</CodeInline> has a <CodeInline>Title</CodeInline> that is used for the index 
-            and whatever content is supplied inside is what is displayed in the main content area.
+            and whatever content is supplied inside is what is displayed in the main content area. By default the control
+            requires very minimal setup, however to nest it inside another be sure to set the <CodeInline>ScrollContainerSelector</CodeInline>
+            to the outer element with a scrollbar as scrollspy will only work if a scrollbar is present. Remember when using the Selector to
+            preface a class with a . or an id with a #.
         </Description>
         <SectionContent>
             <OutlineBasicExample />
+        </SectionContent>
+    </DocsPageSection>
+
+    <DocsPageSection Title="Customization">
+        <Description>
+            There are many properties you can change to customize the look and feel of the control, but ultimately
+            the content is strictly upon you to style and use. 
+        </Description>
+        <SectionContent>
+            <OutlineCustomizeExample />
         </SectionContent>
     </DocsPageSection>
 

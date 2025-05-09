@@ -9,10 +9,7 @@ namespace MudX
 {
     public partial class MudXOutline : MudComponentBase, IAsyncDisposable, IOutlineContainer
     {
-        private readonly string _tocId = Guid.NewGuid().ToString();
-
         private readonly ParameterState<bool> _contentDrawerOpenState;
-
         internal List<MudXOutlineSection> _sections = [];
         private IScrollSpy? _scrollSpy;
 
@@ -100,21 +97,18 @@ namespace MudX
         public Breakpoint Breakpoint { get; set; } = Breakpoint.Lg;
 
         /// <summary>
-        /// The Clip Mode for the Table of Contents
+        /// The CSS selector used to identify the scroll container, if using an element id use "#" first and ensure the element starts
+        /// with a letter. If using an element class use "." first.
         /// </summary>
-        /// <remarks>Defaults to <see cref="DrawerClipMode.Always"/></remarks>
-        [Parameter]
-        public DrawerClipMode DrawerClipMode { get; set; } = DrawerClipMode.Never;
-
-        /// <summary>
-        /// The CSS selector used to identify the scroll container
-        /// </summary>
+        /// <remarks>Defaults to "html", if this is empty or null html will be used</remarks>
         [Parameter]
         public string ScrollContainerSelector { get; set; } = "html";
 
         /// <summary>
-        /// The class name (without .) to identify the HTML elements that should be observed for viewport changes
+        /// The class name to identify the HTML elements that should be observed for viewport changes inside the 
+        /// <see cref="ScrollContainerSelector"/>.
         /// </summary>
+        /// <remarks>Defaults to "mudx-toc-section"</remarks>
         [Parameter]
         public string SectionClassSelector { get; set; } = "mudx-toc-section";
 
@@ -142,6 +136,10 @@ namespace MudX
         // After IJsRuntime is available, start the scrollspy on elments with the specified classes
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
+            if (string.IsNullOrEmpty(ScrollContainerSelector))
+            {
+                ScrollContainerSelector = "html";
+            }
             if (firstRender)
             {
                 // make sure each level is put in the correct order regardless if nested
