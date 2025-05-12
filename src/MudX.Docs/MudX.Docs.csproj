@@ -24,7 +24,7 @@
 
         <!-- Define paths -->
         <PropertyGroup>
-            <NavGeneratorPath>$(MSBuildThisFileDirectory)..\MudX.Docs.NavGenerator\MudX.Docs.NavGenerator.csproj</NavGeneratorPath>
+            <NavGeneratorPath>$(MSBuildThisFileDirectory)..\MudX.Docs.Generator\MudX.Docs.Generator.csproj</NavGeneratorPath>
             <OutputJsonPath>$(MSBuildThisFileDirectory)wwwroot\nav-structure.json</OutputJsonPath>
             <PagesDirectory>$(MSBuildThisFileDirectory)Components</PagesDirectory>
         </PropertyGroup>

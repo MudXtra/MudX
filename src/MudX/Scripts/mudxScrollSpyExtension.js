@@ -1,1 +1,16 @@
-﻿
+﻿class MudXScrollSpy extends MudScrollSpy {
+    unspy() {
+        super.unspy();
+        this.handlerRef = null
+    }
+    handleScroll(dotnetReference, containerSelector, sectionClassSelector, event) {
+        try {
+            super.handleScroll(dotnetReference, containerSelector, sectionClassSelector, event);
+        } catch (err) {
+            // Suppress "dotnetReference is disposed" errors
+            if (!err.message.includes("invokeMethod") && !err.message.includes("disposed")) {
+                console.warn("Unhandled error in handleScroll:", err);
+            }
+        }
+    }
+}
