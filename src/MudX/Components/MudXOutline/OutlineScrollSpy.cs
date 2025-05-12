@@ -96,7 +96,7 @@ namespace MudX.Components.MudXOutline
                     await _spyInstance.DisposeAsync();
                 }
 
-                _dotNetRef.Dispose();
+                _dotNetRef?.Dispose();
             }
         }
     }

@@ -3,10 +3,51 @@
 @inherits MudComponentBase
 
 <script type="text/javascript">
-    window.createScrollSpy = () => new MudScrollSpy();
-    window.getViewportCorners = (element) => { const r = element.getBoundingClientRect(); 
-        return { topLeft: { x: r.left + window.scrollX, y: r.top + window.scrollY }, 
-                 topRight: { x: r.right + window.scrollX, y: r.top + window.scrollY } }; };
+
+    window.createScrollSpy = () => new MudXScrollSpy();
+
+    window.outlineMap = window.outlineMap || {};
+
+    window.getViewportCorners = (element, popoverId, isLeft) => {
+        const getAbsolutePosition = (el) => {
+            let x = 0, y = 0;
+            let current = el;
+            while (current) {
+                x += current.offsetLeft - current.scrollLeft;
+                y += current.offsetTop - current.scrollTop;
+                current = current.offsetParent;
+            }
+            return { x, y };
+        };
+
+        const updatePosition = () => {
+            const marginLeft = parseInt(window.getComputedStyle(element).marginLeft, 10);
+            const { x, y } = getAbsolutePosition(element);
+
+            const popover = document.getElementById(popoverId);
+            if (popover) {
+                const adjustedX = isLeft ? x - marginLeft : x + element.offsetWidth;
+                popover.style.left = `${adjustedX}px`;
+                popover.style.top = `${y}px`;
+            }
+        };
+
+        updatePosition();
+
+        if (!window.outlineMap[popoverId]) {
+            window.outlineMap[popoverId] = updatePosition;
+            window.addEventListener("resize", updatePosition);
+            };                               
+    };
+
+    window.disposePopoverResize = (popoverId) => {
+        const entry = window.outlineMap[popoverId];
+        if (entry) {
+            window.removeEventListener("resize", entry);
+            delete window.outlineMap[popoverId];
+        }
+    };
+
 </script>
 <div class="mudx-toc-document" @attributes="@UserAttributes" style="position: relative">
     <div @ref="@_anchorRef" class="mudx-toc-nav-drawer" style="@NavDrawerStyle">
@@ -19,7 +60,7 @@
     <MudScrollToTop Visible="true" />
 }
 
-<MudPopover AnchorOrigin="@(PopoverAnchor)" TransformOrigin="@(PopoverTransform)" Elevation="0" Paper="false"
+<MudPopover @ref="@_popoverRef" AnchorOrigin="@(PopoverAnchor)" TransformOrigin="@(PopoverTransform)" Elevation="0" Paper="false"
             Fixed="@(ScrollContainerSelector == "html")" Class="mud-popover-position-override"
             Style="@(PopoverStyleName)" Open="@_contentDrawerOpenState.Value" OverflowBehavior="@OverflowBehavior.FlipNever">
     <MudCard Elevation="0" Class="@PopoverClassName">
@@ -47,7 +88,7 @@
 @code {
     private RenderFragment DocumentContent =>
     @<text>
-        @* This is the actual document that is tracked *@
+            @* This is the actual document that is tracked *@
         <div class="d-flex justify-center align-center mud-height-full">
             <MudContainer MaxWidth="MaxWidth.Large">
                 <div class="mudx-toc-content">
@@ -59,9 +100,3 @@
         </div>
     </text>;
 }
-
-<style>
-    .mudx-toc-nav-popover {
-        margin-top: 8px;
-    }
-</style>

@@ -50,11 +50,14 @@
         padding: 2px;
     }
 
-    /* Always underline active */
-    .mudx-toc-nav-links .mudx-toc-nav-navlink.active {
+    /* Active */
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.active .mud-nav-link-text {
+        font-weight: bold;
+        color: var(--mud-palette-primary);        
+    }
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.active.underline .mud-nav-link-text {
         font-weight: bold;
         color: var(--mud-palette-primary);
-        text-decoration: underline;
     }
 
 /* =========================
@@ -114,9 +117,9 @@
         .mudx-style-scroll .mudx-toc-nav-navlink::before {
             content: "";
             position: absolute;
-            left: -4.5px;
+            left: -3.5px;
             top: 0;
-            width: 5px;
+            width: 4px;
             height: 100%;
             background-color: transparent;
             border-radius: 2px;

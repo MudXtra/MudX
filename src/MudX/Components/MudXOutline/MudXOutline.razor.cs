@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.State;
@@ -14,15 +13,11 @@ namespace MudX
         private bool _shouldRepositionPopover = false;
         private string _scrollContainerSelector = "html";
         private ElementReference _anchorRef;
-        private JsonElement? Corners;
+        private MudPopover? _popoverRef;
         private readonly ParameterState<bool> _contentDrawerOpenState;
         private Anchor _anchor = Anchor.End;
         internal List<MudXOutlineSection> _sections = [];
         private IScrollSpy? _scrollSpy;
-
-        private double? _top;
-        private double? _left;
-        private double? _right;
 
         public MudXOutline()
         {
@@ -32,9 +27,10 @@ namespace MudX
                 .WithChangeHandler(HandleContentDrawerOpenChanged);
         }
 
-        protected static string GetNavLinkClass(MudXOutlineSection section) =>
+        protected string GetNavLinkClass(MudXOutlineSection section) =>
             new CssBuilder("mudx-toc-nav-navlink")
                 .AddClass("active", section.Active)
+                .AddClass("underline", section.Active && UnderlineActiveSections)
                 .AddClass($"navigation-level-{Math.Min(5, section.Level - 1)}", section.Level > 1)
                 .Build();
 
@@ -47,9 +43,6 @@ namespace MudX
             .Build();
 
         protected string PopoverStyleName => new StyleBuilder()
-            .AddStyle("top", $"{_top}px", _top.HasValue && _contentDrawerOpenState.Value)
-            .AddStyle("left", $"{_left}px", _anchor == Anchor.Left && _left.HasValue && _contentDrawerOpenState.Value)
-            .AddStyle("left", $"{_right}px", _anchor == Anchor.Right && _right.HasValue && _contentDrawerOpenState.Value)
             .AddStyle("width", $"{Width}px", _contentDrawerOpenState.Value)
             .AddStyle("max-width", $"{Width}px", _contentDrawerOpenState.Value)
             .Build();
@@ -89,6 +82,13 @@ namespace MudX
         /// <remarks>Defaults to "Contents"</remarks>
         [Parameter]
         public string Headline { get; set; } = "Contents";
+
+        /// <summary>
+        /// Whether to underline the active section
+        /// </summary>
+        /// <remarks>Defaults to <see langword="true"/></remarks>
+        [Parameter]
+        public bool UnderlineActiveSections { get; set; } = true;
 
         /// <summary>
         /// Whether the scroll to top button is visible
@@ -199,20 +199,20 @@ namespace MudX
             }
             if (_shouldRepositionPopover)
             {
-                await PositionPopover();
+                await PositionIndex();
                 _shouldRepositionPopover = false;
             }
         }
 
-        private async Task PositionPopover()
+        /// <summary>
+        /// Causes an immediate repositioning of the Index
+        /// </summary>
+        public async Task PositionIndex()
         {
             if (IsJSRuntimeAvailable)
             {
-                Corners = await JsRuntime!.InvokeAsync<JsonElement>("getViewportCorners", _anchorRef);
+                await JsRuntime!.InvokeVoidAsync("getViewportCorners", _anchorRef, $"popovercontent-{_popoverRef?.Id}", _anchor == Anchor.Left);
             }
-            _top = Corners?.GetProperty("topLeft").GetProperty("y").GetDouble();
-            _left = Corners?.GetProperty("topLeft").GetProperty("x").GetDouble();
-            _right = Corners?.GetProperty("topRight").GetProperty("x").GetDouble();
         }
 
         private void BuildLevelStructure()
@@ -326,6 +326,7 @@ namespace MudX
             _scrollSpy.ScrollSectionSectionCentered -= ScrollSpy_ScrollSectionSectionCentered;
             if (IsJSRuntimeAvailable)
             {
+                await JsRuntime!.InvokeVoidAsync("disposePopoverResize", $"popovercontent-{_popoverRef?.Id}");
                 await _scrollSpy.DisposeAsync();
             }
         }
