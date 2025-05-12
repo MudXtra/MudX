@@ -318,16 +318,16 @@ namespace MudX
         // Dispose the scrollspy
         public async ValueTask DisposeAsync()
         {
-            if (_scrollSpy is null)
+            if (_scrollSpy is not null)
             {
-                return;
+                _scrollSpy!.ScrollSectionSectionCentered -= ScrollSpy_ScrollSectionSectionCentered;
+                await _scrollSpy.DisposeAsync();
+                _scrollSpy = null;
             }
 
-            _scrollSpy.ScrollSectionSectionCentered -= ScrollSpy_ScrollSectionSectionCentered;
             if (IsJSRuntimeAvailable)
             {
                 await JsRuntime!.InvokeVoidAsync("disposePopoverResize", $"popovercontent-{_popoverRef?.Id}");
-                await _scrollSpy.DisposeAsync();
             }
         }
     }

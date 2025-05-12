@@ -1,4 +1,5 @@
-﻿using Microsoft.JSInterop;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace MudX.Components.MudXOutline
@@ -8,7 +9,6 @@ namespace MudX.Components.MudXOutline
         private readonly IJSRuntime _js;
         private IJSObjectReference? _spyInstance;
         private readonly DotNetObjectReference<OutlineScrollSpy> _dotNetRef;
-        private bool _disposed;
 
         /// <summary>
         /// The id of the currently centered section
@@ -24,6 +24,7 @@ namespace MudX.Components.MudXOutline
         /// Initialize the class by supplying the IJSRuntime
         /// </summary>
         /// <param name="js"></param>
+        [DynamicDependency(nameof(SectionChangeOccured))]
         public OutlineScrollSpy(IJSRuntime js)
         {
             _js = js;
@@ -86,18 +87,12 @@ namespace MudX.Components.MudXOutline
         /// </summary>
         public async ValueTask DisposeAsync()
         {
-            if (!_disposed)
+            if (_spyInstance is not null)
             {
-                _disposed = true;
-
-                if (_spyInstance is not null)
-                {
-                    await _spyInstance.InvokeVoidAsync("unspy");
-                    await _spyInstance.DisposeAsync();
-                }
-
-                _dotNetRef?.Dispose();
+                await _spyInstance.InvokeVoidAsync("unspy");
+                await _spyInstance.DisposeAsync();
             }
+            _dotNetRef?.Dispose();
         }
     }
 
