@@ -1,7 +1,7 @@
 .docs-section-content {
     background-color: var(--mud-palette-surface);
     max-height: 400px;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 .mudx-outlined-text {

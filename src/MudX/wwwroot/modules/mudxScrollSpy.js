@@ -1,26 +1,57 @@
-﻿class MudXScrollSpy {
+﻿// MudXScrollSpy module
+
+// Store instances internally within the module
+const scrollSpyInstances = {};
+
+export class MudXScrollSpy {
     constructor() {
         this.lastKnownElement = null;
         this.pendingAnimation = null;
         this.containerSelector = null;
         this.sectionClassSelector = null;
+        this.dotNetReference = null;
+        this.container = null;
+        this.handleRef = this.handleScroll.bind(this);
     }
 
-    spying(containerSelector, sectionClassSelector) {
+    spying(containerSelector, sectionClassSelector, dotNetReference) {
         this.lastKnownElement = null;
         this.pendingAnimation = null;
         this.containerSelector = containerSelector;
         this.sectionClassSelector = sectionClassSelector;
+        this.dotNetReference = dotNetReference;
+        this.container = document.querySelector(this.containerSelector);
+        if (!this.container) return;
+        return;
+        if (this.containerSelector !== "html") {
+            this.container.addEventListener('scroll', this.handleRef);
+            this.container.addEventListener('resize', this.handleRef);
+        }
+        else {
+            window.addEventListener('scroll', this.handleRef);
+            window.addEventListener('resize', this.handleRef);
+        }
     }
 
     unspy() {
         if (this.pendingAnimation !== null) {
             cancelAnimationFrame(this.pendingAnimation);
         }
+        return;
+        if (this.containerSelector !== "html") {
+            this.container.removeEventListener('scroll', this.handleRef);
+            this.container.removeEventListener('resize', this.handleRef);
+        }
+        else {
+            window.removeEventListener('scroll', this.handleRef);
+            window.removeEventListener('resize', this.handleRef);
+        }
         this.lastKnownElement = null;
         this.pendingAnimation = null;
         this.containerSelector = null;
         this.sectionClassSelector = null;
+        this.dotNetReference = null;
+        this.container = null;
     }
 
     handleScroll() {
@@ -30,7 +61,7 @@
 
         this.pendingAnimation = requestAnimationFrame(() => {
             this.pendingAnimation = null;
-
+            //console.log("handleScroll called with this:", this);
             const container = document.querySelector(this.containerSelector);
             if (!container) return;
 
@@ -67,6 +98,7 @@
                 this.lastKnownElement = elementId;
                 if (this.dotNetReference === null) return;
                 history.replaceState(null, '', window.location.pathname + "#" + elementId);
+                this.dotNetReference.invokeMethodAsync('SectionChangeOccured', elementId);
             }
         });
     }
@@ -98,62 +130,21 @@
     }
 }
 
-window.createScrollSpy = (id) => {
+// Export functions to manage scroll spy instances
+export function createScrollSpy(id) {
     const spy = new MudXScrollSpy();
-    window.mudXScrollSpyInstances = window.mudXScrollSpyInstances || {};
-    window.mudXScrollSpyInstances[id] = spy;
-};
-
-window.getScrollSpy = (id) => {
-    return window.mudXScrollSpyInstances[id];
+    scrollSpyInstances[id] = spy;
+    return spy;
 }
 
-window.disposeScrollSpy = (id) => {
-    const spy = window.mudXScrollSpyInstances[id];
+export function getScrollSpy(id) {
+    return scrollSpyInstances[id];
+}
+
+export function disposeScrollSpy(id) {
+    const spy = scrollSpyInstances[id];
     if (spy) {
         spy.unspy();
-        delete window.mudXScrollSpyInstances[id];
+        delete scrollSpyInstances[id];
     }
 }
-
-window.outlineMap = window.outlineMap || {};
-
-window.getViewportCorners = (element, popoverId, isLeft) => {
-    const getAbsolutePosition = (el) => {
-        let x = 0, y = 0;
-        let current = el;
-        while (current) {
-            x += current.offsetLeft - current.scrollLeft;
-            y += current.offsetTop - current.scrollTop;
-            current = current.offsetParent;
-        }
-        return { x, y };
-    };
-
-    const updatePosition = () => {
-        const marginLeft = parseInt(window.getComputedStyle(element).marginLeft, 10);
-        const { x, y } = getAbsolutePosition(element);
-
-        const popover = document.getElementById(popoverId);
-        if (popover) {
-            const adjustedX = isLeft ? x - marginLeft : x + element.offsetWidth;
-            popover.style.left = `${adjustedX}px`;
-            popover.style.top = `${y}px`;
-        }
-    };
-
-    updatePosition();
-
-    if (!window.outlineMap[popoverId]) {
-        window.outlineMap[popoverId] = updatePosition;
-        window.addEventListener("resize", updatePosition);
-    };
-};
-
-window.disposePopoverResize = (popoverId) => {
-    const entry = window.outlineMap[popoverId];
-    if (entry) {
-        window.removeEventListener("resize", entry);
-        delete window.outlineMap[popoverId];
-    }
-};

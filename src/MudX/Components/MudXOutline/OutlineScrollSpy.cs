@@ -4,11 +4,14 @@ using MudBlazor;
 
 namespace MudX.Components.MudXOutline
 {
-    public sealed class OutlineScrollSpy : IScrollSpy, IAsyncDisposable
+    public sealed class OutlineScrollSpy : IAsyncDisposable
     {
-        private readonly IJSRuntime _js;
+        private readonly string _spyId = Guid.NewGuid().ToString();
+        private IJSRuntime? _js;
+        private IJSObjectReference? _module;
         private IJSObjectReference? _spyInstance;
-        private readonly DotNetObjectReference<OutlineScrollSpy> _dotNetRef;
+        private DotNetObjectReference<OutlineScrollSpy>? _dotNetReference;
+        private bool _isDisposing;
 
         /// <summary>
         /// The id of the currently centered section
@@ -18,17 +21,17 @@ namespace MudX.Components.MudXOutline
         /// <summary>
         /// Event raised when a section is centered
         /// </summary>
-        public event EventHandler<ScrollSectionCenteredEventArgs>? ScrollSectionSectionCentered;
+        public event EventHandler<ScrollSectionCenteredEventArgs>? ScrollSpySectionCentered;
 
         /// <summary>
         /// Initialize the class by supplying the IJSRuntime
         /// </summary>
         /// <param name="js"></param>
         [DynamicDependency(nameof(SectionChangeOccured))]
-        public OutlineScrollSpy(IJSRuntime js)
+        public OutlineScrollSpy(IJSRuntime? js)
         {
+            _dotNetReference = DotNetObjectReference.Create(this);
             _js = js;
-            _dotNetRef = DotNetObjectReference.Create(this);
         }
 
         /// <summary>
@@ -40,8 +43,28 @@ namespace MudX.Components.MudXOutline
         /// when moving to the CenteredSection</param>
         public async Task StartSpying(string containerSelector, string sectionClassSelector)
         {
-            _spyInstance = await _js.InvokeAsync<IJSObjectReference>("createScrollSpy");
-            await _spyInstance.InvokeVoidAsync("spying", _dotNetRef, containerSelector, sectionClassSelector);
+            if (_isDisposing || _js is null) return;
+            // load the module
+            _module = await _js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxOutline.js");
+            // create the scrollspy
+            _spyInstance = await _module.InvokeAsync<IJSObjectReference>("createScrollSpy", _spyId);
+            // start the scrollspy/setup variables
+            await _spyInstance.InvokeVoidAsync("spying", containerSelector, sectionClassSelector, _dotNetReference);
+        }
+
+        /// <summary>
+        /// Raises the ScrollSpySectionCentered event with the id of the centered section. Typically called in javascript.
+        /// </summary>
+        /// <param name="id">The id of the centered section</param>
+        [JSInvokable]
+        public void SectionChangeOccured(string id)
+        {
+            if (_isDisposing || _spyInstance is null) return;
+            if (!string.IsNullOrEmpty(id) && id != CenteredSection)
+            {
+                CenteredSection = id;
+                ScrollSpySectionCentered?.Invoke(this, new ScrollSectionCenteredEventArgs(id));
+            }
         }
 
         /// <summary>
@@ -55,9 +78,9 @@ namespace MudX.Components.MudXOutline
         /// <param name="id"></param>
         public async Task ScrollToSection(string id)
         {
+            if (_isDisposing || _spyInstance is null || string.IsNullOrEmpty(id)) return;
             CenteredSection = id;
-            if (_spyInstance is not null)
-                await _spyInstance.InvokeVoidAsync("scrollToSection", id.Trim('#'));
+            await _spyInstance.InvokeVoidAsync("scrollToSection", id.Trim('#'));
         }
 
         /// <summary>
@@ -66,33 +89,28 @@ namespace MudX.Components.MudXOutline
         /// <param name="id">The id of the section</param>
         public async Task SetSectionAsActive(string id)
         {
+            if (_isDisposing || _spyInstance is null || string.IsNullOrEmpty(id)) return;
             CenteredSection = id;
-            if (_spyInstance is not null)
-                await _spyInstance.InvokeVoidAsync("activateSection", id.Trim('#'));
+            await _spyInstance.InvokeVoidAsync("activateSection", id.Trim('#'));
         }
 
         /// <summary>
-        /// Raises the ScrollSectionSectionCentered event with the id of the centered section. Typically called in javascript.
-        /// </summary>
-        /// <param name="id">The id of the centered section</param>
-        [JSInvokable]
-        public void SectionChangeOccured(string id)
-        {
-            CenteredSection = id;
-            ScrollSectionSectionCentered?.Invoke(this, new ScrollSectionCenteredEventArgs(id));
-        }
-
-        /// <summary>
-        /// Dispose the scrollspy, dotnetref, and js
+        /// Dispose the scrollspy, module, and listeners
         /// </summary>
         public async ValueTask DisposeAsync()
         {
-            if (_spyInstance is not null)
+            _isDisposing = true;
+
+            if (_spyInstance is not null && _module is not null)
             {
-                await _spyInstance.InvokeVoidAsync("unspy");
+                await _module.InvokeVoidAsync("disposeScrollSpy", _spyId);
                 await _spyInstance.DisposeAsync();
+                _spyInstance = null;
+                await _module.DisposeAsync();
+                _module = null;
             }
-            _dotNetRef?.Dispose();
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
         }
     }
 

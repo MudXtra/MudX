@@ -1,3 +1,12 @@
+.mudx-toc-nav-popover {
+    position: absolute;
+    z-index: var(--mud-zindex-popover);
+}
+
+    .mudx-toc-nav-popover.mudx-toc-nav-popover-fixed {
+        position: fixed;
+    }
+
 .mudx-toc-nav-links {
     position: relative;
     transition: all 0.3s ease;
@@ -53,8 +62,9 @@
     /* Active */
     .mudx-toc-nav-links .mudx-toc-nav-navlink.active .mud-nav-link-text {
         font-weight: bold;
-        color: var(--mud-palette-primary);        
+        color: var(--mud-palette-primary);
     }
+
     .mudx-toc-nav-links .mudx-toc-nav-navlink.active.underline .mud-nav-link-text {
         font-weight: bold;
         color: var(--mud-palette-primary);
@@ -107,11 +117,11 @@
         width: 4px; /* Same as active bar width */
         height: 100%;
         background-color: var(--mud-palette-divider);
-        border-radius: 2px; 
+        border-radius: 2px;
     }
 
     .mudx-style-scroll .mudx-toc-nav-navlink {
-        padding-left: 0rem;     
+        padding-left: 0rem;
     }
 
         .mudx-style-scroll .mudx-toc-nav-navlink::before {

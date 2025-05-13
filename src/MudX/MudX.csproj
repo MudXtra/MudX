@@ -23,7 +23,12 @@
     </Target>
 
         <ItemGroup>
+          <Content Remove="wwwroot\modules\mudxScrollSpy.js" />
           <Content Remove="wwwroot\mudxOutline.js" />
+        </ItemGroup>
+
+        <ItemGroup>
+          <None Include="wwwroot\modules\mudxScrollSpy.js" />
         </ItemGroup>
 
   <ItemGroup>

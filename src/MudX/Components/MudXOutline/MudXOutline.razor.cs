@@ -10,14 +10,17 @@ namespace MudX
 {
     public partial class MudXOutline : MudComponentBase, IAsyncDisposable, IOutlineContainer
     {
-        private bool _shouldRepositionPopover = false;
+        private readonly string _id = Guid.NewGuid().ToString();
+        private bool _shouldRepositionPopover = true;
         private string _scrollContainerSelector = "html";
         private ElementReference _anchorRef;
         private MudPopover? _popoverRef;
         private readonly ParameterState<bool> _contentDrawerOpenState;
         private Anchor _anchor = Anchor.End;
         internal List<MudXOutlineSection> _sections = [];
-        private IScrollSpy? _scrollSpy;
+        private OutlineScrollSpy? _scrollSpy;
+        private IJSObjectReference? _viewPortModule;
+        private DotNetObjectReference<MudXOutline>? _dotNetReference;
 
         public MudXOutline()
         {
@@ -40,6 +43,10 @@ namespace MudX
 
         protected string PopoverClassName => new CssBuilder("mudx-toc-nav-popover")
             .AddClass($"mud-theme-{Color.ToDescriptionString()}")
+            .AddClass("mudx-toc-nav-popover-fixed", ScrollContainerSelector == "html")
+            .AddClass("mud-popover-anchor-") // anchor
+            .AddClass("mud-popover-") // transform
+            .AddClass("mud-popover-open", _contentDrawerOpenState.Value)
             .Build();
 
         protected string PopoverStyleName => new StyleBuilder()
@@ -53,7 +60,7 @@ namespace MudX
             .Build();
 
         [Inject]
-        private IJSRuntime? JsRuntime { get; set; }
+        private IJSRuntime? _js { get; set; }
 
         /// <summary>
         /// Whether the Table of Contents drawer is open or closed
@@ -182,10 +189,12 @@ namespace MudX
                 BuildLevelStructure();
                 // make sure each section has a unique SectionId for ScrollSpy 
                 BuildSectionIdsUnique();
-                _scrollSpy = new OutlineScrollSpy(JsRuntime!);
+                //_scrollSpy = new OutlineScrollSpy(_js);
+                if (_js is null) throw new Exception("JSRuntime is not available");
+                _viewPortModule = await _js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxOutline.js");
                 if (_scrollSpy is not null)
                 {
-                    _scrollSpy.ScrollSectionSectionCentered += ScrollSpy_ScrollSectionSectionCentered;
+                    _scrollSpy.ScrollSpySectionCentered += ScrollSpySectionCentered;
 
                     if (!string.IsNullOrEmpty(SectionClassSelector))
                     {
@@ -200,7 +209,6 @@ namespace MudX
             if (_shouldRepositionPopover)
             {
                 await PositionIndex();
-                _shouldRepositionPopover = false;
             }
         }
 
@@ -209,9 +217,14 @@ namespace MudX
         /// </summary>
         public async Task PositionIndex()
         {
-            if (IsJSRuntimeAvailable)
+            //if (_popoverRef is not null)
+            //{
+            //    _popoverId = $"popovercontent-{_popoverRef?.Id}";
+            //}
+            if (IsJSRuntimeAvailable && _viewPortModule is not null)
             {
-                await JsRuntime!.InvokeVoidAsync("getViewportCorners", _anchorRef, $"popovercontent-{_popoverRef?.Id}", _anchor == Anchor.Left);
+                var result = await _viewPortModule.InvokeAsync<bool>("getViewportCorners", _anchorRef, _id, _anchor == Anchor.Left);
+                _shouldRepositionPopover = result;
             }
         }
 
@@ -273,14 +286,14 @@ namespace MudX
             if (_scrollSpy is not null)
             {
                 // stop the event from changing the active section in case it doesn't "center" the section
-                _scrollSpy.ScrollSectionSectionCentered -= ScrollSpy_ScrollSectionSectionCentered;
+                _scrollSpy.ScrollSpySectionCentered -= ScrollSpySectionCentered;
                 await _scrollSpy.ScrollToSection(id);
-                _scrollSpy.ScrollSectionSectionCentered += ScrollSpy_ScrollSectionSectionCentered;
+                _scrollSpy.ScrollSpySectionCentered += ScrollSpySectionCentered;
             }
             SelectActiveSection(id);
         }
 
-        private void ScrollSpy_ScrollSectionSectionCentered(object? sender, ScrollSectionCenteredEventArgs e) =>
+        private void ScrollSpySectionCentered(object? sender, ScrollSectionCenteredEventArgs e) =>
              SelectActiveSection(e.Id);
 
         private void SelectActiveSection(string? id)
@@ -318,17 +331,24 @@ namespace MudX
         // Dispose the scrollspy
         public async ValueTask DisposeAsync()
         {
+            if (_popoverRef is not null)
+            {
+                await _popoverRef.DisposeAsync();
+            }
             if (_scrollSpy is not null)
             {
-                _scrollSpy!.ScrollSectionSectionCentered -= ScrollSpy_ScrollSectionSectionCentered;
+                _scrollSpy.ScrollSpySectionCentered -= ScrollSpySectionCentered;
                 await _scrollSpy.DisposeAsync();
                 _scrollSpy = null;
             }
-
-            if (IsJSRuntimeAvailable)
+            if (_viewPortModule is not null)
             {
-                await JsRuntime!.InvokeVoidAsync("disposePopoverResize", $"popovercontent-{_popoverRef?.Id}");
+                await _viewPortModule.InvokeVoidAsync("disposePopoverResize", _id);
+                await _viewPortModule.DisposeAsync();
+                _viewPortModule = null;
             }
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
         }
     }
 }
