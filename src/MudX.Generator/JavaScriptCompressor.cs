@@ -35,7 +35,7 @@
 
 
 
-namespace MudBlazor.JSCompiler
+namespace MudX.Generator.JSCompiler
 {
     #region Imports
 

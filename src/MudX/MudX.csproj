@@ -12,7 +12,7 @@
         <!-- Define paths -->
         <PropertyGroup>
             <GeneratorPath>$(MSBuildThisFileDirectory)..\MudX.Generator\MudX.Generator.csproj</GeneratorPath>
-            <OutputPath>$(MSBuildThisFileDirectory)wwwroot\</OutputPath>
+            <OutputPath>$(MSBuildThisFileDirectory)wwwroot</OutputPath>
             <ScriptsDirectory>$(MSBuildThisFileDirectory)Scripts</ScriptsDirectory>
         </PropertyGroup>
 
@@ -23,12 +23,14 @@
     </Target>
 
         <ItemGroup>
-          <Content Remove="wwwroot\modules\mudxScrollSpy.js" />
           <Content Remove="wwwroot\mudxOutline.js" />
         </ItemGroup>
 
         <ItemGroup>
-          <None Include="wwwroot\modules\mudxScrollSpy.js" />
+          <Content Include="Scripts\Modules\mudxOutline.js">
+            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+          </Content>
         </ItemGroup>
 
   <ItemGroup>

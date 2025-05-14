@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX", "MudX\MudX.csproj", "{5500F3F4-24D0-432B-A74F-C41F20815DF8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		..\.gitignore = ..\.gitignore
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.UnitTests", "..\tests\MudX.UnitTests\MudX.UnitTests.csproj", "{AA9717B7-5B94-43B4-A43B-2FF9776D74B4}"
 EndProject
@@ -15,9 +18,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.Docs", "MudX.Docs\MudX
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.Docs.Server", "MudX.Docs.Server\MudX.Docs.Server.csproj", "{E22D8B3B-8869-4C3D-907E-BF2328924361}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.Docs.Generator", "MudX.Docs.NavGenerator\MudX.Docs.Generator.csproj", "{DA583DFD-C476-4534-A23D-79749A5FC0CF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.Generator", "MudX.Generator\MudX.Generator.csproj", "{355B5E94-119A-4BA1-ACB7-435BB87FEBAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.Docs.Generator", "MudX.Docs.Generator\MudX.Docs.Generator.csproj", "{FB925D31-5565-0AE5-A03B-9773B0537EDF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,14 +48,14 @@ Global
 		{E22D8B3B-8869-4C3D-907E-BF2328924361}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E22D8B3B-8869-4C3D-907E-BF2328924361}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E22D8B3B-8869-4C3D-907E-BF2328924361}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DA583DFD-C476-4534-A23D-79749A5FC0CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DA583DFD-C476-4534-A23D-79749A5FC0CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DA583DFD-C476-4534-A23D-79749A5FC0CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DA583DFD-C476-4534-A23D-79749A5FC0CF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{355B5E94-119A-4BA1-ACB7-435BB87FEBAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{355B5E94-119A-4BA1-ACB7-435BB87FEBAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{355B5E94-119A-4BA1-ACB7-435BB87FEBAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{355B5E94-119A-4BA1-ACB7-435BB87FEBAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB925D31-5565-0AE5-A03B-9773B0537EDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB925D31-5565-0AE5-A03B-9773B0537EDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB925D31-5565-0AE5-A03B-9773B0537EDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB925D31-5565-0AE5-A03B-9773B0537EDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
