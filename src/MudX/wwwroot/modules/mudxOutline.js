@@ -1,41 +1,36 @@
 ﻿// mudxOutline
 const observerMap = new Map();
 
-export function getViewportCorners(element, popoverId, isLeft) {
+export function getViewportCorners(element, popoverId, isLeft, scrollNodeSelector = null) {
     if (!element) return false;
 
-    const getAbsolutePosition = (el) => {
-        let x = 0, y = 0;
-        let current = el;
-        while (current) {
-            x += current.offsetLeft - current.scrollLeft;
-            y += current.offsetTop - current.scrollTop;
-            current = current.offsetParent;
-        }
-        return { x, y };
-    };
+    const popover = document.getElementById(popoverId);
+    if (!popover) return false;
+    const scrollNode = document.querySelector(scrollNodeSelector) || element.parentNode.parentNode;
+    const isFixed = scrollNodeSelector === null;
 
     const updatePosition = () => {
-        const popoverNode = document.getElementById(`$popover-{popoverId}`);
-        window.mudpopoverHelper.placePopover(popoverNode);
-        //try {
-        //    if (!element) return false;
+        try {
+            if (!element || !popover) return false;
 
-        //    //const marginLeft = parseInt(window.getComputedStyle(element).marginLeft, 10) || 0;
-        //    const { x, y } = getAbsolutePosition(element);
+            const elRect = element.getBoundingClientRect();
+            const scrollRect = scrollNode.getBoundingClientRect();
+            const rect = isFixed ? elRect : scrollRect;
+            const marginLeft = parseInt(window.getComputedStyle(element).marginLeft, 10) || 0;
+            const adjustedX = isLeft ? rect.left : rect.left + rect.width;
+            const adjustedY = isFixed ? rect.top : rect.top;
 
-        //    const popover = document.getElementById(popoverId);
-        //    if (popover) { // - marginLeft
-        //        const adjustedX = isLeft ? x : x + element.offsetWidth;
-        //        popover.style.left = `${adjustedX}px`;
-        //        popover.style.top = `${y}px`;
-        //        return true;
-        //    }
-        //} catch (e) {
-        //    console.debug('Position update failed (likely during disposal)', e);
-        //}
+            popover.style.position = isFixed ? 'fixed' : 'absolute';
+            popover.style.left = `${adjustedX}px`;
+            popover.style.top = `${adjustedY}px`;
+
+            return true;
+        } catch (e) {
+            console.debug('Position update failed', e);
+        }
         return false;
     };
+
 
     // Clean up any existing observer for this popoverId
     disposePopoverResize(popoverId);
@@ -43,27 +38,37 @@ export function getViewportCorners(element, popoverId, isLeft) {
     // Initial position
     updatePosition();
 
-    // Setup new observer
-    const observer = new ResizeObserver(updatePosition);
-    observer.observe(element.parentNode);
+    // Setup new observers
+    const elementObserver = new ResizeObserver(updatePosition);
+    elementObserver.observe(element);
 
-    // Store observer with reference to the actual element
+    // For absolute positioning, we need to observe container scroll
+    const scrollObserver = new ResizeObserver(updatePosition);
+    if (!isFixed) {        
+        scrollObserver.observe(scrollNode);
+        window.addEventListener('scroll', updatePosition, { passive: true });
+    }
+
+    // Store observers with reference to the actual element
     observerMap.set(popoverId, {
-        elementObserver: observer,
-        element: element
+        elementObserver: elementObserver,
+        scrollObserver: !isFixed ? scrollObserver : null,
+        scrollListener: !isFixed ? updatePosition : null,
+        element: element,
+        parent: !isFixed ? element.parentNode : null
     });
 
     return true;
 }
 
 export function disposePopoverResize(popoverId) {
-    const observers = observerMap.get(popoverId);
-    if (observers) {
-        try {
-            observers.elementObserver?.disconnect();
-        } catch (e) {
-            console.debug('Cleanup error', e);
-        }
+    if (observerMap.has(popoverId)) {
+        const { elementObserver, scrollObserver, scrollListener, parent } = observerMap.get(popoverId);
+
+        elementObserver.disconnect();
+        if (scrollObserver) scrollObserver.disconnect();
+        if (scrollListener && parent) parent.removeEventListener('scroll', scrollListener);
+
         observerMap.delete(popoverId);
     }
 }

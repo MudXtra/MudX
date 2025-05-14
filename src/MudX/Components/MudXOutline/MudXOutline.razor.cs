@@ -10,7 +10,7 @@ namespace MudX
 {
     public partial class MudXOutline : MudComponentBase, IAsyncDisposable, IOutlineContainer
     {
-        private readonly string _id = Guid.NewGuid().ToString();
+        private readonly string _id = $"mudx-toc-{Guid.NewGuid()}";
         private bool _shouldRepositionPopover = true;
         private string _scrollContainerSelector = "html";
         private ElementReference _anchorRef;
@@ -43,21 +43,20 @@ namespace MudX
 
         protected string PopoverClassName => new CssBuilder("mudx-toc-nav-popover")
             .AddClass($"mud-theme-{Color.ToDescriptionString()}")
-            .AddClass("mudx-toc-nav-popover-fixed", ScrollContainerSelector == "html")
-            .AddClass("mud-popover-anchor-") // anchor
-            .AddClass("mud-popover-") // transform
-            .AddClass("mud-popover-open", _contentDrawerOpenState.Value)
             .Build();
 
         protected string PopoverStyleName => new StyleBuilder()
             .AddStyle("width", $"{Width}px", _contentDrawerOpenState.Value)
             .AddStyle("max-width", $"{Width}px", _contentDrawerOpenState.Value)
+            .AddStyle("z-index", ZIndex.ToString(), _contentDrawerOpenState.Value)
             .Build();
 
         protected string NavDrawerStyle => new StyleBuilder()
             .AddStyle("margin-right", $"{Width}px", _contentDrawerOpenState.Value && _anchor == Anchor.Right)
             .AddStyle("margin-left", $"{Width}px", _contentDrawerOpenState.Value && _anchor == Anchor.Left)
             .Build();
+
+        private string? IsFixed => ScrollContainerSelector == "html" ? null : ScrollContainerSelector;
 
         [Inject]
         private IJSRuntime? _js { get; set; }
@@ -89,6 +88,13 @@ namespace MudX
         /// <remarks>Defaults to "Contents"</remarks>
         [Parameter]
         public string Headline { get; set; } = "Contents";
+
+        /// <summary>
+        /// The z-index of the Table of Contents drawer
+        /// </summary>
+        /// <remarks>Defaults to 999.</remarks>
+        [Parameter]
+        public int ZIndex { get; set; } = 999;
 
         /// <summary>
         /// Whether to underline the active section
@@ -223,7 +229,7 @@ namespace MudX
             //}
             if (IsJSRuntimeAvailable && _viewPortModule is not null)
             {
-                var result = await _viewPortModule.InvokeAsync<bool>("getViewportCorners", _anchorRef, _id, _anchor == Anchor.Left);
+                var result = await _viewPortModule.InvokeAsync<bool>("getViewportCorners", _anchorRef, _id, _anchor == Anchor.Left, IsFixed);
                 _shouldRepositionPopover = result;
             }
         }

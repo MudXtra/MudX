@@ -2,49 +2,49 @@
 @namespace MudX
 @inherits MudComponentBase
 
-<div id="@($"popover-{_id}")" class="mudx-toc-document" @attributes="@UserAttributes" style="position: relative">
+<div class="mudx-toc-document" @attributes="@UserAttributes" style="position: relative">
     <div @ref="@_anchorRef" class="mudx-toc-nav-drawer" style="@NavDrawerStyle">
         @DocumentContent
     </div>
-</div>
-
-@if (ScrollToTopVisible)
-{
-    <MudScrollToTop Visible="true" />
-}
-@if (_contentDrawerOpenState.Value)
-{
-    <MudCard id="@($"popovercontent-{_id}")" Elevation="0" Class="@PopoverClassName" Style="@PopoverStyleName">
-    <MudCardHeader>
-        <MudText Typo="Typo.subtitle1" Class="mudx-toc-title" GutterBottom="true">
-            @Headline
-        </MudText>
-    </MudCardHeader>
-    <MudCardContent>
-        <div class="@GetNavLinksClass">
-            @foreach (var docSection in _sections.OrderBy(x => x.LevelSortingValue))
-            {
-                <MudNavLink @key="docSection._id"
-                            Match="NavLinkMatch.All"
-                            Class="@GetNavLinkClass(docSection)"
-                            OnClick="@(e => OnNavLinkClick(docSection.SectionId))">
-                    @docSection.Title
-                </MudNavLink>
-            }
-        </div>
-    </MudCardContent>
-</MudCard>
-}
-@* <MudPopover @ref="@_popoverRef" AnchorOrigin="@(PopoverAnchor)" TransformOrigin="@(PopoverTransform)" Elevation="0" Paper="false"
+    @if (_contentDrawerOpenState.Value)
+    {
+        <MudCard id="@_id" Elevation="0" Class="@PopoverClassName" Style="@PopoverStyleName">
+            <MudCardHeader>
+                <MudText Typo="Typo.subtitle1" Class="mudx-toc-title" GutterBottom="true">
+                    @Headline
+                </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <div class="@GetNavLinksClass">
+                    @foreach (var docSection in _sections.OrderBy(x => x.LevelSortingValue))
+                    {
+                        <MudNavLink @key="docSection._id"
+                                    Match="NavLinkMatch.All"
+                                    Class="@GetNavLinkClass(docSection)"
+                                    OnClick="@(e => OnNavLinkClick(docSection.SectionId))">
+                            @docSection.Title
+                        </MudNavLink>
+                    }
+                </div>
+            </MudCardContent>
+        </MudCard>
+    }
+    @* <MudPopover @ref="@_popoverRef" AnchorOrigin="@(PopoverAnchor)" TransformOrigin="@(PopoverTransform)" Elevation="0" Paper="false"
             Fixed="@(ScrollContainerSelector == "html")" Class="mud-popover-position-override"
             Style="@(PopoverStyleName)" Open="@_contentDrawerOpenState.Value" OverflowBehavior="@OverflowBehavior.FlipNever">
 
 </MudPopover> *@
 
+</div>
+@if (ScrollToTopVisible)
+{
+    <MudScrollToTop Visible="true" />
+}
+
 @code {
     private RenderFragment DocumentContent =>
     @<text>
-            @* This is the actual document that is tracked *@
+                            @* This is the actual document that is tracked *@
         <div class="d-flex justify-center align-center mud-height-full">
             <MudContainer MaxWidth="MaxWidth.Large">
                 <div class="mudx-toc-content">
