@@ -42,6 +42,7 @@ namespace MudX
             .Build();
 
         protected string PopoverClassName => new CssBuilder("mudx-toc-nav-popover")
+            .AddClass("mudx-toc-nav-popover-fixed", ScrollContainerSelector == "html")
             .AddClass($"mud-theme-{Color.ToDescriptionString()}")
             .Build();
 

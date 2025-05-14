@@ -1,6 +1,10 @@
 .mudx-toc-nav-popover {
-    position: fixed;
+    position: absolute;
 }
+
+  .mudx-toc-nav-popover.mudx-toc-nav-popover-fixed {
+      position: fixed;
+  }
 
 .mudx-toc-nav-links {
     position: relative;

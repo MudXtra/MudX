@@ -1,39 +1,57 @@
-﻿// mudxOutline
-const observerMap = new Map();
+﻿const observerMap = new Map();
 
 export function getViewportCorners(element, popoverId, isLeft, scrollNodeSelector = null) {
-    if (!element) return false;
-
-    const popover = document.getElementById(popoverId);
-    if (!popover) return false;
     const scrollNode = document.querySelector(scrollNodeSelector) || element.parentNode.parentNode;
     const isFixed = scrollNodeSelector === null;
 
-    const updatePosition = () => {
-        try {
-            if (!element || !popover) return false;
-
-            const elRect = element.getBoundingClientRect();
-            const scrollRect = scrollNode.getBoundingClientRect();
-            const rect = isFixed ? elRect : scrollRect;
-            const marginLeft = parseInt(window.getComputedStyle(element).marginLeft, 10) || 0;
-            const adjustedX = isLeft ? rect.left : rect.left + rect.width;
-            const adjustedY = isFixed ? rect.top : rect.top;
-
-            popover.style.position = isFixed ? 'fixed' : 'absolute';
-            popover.style.left = `${adjustedX}px`;
-            popover.style.top = `${adjustedY}px`;
-
-            return true;
-        } catch (e) {
-            console.debug('Position update failed', e);
+    const getAbsolutePosition = (el) => {
+        let x = 0, y = 0;
+        if (isFixed) {
+            // For fixed positioning, use getBoundingClientRect for viewport coordinates
+            const rect = el.getBoundingClientRect();
+            x = rect.left + window.scrollX;
+            y = rect.top + window.scrollY;
+        } else {
+            // For absolute positioning, use offsetLeft/offsetTop relative to offsetParent
+            x = el.offsetLeft;
+            y = el.offsetTop;
+            // If offsetParent is not containerDiv, adjust to containerDiv's coordinates
+            const containerDiv = el.closest('[style*="position: relative"]') || scrollNode;
+            if (el.offsetParent !== containerDiv) {
+                const containerRect = containerDiv.getBoundingClientRect();
+                const elementRect = el.getBoundingClientRect();
+                x = elementRect.left - containerRect.left;
+                y = elementRect.top - containerRect.top;
+            }
+            // Adjust for scrollNode's scroll position to keep popover in place
+            x += scrollNode.scrollLeft || 0;
+            y += scrollNode.scrollTop || 0;
         }
-        return false;
+        return { x, y };
     };
 
+    const updatePosition = () => {
+        const marginLeft = parseInt(window.getComputedStyle(element).marginLeft, 10);
+        const { x, y } = getAbsolutePosition(element);
+
+        const popover = document.getElementById(popoverId);
+        if (popover) {
+            const adjustedX = isLeft ? x - marginLeft : x + element.offsetWidth;
+            popover.style.left = `${adjustedX}px`;
+            popover.style.top = `${y}px`;
+        }
+    };
 
     // Clean up any existing observer for this popoverId
     disposePopoverResize(popoverId);
+
+    // Ensure scrollNode or containerDiv is positioned for non-fixed case
+    if (!isFixed) {
+        const containerDiv = element.closest('[style*="position: relative"]') || scrollNode;
+        if (window.getComputedStyle(containerDiv).position === 'static') {
+            containerDiv.style.position = 'relative';
+        }
+    }
 
     // Initial position
     updatePosition();
@@ -42,20 +60,19 @@ export function getViewportCorners(element, popoverId, isLeft, scrollNodeSelecto
     const elementObserver = new ResizeObserver(updatePosition);
     elementObserver.observe(element);
 
-    // For absolute positioning, we need to observe container scroll
+    // Observe scrollNode for scroll and resize events
     const scrollObserver = new ResizeObserver(updatePosition);
     if (!isFixed) {        
         scrollObserver.observe(scrollNode);
-        window.addEventListener('scroll', updatePosition, { passive: true });
+        scrollNode.addEventListener('scroll', updatePosition, { passive: true });
     }
 
     // Store observers with reference to the actual element
     observerMap.set(popoverId, {
-        elementObserver: elementObserver,
+        elementObserver,
         scrollObserver: !isFixed ? scrollObserver : null,
         scrollListener: !isFixed ? updatePosition : null,
-        element: element,
-        parent: !isFixed ? element.parentNode : null
+        scrollNode: !isFixed ? scrollNode : null,
     });
 
     return true;
@@ -63,11 +80,11 @@ export function getViewportCorners(element, popoverId, isLeft, scrollNodeSelecto
 
 export function disposePopoverResize(popoverId) {
     if (observerMap.has(popoverId)) {
-        const { elementObserver, scrollObserver, scrollListener, parent } = observerMap.get(popoverId);
+        const { elementObserver, scrollObserver, scrollListener, scrollNode } = observerMap.get(popoverId);
 
         elementObserver.disconnect();
         if (scrollObserver) scrollObserver.disconnect();
-        if (scrollListener && parent) parent.removeEventListener('scroll', scrollListener);
+        if (scrollListener && scrollNode) scrollNode.removeEventListener('scroll', scrollListener);
 
         observerMap.delete(popoverId);
     }
