@@ -6,7 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-        <Target Name="GenerateNavJsonBeforeBuild" BeforeTargets="PreBuildEvent">
+    <Target Name="GenerateNavJsonBeforeBuild" BeforeTargets="PreBuildEvent"
+            Inputs="@(ScriptFiles)"
+            Outputs="@(ScriptFiles->'$(MSBuildThisFileDirectory)wwwroot\modules\%(Filename)%(Extension)')">
+        <Message Importance="high" Text="======================================" />
         <Message Importance="high" Text="MudX.Generator: Starting MudX generation..." />
 
         <!-- Define paths -->
@@ -16,27 +19,23 @@
             <ScriptsDirectory>$(MSBuildThisFileDirectory)Scripts</ScriptsDirectory>
         </PropertyGroup>
 
-        <!-- Build and run in one command - framework version independent -->
-        <Exec Command="dotnet run --project &quot;$(GeneratorPath)&quot; --configuration Release -- &quot;$(OutputPath)&quot; &quot;$(ScriptsDirectory)&quot;" ConsoleToMSBuild="true" ContinueOnError="false" />
+        <!-- Collect all .js files in Scripts directory -->
+        <ItemGroup>
+            <ScriptFiles Include="$(ScriptsDirectory)\**\*.js" />
+        </ItemGroup>
+
+        <!-- Build and run in one command -->
+        <Exec Command="dotnet run --project &quot;$(GeneratorPath)&quot; --configuration Release -- &quot;$(OutputPath)&quot; &quot;$(ScriptsDirectory)&quot;"
+              ConsoleToMSBuild="true" ContinueOnError="false" />
 
         <Message Importance="high" Text="MudX.Generator: Finished MudX generation..." />
+        <Message Importance="high" Text="======================================" />
     </Target>
 
-        <ItemGroup>
-          <Content Remove="wwwroot\mudxOutline.js" />
-        </ItemGroup>
-
-        <ItemGroup>
-          <Content Include="Scripts\Modules\mudxOutline.js">
-            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-          </Content>
-        </ItemGroup>
-
-  <ItemGroup>
+    <ItemGroup>
     <SupportedPlatform Include="browser" />
-  </ItemGroup>
-
+  </ItemGroup>    
+    
   <ItemGroup>
     <ProjectReference Include="..\MudX.DependsOn\MudX.DependsOn.csproj" />
   </ItemGroup>

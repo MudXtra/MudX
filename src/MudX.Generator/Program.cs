@@ -22,10 +22,12 @@ try
     }
     // see if subdirectory of outputDirectory exists called modules, create it if it doesn't exist and set it to modulesDirectory
     var modulesDirectory = Path.Combine(outputDirectory, "modules");
-    if (!Directory.Exists(modulesDirectory))
+    // At the start of the try block in MudX.Generator
+    if (Directory.Exists(modulesDirectory))
     {
-        Directory.CreateDirectory(modulesDirectory);
+        Directory.Delete(modulesDirectory, true); // Delete directory and all contents
     }
+    Directory.CreateDirectory(modulesDirectory); // Recreate empty directory
     var jsDirectory = Path.GetFullPath(Path.Combine("..", "MudX", jsFiles));
     if (!Directory.Exists(jsDirectory))
     {
