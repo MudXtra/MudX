@@ -7,7 +7,7 @@ namespace MudX.Components.MudXOutline
     public sealed class OutlineScrollSpy : IAsyncDisposable
     {
         private readonly string _spyId = Guid.NewGuid().ToString();
-        private IJSRuntime? _js;
+        private IJSRuntime _js;
         private IJSObjectReference? _module;
         private IJSObjectReference? _spyInstance;
         private DotNetObjectReference<OutlineScrollSpy>? _dotNetReference;
@@ -28,7 +28,7 @@ namespace MudX.Components.MudXOutline
         /// </summary>
         /// <param name="js"></param>
         [DynamicDependency(nameof(SectionChangeOccured))]
-        public OutlineScrollSpy(IJSRuntime? js)
+        public OutlineScrollSpy(IJSRuntime js)
         {
             _dotNetReference = DotNetObjectReference.Create(this);
             _js = js;
@@ -45,7 +45,7 @@ namespace MudX.Components.MudXOutline
         {
             if (_isDisposing || _js is null) return;
             // load the module
-            _module = await _js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxOutline.js");
+            _module = await _js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxScrollSpy.js");
             // create the scrollspy
             _spyInstance = await _module.InvokeAsync<IJSObjectReference>("createScrollSpy", _spyId);
             // start the scrollspy/setup variables

@@ -14,7 +14,7 @@ namespace MudX
         private bool _shouldRepositionPopover = true;
         private string _scrollContainerSelector = "html";
         private ElementReference _anchorRef;
-        private MudPopover? _popoverRef;
+        //private MudPopover? _popoverRef;
         private readonly ParameterState<bool> _contentDrawerOpenState;
         private Anchor _anchor = Anchor.End;
         internal List<MudXOutlineSection> _sections = [];
@@ -196,8 +196,8 @@ namespace MudX
                 BuildLevelStructure();
                 // make sure each section has a unique SectionId for ScrollSpy 
                 BuildSectionIdsUnique();
-                //_scrollSpy = new OutlineScrollSpy(_js);
                 if (_js is null) throw new Exception("JSRuntime is not available");
+                _scrollSpy = new OutlineScrollSpy(_js);
                 _viewPortModule = await _js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxOutline.js");
                 if (_scrollSpy is not null)
                 {
@@ -338,10 +338,10 @@ namespace MudX
         // Dispose the scrollspy
         public async ValueTask DisposeAsync()
         {
-            if (_popoverRef is not null)
-            {
-                await _popoverRef.DisposeAsync();
-            }
+            //if (_popoverRef is not null)
+            //{
+            //    await _popoverRef.DisposeAsync();
+            //}
             if (_scrollSpy is not null)
             {
                 _scrollSpy.ScrollSpySectionCentered -= ScrollSpySectionCentered;

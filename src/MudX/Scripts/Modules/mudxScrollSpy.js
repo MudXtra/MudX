@@ -1,6 +1,4 @@
 ﻿// MudXScrollSpy module
-
-// Store instances internally within the module
 const scrollSpyInstances = {};
 
 export class MudXScrollSpy {
@@ -22,12 +20,11 @@ export class MudXScrollSpy {
         this.dotNetReference = dotNetReference;
         this.container = document.querySelector(this.containerSelector);
         if (!this.container) return;
-        return;
-        if (this.containerSelector !== "html") {
+
+        if (this.containerSelector !== 'html') {
             this.container.addEventListener('scroll', this.handleRef);
             this.container.addEventListener('resize', this.handleRef);
-        }
-        else {
+        } else {
             window.addEventListener('scroll', this.handleRef);
             window.addEventListener('resize', this.handleRef);
         }
@@ -37,12 +34,10 @@ export class MudXScrollSpy {
         if (this.pendingAnimation !== null) {
             cancelAnimationFrame(this.pendingAnimation);
         }
-        return;
-        if (this.containerSelector !== "html") {
-            this.container.removeEventListener('scroll', this.handleRef);
-            this.container.removeEventListener('resize', this.handleRef);
-        }
-        else {
+        if (this.containerSelector !== 'html') {
+            this.container?.removeEventListener('scroll', this.handleRef);
+            this.container?.removeEventListener('resize', this.handleRef);
+        } else {
             window.removeEventListener('scroll', this.handleRef);
             window.removeEventListener('resize', this.handleRef);
         }
@@ -58,11 +53,11 @@ export class MudXScrollSpy {
         if (this.pendingAnimation !== null) {
             cancelAnimationFrame(this.pendingAnimation);
         }
+        console.log(this.container);
 
         this.pendingAnimation = requestAnimationFrame(() => {
             this.pendingAnimation = null;
-            //console.log("handleScroll called with this:", this);
-            const container = document.querySelector(this.containerSelector);
+            const container = this.container;
             if (!container) return;
 
             const sections = container.querySelectorAll(this.sectionClassSelector);
@@ -75,8 +70,7 @@ export class MudXScrollSpy {
             let minDifference = Number.MAX_SAFE_INTEGER;
             let foundAbove = false;
             let elementId = '';
-            for (let i = 0; i < sections.length; i++) {
-                const section = sections[i];
+            for (const section of sections) {
                 const rect = section.getBoundingClientRect();
                 const diff = Math.abs(rect.top - center);
                 if (!foundAbove && rect.top < center) {
@@ -85,9 +79,7 @@ export class MudXScrollSpy {
                     elementId = section.id;
                     continue;
                 }
-                if (foundAbove && rect.top >= center) {
-                    continue;
-                }
+                if (foundAbove && rect.top >= center) continue;
                 if (diff < minDifference) {
                     minDifference = diff;
                     elementId = section.id;
@@ -96,41 +88,36 @@ export class MudXScrollSpy {
 
             if (elementId !== this.lastKnownElement) {
                 this.lastKnownElement = elementId;
-                if (this.dotNetReference === null) return;
-                history.replaceState(null, '', window.location.pathname + "#" + elementId);
-                this.dotNetReference.invokeMethodAsync('SectionChangeOccured', elementId);
+                if (this.dotNetReference) {
+                    history.replaceState(null, '', `${window.location.pathname}#${elementId}`);
+                    this.dotNetReference.invokeMethodAsync('SectionChangeOccured', elementId);
+                }
             }
         });
     }
 
     activateSection(sectionId) {
-        const container = document.querySelector(this.containerSelector);
-        if (!container) return;
-
-        const section = container.querySelector(`$#${sectionId}`);
+        if (!this.container) return;
+        const section = this.container.querySelector(`#${sectionId}`);
         if (section) {
             this.lastKnownElement = sectionId;
-            history.replaceState(null, '', window.location.pathname + "#" + sectionId);
+            history.replaceState(null, '', `${window.location.pathname}#${sectionId}`);
         }
     }
 
     scrollToSection(sectionId) {
         if (sectionId) {
-            const container = document.querySelector(this.containerSelector);
-            if (!container) return;
-
-            let element = container.querySelector(`#${sectionId}`) || document.getElementById(sectionId);
+            if (!this.container) return;
+            const element = this.container.querySelector(`#${sectionId}`) || document.getElementById(sectionId);
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
             }
-        }
-        else {
+        } else {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 }
 
-// Export functions to manage scroll spy instances
 export function createScrollSpy(id) {
     const spy = new MudXScrollSpy();
     scrollSpyInstances[id] = spy;

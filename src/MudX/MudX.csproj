@@ -1,43 +1,65 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
 
-    <Target Name="GenerateNavJsonBeforeBuild" BeforeTargets="PreBuildEvent"
-            Inputs="@(ScriptFiles)"
-            Outputs="@(ScriptFiles->'$(MSBuildThisFileDirectory)wwwroot\modules\%(Filename)%(Extension)')">
+    <!-- Define paths -->
+    <PropertyGroup>
+        <ProjectRoot>$(MSBuildProjectDirectory)</ProjectRoot>
+        <GeneratorPath>$(ProjectRoot)\..\MudX.Generator\MudX.Generator.csproj</GeneratorPath>
+        <MudXOutputPath>$(ProjectRoot)\wwwroot</MudXOutputPath>
+        <StampsFilePath>$(MudXOutputPath)\modules\__stamp__.txt</StampsFilePath>
+        <ScriptsDirectory>$(ProjectRoot)\Scripts</ScriptsDirectory>
+    </PropertyGroup>
+
+    <!-- Collect all .js files in Scripts directory with timestamps -->
+    <ItemGroup>
+        <ScriptFiles Include="$(ScriptsDirectory)\**\*.js" />
+        <StampsFile Include="$(StampsFilePath)" />
+        <OutputFiles Include="$(MudXOutputPath)modules\**\*.js" />
+    </ItemGroup>
+   
+    <!-- Create item with filename and timestamp metadata -->
+    <ItemGroup>
+        <ScriptFilesWithTimestamps Include="@(ScriptFiles)">
+            <FileInfo>%(Identity)|%(ModifiedTime)</FileInfo>
+        </ScriptFilesWithTimestamps>
+    </ItemGroup>
+
+    <Target Name="GeneratorInit" BeforeTargets="GeneratorBeforeBuild">
+        <Message Importance="high" Text="Script: %(ScriptFiles.Identity) - %(ScriptFiles.ModifiedTime)" />
+        <Message Importance="high" Text="StampsFile: %(StampsFile.Identity) - %(StampsFile.ModifiedTime)" />
+        <Message Importance="high" Text="Found @(ScriptFiles->Count()) script files" />
+    </Target>
+    
+    <!-- This takes a list of ScriptFiles and compares it to the StampsFile timestamp. If any are newer it triggers a build -->
+    <Target Name="GeneratorBeforeBuild" BeforeTargets="Build" Inputs="@(ScriptFiles)" Outputs="@(StampsFile)">
         <Message Importance="high" Text="======================================" />
         <Message Importance="high" Text="MudX.Generator: Starting MudX generation..." />
 
-        <!-- Define paths -->
-        <PropertyGroup>
-            <GeneratorPath>$(MSBuildThisFileDirectory)..\MudX.Generator\MudX.Generator.csproj</GeneratorPath>
-            <OutputPath>$(MSBuildThisFileDirectory)wwwroot</OutputPath>
-            <ScriptsDirectory>$(MSBuildThisFileDirectory)Scripts</ScriptsDirectory>
-        </PropertyGroup>
-
-        <!-- Collect all .js files in Scripts directory -->
-        <ItemGroup>
-            <ScriptFiles Include="$(ScriptsDirectory)\**\*.js" />
-        </ItemGroup>
-
         <!-- Build and run in one command -->
-        <Exec Command="dotnet run --project &quot;$(GeneratorPath)&quot; --configuration Release -- &quot;$(OutputPath)&quot; &quot;$(ScriptsDirectory)&quot;"
+        <Exec Command="dotnet run --project &quot;$(GeneratorPath)&quot; --configuration Release -- &quot;$(MudXOutputPath)&quot; &quot;$(ScriptsDirectory)&quot;"
               ConsoleToMSBuild="true" ContinueOnError="false" />
 
+        <!--  Write timestamps to file -->
+        <WriteLinesToFile
+            File="$(StampsFilePath)"
+            Lines="@(ScriptFilesWithTimestamps->'%(FileInfo)')"
+            Overwrite="true" />  
+        
         <Message Importance="high" Text="MudX.Generator: Finished MudX generation..." />
         <Message Importance="high" Text="======================================" />
     </Target>
 
     <ItemGroup>
-    <SupportedPlatform Include="browser" />
-  </ItemGroup>    
-    
-  <ItemGroup>
-    <ProjectReference Include="..\MudX.DependsOn\MudX.DependsOn.csproj" />
-  </ItemGroup>
+        <SupportedPlatform Include="browser" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\MudX.DependsOn\MudX.DependsOn.csproj" />
+    </ItemGroup>
 
 </Project>

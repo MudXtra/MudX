@@ -5,6 +5,10 @@ if (args.Length < 2)
 {
     Console.WriteLine();
     Console.WriteLine("MudX.Generator: 2 arguments required, but only " + args.Length + " provided.");
+    foreach (var arg in args)
+    {
+        Console.WriteLine("MudX.Generator: Arg| " + arg);
+    }
     Console.WriteLine("MudX.Generator: 1st argument is the output folder, e.g. wwwroot");
     Console.WriteLine("MudX.Generator: 2nd argument is the base directory to scan including subdirectories and where the new js files will go. e.g. ../MudX/Scripts");
     Console.WriteLine();
