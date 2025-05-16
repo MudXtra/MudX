@@ -28,13 +28,7 @@
             <FileInfo>%(Identity)|%(ModifiedTime)</FileInfo>
         </ScriptFilesWithTimestamps>
     </ItemGroup>
-
-    <Target Name="GeneratorInit" BeforeTargets="GeneratorBeforeBuild">
-        <Message Importance="high" Text="Script: %(ScriptFiles.Identity) - %(ScriptFiles.ModifiedTime)" />
-        <Message Importance="high" Text="StampsFile: %(StampsFile.Identity) - %(StampsFile.ModifiedTime)" />
-        <Message Importance="high" Text="Found @(ScriptFiles->Count()) script files" />
-    </Target>
-    
+   
     <!-- This takes a list of ScriptFiles and compares it to the StampsFile timestamp. If any are newer it triggers a build -->
     <Target Name="GeneratorBeforeBuild" BeforeTargets="Build" Inputs="@(ScriptFiles)" Outputs="@(StampsFile)">
         <Message Importance="high" Text="======================================" />

@@ -9,6 +9,7 @@ export class MudXScrollSpy {
         this.sectionClassSelector = null;
         this.dotNetReference = null;
         this.container = null;
+        this.parentClassSelector = 'mudx-toc-document';
         this.handleRef = this.handleScroll.bind(this);
     }
 
@@ -52,15 +53,37 @@ export class MudXScrollSpy {
     handleScroll() {
         if (this.pendingAnimation !== null) {
             cancelAnimationFrame(this.pendingAnimation);
-        }
-        console.log(this.container);
+        }        
 
         this.pendingAnimation = requestAnimationFrame(() => {
             this.pendingAnimation = null;
             const container = this.container;
             if (!container) return;
 
-            const sections = container.querySelectorAll(this.sectionClassSelector);
+            // Find the first mudx-toc-document (primary parent)
+            const tocDoc = container.querySelector('.' + this.parentClassSelector);
+            if (!tocDoc) return;
+
+            // Find all mudx-toc-document elements
+            const allTocDocuments = Array.from(container.querySelectorAll('.' + this.parentClassSelector));
+            if (allTocDocuments.length === 0) return;
+
+            // Remove our primary parent from the array (not with delete - that's for objects/maps)
+            const otherTocDocs = allTocDocuments.filter(doc => doc !== tocDoc);
+
+            // Collect all sections from other toc documents into a Set for quick lookup
+            const sectionsInOtherDocs = new Set();
+            otherTocDocs.forEach(doc => {
+                const nestedSections = doc.querySelectorAll('.' + this.sectionClassSelector);
+                nestedSections.forEach(section => sectionsInOtherDocs.add(section));
+            });
+
+            // Get all sections in our primary tocDoc
+            const allSectionsInPrimary = Array.from(tocDoc.querySelectorAll('.' + this.sectionClassSelector));
+
+            // Filter to only include sections that aren't in other toc documents
+            const sections = allSectionsInPrimary.filter(section => !sectionsInOtherDocs.has(section));
+
             if (sections.length === 0) return;
 
             const containerTop = container.tagName === 'HTML' ? 0 : container.getBoundingClientRect().top;
