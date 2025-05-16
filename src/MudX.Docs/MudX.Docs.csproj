@@ -11,7 +11,10 @@
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
-    <Target Name="EnsureMudXGenerated" BeforeTargets="Build">
+    <!-- Ensure MudX Generators are run when MudX.Docs is built -->
+    <Target Name="EnsureMudXGenerated" BeforeTargets="Build" 
+            Inputs="$(MSBuildThisFileDirectory)..\MudX\Scripts\**\*.js" 
+            Outputs="$(MSBuildThisFileDirectory)..\MudX\wwwroot\modules\__stamp__.txt">
         <MSBuild Projects="..\MudX\MudX.csproj" Targets="GeneratorBeforeBuild" />
     </Target>
     

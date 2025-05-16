@@ -1,5 +1,5 @@
 ﻿// MudXScrollSpy module
-const scrollSpyInstances = {};
+const scrollSpyInstances = {}; 
 
 export class MudXScrollSpy {
     constructor() {
