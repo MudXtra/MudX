@@ -4,6 +4,8 @@
 <div id="@SectionId" class="@($"{Class} mudx-toc-section")" style="@Style" @attributes="@UserAttributes">
     @if (ChildContent != null)
     {
-        @ChildContent
+        <CascadingValue Value="this" IsFixed="true">
+            @ChildContent
+        </CascadingValue>
     }
 </div>

@@ -16,23 +16,23 @@
    Padding by Navigation Level
 ========================= */
 
-    .mudx-toc-nav-links .navigation-level-1 {
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.navigation-level-1 {
         padding-left: 0.75rem;
     }
 
-    .mudx-toc-nav-links .navigation-level-2 {
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.navigation-level-2 {
         padding-left: 1.50rem;
     }
 
-    .mudx-toc-nav-links .navigation-level-3 {
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.navigation-level-3 {
         padding-left: 2.25rem;
     }
 
-    .mudx-toc-nav-links .navigation-level-4 {
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.navigation-level-4 {
         padding-left: 3.00rem;
     }
 
-    .mudx-toc-nav-links .navigation-level-5 {
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.navigation-level-5 {
         padding-left: 3.75rem;
     }
 

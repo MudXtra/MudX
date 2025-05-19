@@ -42,50 +42,44 @@ namespace MudX
         /// </summary>
         public bool Active { get; private set; }
 
-        protected override void OnAfterRender(bool firstRender)
-        {
-            if (firstRender)
-            {
-                var sectionId = Id ?? GetId();
-                SectionId = sectionId;
-                if (Root is MudXOutline outline)
-                {
-                    outline.BuildSectionIdsUnique();
-                }
-            }
-        }
-
-        private IOutlineContainer? Root
-        {
-            get
-            {
-                var current = this;
-                while (current?.ParentContainer is not null)
-                {
-                    current = current.ParentContainer as MudXOutlineSection;
-                }
-                return current;
-            }
-        }
-
-        /// <summary>
-        ///  turn title lowercase, and replace spaces with hyphens
-        /// </summary>
-        /// <returns></returns>
-        private string GetId() => Title?.ToLower().Replace(" ", "-") ?? Guid.NewGuid().ToString();
-
-        protected internal void Activate() => Active = true;
-
-        protected internal void Deactivate() => Active = false;
-
         protected override async Task OnInitializedAsync()
         {
+            await base.OnInitializedAsync();
             if (ParentContainer != null)
             {
                 await ParentContainer.RegisterSectionAsync(this);
             }
-            await base.OnInitializedAsync();
         }
+
+        /// <summary>
+        /// Generates a ScrollSpy-compatible ID from the Id or Title property.
+        /// </summary>
+        /// <returns>A sanitized, lowercase ID safe for ScrollSpy and HTML anchors.</returns>
+        internal string GetId()
+        {
+            var id = string.IsNullOrWhiteSpace(Id) ? Title : Id;
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return "section";
+            }
+
+            // Convert to lowercase, trim, and replace invalid characters
+            id = id.Trim().ToLowerInvariant();
+            id = System.Text.RegularExpressions.Regex.Replace(id, @"[^a-z0-9\-_:]", "-");
+
+            // Ensure ID doesn't start with a digit or hyphen
+            if (string.IsNullOrEmpty(id) || char.IsDigit(id[0]) || id[0] == '-')
+            {
+                id = "section-" + id;
+            }
+
+            return id;
+        }
+
+        protected internal void Activate() => Active = true;
+
+        protected internal void Deactivate() => Active = false;
 
         internal void SetLevelStructure(int counter = 0, int diff = 1000)
         {

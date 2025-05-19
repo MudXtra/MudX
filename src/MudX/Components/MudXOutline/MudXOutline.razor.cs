@@ -21,6 +21,7 @@ namespace MudX
         private OutlineScrollSpy? _scrollSpy;
         private IJSObjectReference? _viewPortModule;
         private DotNetObjectReference<MudXOutline>? _dotNetReference;
+        internal Dictionary<string, int> _idCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         public MudXOutline()
         {
@@ -147,6 +148,14 @@ namespace MudX
         [Parameter]
         public OutlineStyleVariant StyleVariant { get; set; } = OutlineStyleVariant.Scroll;
 
+        /// <summary>
+        /// The sections of the Table of Contents, this includes _subSections
+        /// </summary>
+        public List<MudXOutlineSection> Sections
+        {
+            get => _sections;
+        }
+
         private Origin PopoverAnchor => _anchor == Anchor.Left ? Origin.TopLeft : Origin.TopRight;
 
         private Origin PopoverTransform => _anchor == Anchor.Left ? Origin.TopRight : Origin.TopLeft;
@@ -194,8 +203,8 @@ namespace MudX
             {
                 // make sure each level is put in the correct order regardless if nested
                 BuildLevelStructure();
-                // make sure each section has a unique SectionId for ScrollSpy 
-                BuildSectionIdsUnique();
+                // Set the Level structure so hierarchial sections can be rendered correctly in the Table of Contents
+                RegisterUniqueIds(_sections);
                 if (Js is null) throw new Exception("JSRuntime is not available");
                 _scrollSpy = new OutlineScrollSpy(Js);
                 _viewPortModule = await Js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxOutline.js");
@@ -246,40 +255,6 @@ namespace MudX
         }
 
         /// <summary>
-        /// Ensure each section has a unique SectionId both for ScrollSpy and @key declarations
-        /// </summary>
-        internal void BuildSectionIdsUnique()
-        {
-            var idCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            BuildSectionIdsUniqueInternal(_sections, idCounts);
-        }
-
-        private void BuildSectionIdsUniqueInternal(List<MudXOutlineSection> sections, Dictionary<string, int> idCounts)
-        {
-            foreach (var section in sections)
-            {
-                var baseId = section.SectionId;
-                if (!idCounts.TryGetValue(baseId, out int _))
-                {
-                    idCounts[baseId] = 1;
-                    section.SectionId = baseId;
-                }
-                else
-                {
-                    idCounts[baseId]++;
-                    section.SectionId = $"{baseId}-{idCounts[baseId]}";
-                    // Queue up a state change
-                    StateHasChanged();
-                }
-
-                if (section._subSections.Count > 0)
-                {
-                    BuildSectionIdsUniqueInternal(section._subSections, idCounts);
-                }
-            }
-        }
-
-        /// <summary>
         /// Adds a section to the Table of Contents
         /// </summary>
         public async Task RegisterSectionAsync(MudXOutlineSection section)
@@ -287,6 +262,27 @@ namespace MudX
             // Add section logic
             _sections.Add(section);
             await Task.CompletedTask;
+        }
+
+        private void RegisterUniqueIds(List<MudXOutlineSection> sections)
+        {
+            foreach (var section in sections)
+            {
+                var sectionId = section.GetId();
+                if (!_idCounts.TryAdd(sectionId, 0))
+                {
+                    _idCounts[sectionId] += 1;
+                    section.SectionId = $"{sectionId}-{_idCounts[sectionId]}";
+                }
+                else
+                {
+                    section.SectionId = sectionId;
+                }
+                if (section._subSections.Count > 0)
+                {
+                    RegisterUniqueIds(section._subSections);
+                }
+            }
         }
 
         private async Task OnNavLinkClick(string id)
@@ -311,16 +307,50 @@ namespace MudX
                 return;
             }
 
-            var activeLink = _sections.FirstOrDefault(x => x.SectionId == id);
+            var activeLink = GetSectionById(id, _sections);
             if (activeLink == null)
             {
                 return;
             }
 
-            _sections.ForEach(item => item.Deactivate());
+            DeactivateSections(_sections);
             activeLink.Activate();
 
             InvokeAsync(StateHasChanged);
+        }
+
+        /// <summary>
+        /// Returns the section or subsection with the specified id
+        /// </summary>
+        /// <param name="id">The Specified id</param>
+        /// <param name="sections">The sections to search</param>
+        /// <returns></returns>
+        public static MudXOutlineSection? GetSectionById(string id, List<MudXOutlineSection> sections)
+        {
+            var activeLink = sections.FirstOrDefault(x => x.SectionId == id);
+            if (activeLink is not null) return activeLink;
+            foreach (var section in sections)
+            {
+                var result = GetSectionById(id, section._subSections);
+                if (result is not null) return result;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Deactivates all sections and subsections
+        /// </summary>
+        /// <param name="sections">The sections to deactivate</param>
+        public static void DeactivateSections(List<MudXOutlineSection> sections)
+        {
+            foreach (var section in sections)
+            {
+                section.Deactivate();
+                if (section._subSections.Count > 0)
+                {
+                    DeactivateSections(section._subSections);
+                }
+            }
         }
 
         /// <summary>
