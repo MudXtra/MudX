@@ -67,6 +67,7 @@
     .mudx-toc-nav-links .mudx-toc-nav-navlink.active.underline .mud-nav-link-text {
         font-weight: bold;
         color: var(--mud-palette-primary);
+        text-decoration: underline;
     }
 
 /* =========================

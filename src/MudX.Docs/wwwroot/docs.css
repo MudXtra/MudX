@@ -33,3 +33,30 @@
 .docs-stack-col {
     min-width: 150px;
 }
+
+.docs-code {
+    display: inline-block;
+    padding: 0 5px;
+    direction: ltr;
+    font-weight: 900;
+    font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    line-height: 1.4;
+    border-radius: 2px;
+    -webkit-font-smoothing: subpixel-antialiased;
+    &.docs-code-primary
+
+{
+    color: var(--mud-palette-primary);
+    background-color: var(--mud-palette-primary-hover);
+}
+
+&.docs-code-secondary {
+    color: var(--mud-palette-secondary);
+    background-color: var(--mud-palette-secondary-hover);
+}
+
+&.docs-code-tertiary {
+    color: var(--mud-palette-tertiary);
+    background-color: var(--mud-palette-tertiary-hover);
+}
+}

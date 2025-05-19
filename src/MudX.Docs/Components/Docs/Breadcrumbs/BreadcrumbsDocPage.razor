@@ -11,8 +11,8 @@
 
             Key differences from <CodeInline>MudBreadcrumb</CodeInline>:
             <ul class="ml-10">
-                <li><strong>New Property</strong>: <CodeInline>HomeText</CodeInline> is optional.</li>
-                <li><strong>Restricted Properties</strong>: <CodeInline>Items</CodeInline> cannot be set directly.</li>
+                <li><strong>New Property</strong>: <CodeInline Tag="false">HomeText</CodeInline> is optional. Defaults to "Home".</li>
+                <li><strong>Restricted Properties</strong>: <CodeInline Tag="false">Items</CodeInline> cannot be set directly.</li>
             </ul>
 
             The component automatically updates breadcrumbs based on your navigation state. As long as your <CodeInline>@@page</CodeInline>
@@ -33,9 +33,9 @@
     <DocsPageSection Title="Customization">
         <Description>
             Most settings carry over from the <CodeInline>MudBreadcrumb</CodeInline> component. 
-            <CodeInline>Items</CodeInline> do not transfer. You can place this anywhere and so
-            long as your <CodeInline>page</CodeInline> declarations are setup in a manner to be mapped
-            it will work naturally. 
+            <CodeInline Tag="false">Items</CodeInline> do not transfer. You can place this anywhere and so
+            long as your <CodeInline Tag="false">@@page</CodeInline> declarations are setup in a manner to be mapped
+            it will work naturally. E.g. <CodeInline Tag="false">@@page "/docs/breadcrumbs"</CodeInline> is the path here.
         </Description>
         <SectionContent>
             <BreadcrumbsSettingsExample />
@@ -44,8 +44,9 @@
 
     <DocsPageSection Title="Collapsed">
         <Description>
-            By setting the <CodeInline>MaxItems</CodeInline> parameter you can automatically 
-            collapse the breadcrumbs when it exceeds a number of items.
+            By setting the <CodeInline Tag="false">MaxItems</CodeInline> parameter you can automatically
+            collapse the breadcrumbs when it exceeds a number of items. So if you just wanted the first (Home)
+            and last (Current) items, you could set <CodeInline Tag="false">MaxItems="2"</CodeInline>.
         </Description>
         <SectionContent>
             <BreadcrumbsMaxItemsExample />
@@ -54,8 +55,8 @@
 
     <DocsPageSection Title="Formatting">
         <Description>
-            A new settings is supplied to <CodeInline>MudXBreadcrumbs</CodeInline>, <CodeInline>HomeText</CodeInline>.
-            Home Text is the translation of the base path "/" to display as the text you define. <CodeInline>ItemTemplate</CodeInline>
+            A new settings is supplied to <CodeInline>MudXBreadcrumbs</CodeInline>, <CodeInline Tag="false">HomeText</CodeInline>.
+            Home Text is the translation of the base path "/" to display as the text you define. <CodeInline Tag="false">ItemTemplate</CodeInline>
             still allows you to customize your breadcrumbs as you desire, with the example just showing Icons. 
         </Description>
         <SectionContent>

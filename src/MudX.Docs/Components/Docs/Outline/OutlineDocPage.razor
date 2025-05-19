@@ -1,7 +1,7 @@
-@page "/docs/tableofcontents"
+@page "/docs/outline"
 @using Mudx.Docs.Outline
 
-<PageTitle>Table Of Contents</PageTitle>
+<PageTitle>Outline</PageTitle>
 
 <DocsPage>
     <DocsPageHeader Title="Outline">
@@ -15,10 +15,10 @@
     <DocsPageSection Title="Basic Usage">
         <Description>
             The outline is a scrollspy control for displaying an index or table of contents on either side of the text content.
-            The <CodeInline>MudXOutline</CodeInline> is a wrapper for a number of <CodeInline>MudXOutlineSection</CodeInline>. 
-            Each <CodeInline>MudXOutlineSection</CodeInline> has a <CodeInline>Title</CodeInline> that is used for the index 
+            The <CodeInline>MudXOutline</CodeInline> is a wrapper for a number of <CodeInline>MudXOutlineSection</CodeInline>'s. 
+            Each <CodeInline>MudXOutlineSection</CodeInline> has a <CodeInline Tag="false">Title</CodeInline> that is used for the index 
             and whatever content is supplied inside is what is displayed in the main content area. By default the control
-            requires very minimal setup, however to nest it inside another be sure to set the <CodeInline>ScrollContainerSelector</CodeInline>
+            requires very minimal setup, however to nest it inside another be sure to set the <CodeInline Tag="false">ScrollContainerSelector</CodeInline>
             to the outer element with a scrollbar as scrollspy will only work if a scrollbar is present. Remember when using the Selector to
             preface a class with a . or an id with a #.
         </Description>
@@ -30,8 +30,8 @@
     <DocsPageSection Title="Index Customization">
         <Description>
             There are many properties you can change to customize the look and feel of the control, but ultimately
-            the content is strictly upon you to style and use. <CodeInline>Anchor</CodeInline> and 
-            <CodeInline>Width</CodeInline> are most common.
+            the content is strictly upon you to style and use. <CodeInline Tag="false">Anchor</CodeInline> and
+            <CodeInline Tag="false">Width</CodeInline> are most common.
         </Description>
         <SectionContent>
             <OutlineCustomizeExample />
@@ -40,9 +40,19 @@
 
     <DocsPageSection Title="Scroll Style">
         <Description>
-            You can customize the Variant used for the ScrollSpy by setting the <CodeInline>StyleVariant</CodeInline>
-            property. Available options are <CodeInline>None</CodeInline>, <CodeInline>Bullet</CodeInline>, 
-            <CodeInline>Scroll</CodeInline> and <CodeInline>Minimal</CodeInline>.
+            You can customize the Variant used for the ScrollSpy by setting the <CodeInline Tag="false">StyleVariant</CodeInline>
+            property. Available options are <CodeInline Tag="false">None</CodeInline>, <CodeInline Tag="false">Bullet</CodeInline>,
+            <CodeInline Tag="false">Scroll</CodeInline> and <CodeInline Tag="false">Minimal</CodeInline>. Additionally, 
+            the default behavior of <CodeInline Tag="false">Underline</CodeInline> can be overridden by setting it to false.
+        </Description>
+        <SectionContent>
+            <OutlineVariantExample />
+        </SectionContent>
+    </DocsPageSection>
+
+    <DocsPageSection Title="Other Options">
+        <Description>
+            As you can see you can nest Outlines inside other Outlines. The Table of Contents/Index is handled by <CodeInline>MudPopover</CodeInline>
         </Description>
         <SectionContent>
             <OutlineVariantExample />
@@ -51,56 +61,6 @@
 
 </DocsPage>
 
-@* <MudSelect @bind-Value="@selectedStyle" Placeholder="Select Style">
-    <MudSelectItem Value="OutlineStyleVariant.None">None</MudSelectItem>
-    <MudSelectItem Value="OutlineStyleVariant.Bullet">Bullet</MudSelectItem>
-    <MudSelectItem Value="OutlineStyleVariant.Scroll">Scroll</MudSelectItem>
-    <MudSelectItem Value="OutlineStyleVariant.Minimal">Minimal</MudSelectItem>
-</MudSelect>
-
-<MudXOutline Anchor="Anchor.End" 
-             Breakpoint="Breakpoint.Md" 
-             StyleVariant="@selectedStyle">
-    <MudXOutlineSection Title="Item 1" Style="font-size: 2rem;">
-        <MudText Typo="Typo.h6">Item 1</MudText>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        <br /><br /><br /><br /><br />
-    </MudXOutlineSection>
-    <MudXOutlineSection Title="Item 2" Style="font-size: 2rem;">
-        <MudText Typo="Typo.h6">Item 2</MudText>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        <br /><br /><br /><br /><br />
-    </MudXOutlineSection>
-    <MudXOutlineSection Title="Item 3" Style="font-size: 2rem;">
-        <MudText Typo="Typo.h6">Item 3</MudText>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        <br /><br /><br /><br /><br />
-    </MudXOutlineSection>
-    <MudXOutlineSection Title="Item 4" Style="font-size: 2rem;">
-        <MudText Typo="Typo.h6">Item 4</MudText>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        <br /><br /><br /><br /><br />
-    </MudXOutlineSection>
-    <MudXOutlineSection Title="Item 5" Style="font-size: 2rem;">
-        <MudText Typo="Typo.h6">Item 5</MudText>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        <br /><br /><br /><br /><br />
-    </MudXOutlineSection>
-    <MudXOutlineSection Title="Item 5" Style="font-size: 2rem;">
-        <MudText Typo="Typo.h6">Item 5(2)</MudText>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        <br /><br /><br /><br /><br />
-    </MudXOutlineSection>
-</MudXOutline> *@
-
 @code {
-    private static string __title__ = "Table Of Contents";
-
-    private OutlineStyleVariant selectedStyle = OutlineStyleVariant.None;
+    private static string __title__ = "Outline";
 }
