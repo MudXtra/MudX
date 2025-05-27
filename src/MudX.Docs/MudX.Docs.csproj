@@ -12,9 +12,7 @@
   </ItemGroup>
 
     <!-- Ensure MudX Generators are run when MudX.Docs is built -->
-    <Target Name="EnsureMudXGenerated" BeforeTargets="Build" 
-            Inputs="$(MSBuildThisFileDirectory)..\MudX\Scripts\**\*.js" 
-            Outputs="$(MSBuildThisFileDirectory)..\MudX\wwwroot\modules\__stamp__.txt">
+    <Target Name="EnsureMudXGenerated" BeforeTargets="Build" Inputs="$(MSBuildThisFileDirectory)..\MudX\Scripts\**\*.js" Outputs="$(MSBuildThisFileDirectory)..\MudX\wwwroot\modules\__stamp__.txt">
         <MSBuild Projects="..\MudX\MudX.csproj" Targets="GeneratorBeforeBuild" />
     </Target>
     
@@ -24,6 +22,7 @@
 
   <ItemGroup>
     <Folder Include="Components\Docs\SignalCode\" />
+    <Folder Include="Services\" />
   </ItemGroup>
 
     <Target Name="GenerateNavJsonBeforeBuild" BeforeTargets="PreBuildEvent">

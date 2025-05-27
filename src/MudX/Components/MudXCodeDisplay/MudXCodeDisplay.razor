@@ -1,6 +1,8 @@
 @namespace MudX
 @inherits MudComponentBase
 
-<div class="@Classname" style="@Stylename" @attributes="@UserAttributes">
+@PrismTheme
 
+<div class="@Classname" style="@Stylename" @attributes="@UserAttributes">
+    <pre><code class="@_languageClass">@_codeFile?.Code</code></pre>
 </div>

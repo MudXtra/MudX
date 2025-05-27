@@ -1,5 +1,6 @@
 @page "/docs/outline"
-@using Mudx.Docs.Outline
+@using MudX.Docs.Outline
+@using MudX.Docs.Examples
 
 <PageTitle>Outline</PageTitle>
 
@@ -15,16 +16,18 @@
     <DocsPageSection Title="Basic Usage">
         <Description>
             The outline is a scrollspy control for displaying an index or table of contents on either side of the text content.
-            The <CodeInline>MudXOutline</CodeInline> is a wrapper for a number of <CodeInline>MudXOutlineSection</CodeInline>'s. 
-            Each <CodeInline>MudXOutlineSection</CodeInline> has a <CodeInline Tag="false">Title</CodeInline> that is used for the index 
+            The <CodeInline>MudXOutline</CodeInline> is a wrapper for a number of <CodeInline>MudXOutlineSection</CodeInline>'s.
+            Each <CodeInline>MudXOutlineSection</CodeInline> has a <CodeInline Tag="false">Title</CodeInline> that is used for the index
             and whatever content is supplied inside is what is displayed in the main content area. By default the control
             requires very minimal setup, however to nest it inside another be sure to set the <CodeInline Tag="false">ScrollContainerSelector</CodeInline>
             to the outer element with a scrollbar as scrollspy will only work if a scrollbar is present. Remember when using the Selector to
             preface a class with a . or an id with a #.
         </Description>
-        <SectionContent>
-            <OutlineBasicExample />
-        </SectionContent>
+        <ChildContent>
+            <SectionContent Codes="@OutlineBasicExampleCode.Files">
+                <OutlineBasicExample />
+            </SectionContent>
+        </ChildContent>
     </DocsPageSection>
 
     <DocsPageSection Title="Index Customization">
@@ -33,21 +36,25 @@
             the content is strictly upon you to style and use. <CodeInline Tag="false">Anchor</CodeInline> and
             <CodeInline Tag="false">Width</CodeInline> are most common.
         </Description>
-        <SectionContent>
-            <OutlineCustomizeExample />
-        </SectionContent>
+        <ChildContent>
+            <SectionContent Codes="@OutlineCustomizeExampleCode.Files">
+                <OutlineCustomizeExample />
+            </SectionContent>
+        </ChildContent>
     </DocsPageSection>
 
     <DocsPageSection Title="Scroll Style">
         <Description>
             You can customize the Variant used for the ScrollSpy by setting the <CodeInline Tag="false">StyleVariant</CodeInline>
             property. Available options are <CodeInline Tag="false">None</CodeInline>, <CodeInline Tag="false">Bullet</CodeInline>,
-            <CodeInline Tag="false">Scroll</CodeInline> and <CodeInline Tag="false">Minimal</CodeInline>. Additionally, 
+            <CodeInline Tag="false">Scroll</CodeInline> and <CodeInline Tag="false">Minimal</CodeInline>. Additionally,
             the default behavior of <CodeInline Tag="false">Underline</CodeInline> can be overridden by setting it to false.
         </Description>
-        <SectionContent>
-            <OutlineVariantExample />
-        </SectionContent>
+        <ChildContent>
+            <SectionContent Codes="@OutlineVariantExampleCode.Files">
+                <OutlineVariantExample />
+            </SectionContent>
+        </ChildContent>
     </DocsPageSection>
 
     <DocsPageSection Title="Other Options">
@@ -56,9 +63,11 @@
             and the scrollspy is handled by javascript modules behind the scenes. You can also color your anchor and nest <CodeInline>MudXOutlineSection</CodeInline>
             inside a <CodeInline>MudXOutlineSection</CodeInline> for indented outlines.
         </Description>
-        <SectionContent>
-            <OutlineNestingExample />
-        </SectionContent>
+        <ChildContent>
+            <SectionContent Codes="@OutlineNestingExampleCode.Files">
+                <OutlineNestingExample />
+            </SectionContent>
+        </ChildContent>
     </DocsPageSection>
 
 </DocsPage>

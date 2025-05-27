@@ -1,5 +1,6 @@
 @page "/docs/breadcrumbs"
 @using MudX.Docs.Breadcrumbs
+@using MudX.Docs.Examples
 
 <PageTitle>Breadcrumbs</PageTitle>
 
@@ -15,7 +16,7 @@
                 <li><strong>Restricted Properties</strong>: <CodeInline Tag="false">Items</CodeInline> cannot be set directly.</li>
             </ul>
 
-            The component automatically updates breadcrumbs based on your navigation state. As long as your <CodeInline>@@page</CodeInline>
+            The component automatically updates breadcrumbs based on your navigation state. As long as your <CodeInline Tag="false">@@page</CodeInline>
             routes are properly configured, breadcrumbs will display correctly without manual intervention.
         </Description>
     </DocsPageHeader>
@@ -25,21 +26,25 @@
             You would normally put it inside your <CodeInline>MainLayout</CodeInline> but it is
             not required. Nor does it require any additional configuration or propeties to start working.
         </Description>
-        <SectionContent>
-            <BreadcrumbsBasicExample />
-        </SectionContent>
+        <ChildContent>
+            <SectionContent Codes="@BreadcrumbsBasicExampleCode.Files">
+                <BreadcrumbsBasicExample />
+            </SectionContent>
+        </ChildContent>
     </DocsPageSection>
 
     <DocsPageSection Title="Customization">
         <Description>
-            Most settings carry over from the <CodeInline>MudBreadcrumb</CodeInline> component. 
+            Most settings carry over from the <CodeInline>MudBreadcrumb</CodeInline> component.
             <CodeInline Tag="false">Items</CodeInline> do not transfer. You can place this anywhere and so
             long as your <CodeInline Tag="false">@@page</CodeInline> declarations are setup in a manner to be mapped
             it will work naturally. E.g. <CodeInline Tag="false">@@page "/docs/breadcrumbs"</CodeInline> is the path here.
         </Description>
-        <SectionContent>
-            <BreadcrumbsSettingsExample />
-        </SectionContent>
+        <ChildContent>
+            <SectionContent Codes="BreadcrumbsSettingsExampleCode.Files">
+                <BreadcrumbsSettingsExample />
+            </SectionContent>
+        </ChildContent>
     </DocsPageSection>
 
     <DocsPageSection Title="Collapsed">
@@ -48,20 +53,24 @@
             collapse the breadcrumbs when it exceeds a number of items. So if you just wanted the first (Home)
             and last (Current) items, you could set <CodeInline Tag="false">MaxItems="2"</CodeInline>.
         </Description>
-        <SectionContent>
-            <BreadcrumbsMaxItemsExample />
-        </SectionContent>
+        <ChildContent>
+            <SectionContent Codes="BreadcrumbsMaxItemsExampleCode.Files">
+                <BreadcrumbsMaxItemsExample />
+            </SectionContent>
+        </ChildContent>
     </DocsPageSection>
 
     <DocsPageSection Title="Formatting">
         <Description>
             A new settings is supplied to <CodeInline>MudXBreadcrumbs</CodeInline>, <CodeInline Tag="false">HomeText</CodeInline>.
             Home Text is the translation of the base path "/" to display as the text you define. <CodeInline Tag="false">ItemTemplate</CodeInline>
-            still allows you to customize your breadcrumbs as you desire, with the example just showing Icons. 
+            still allows you to customize your breadcrumbs as you desire, with the example just showing Icons.
         </Description>
-        <SectionContent>
-            <BreadcrumbsHomeFormatExample />
-        </SectionContent>
+        <ChildContent>
+            <SectionContent Codes="BreadcrumbsHomeFormatExampleCode.Files">
+                <BreadcrumbsHomeFormatExample />
+            </SectionContent>
+        </ChildContent>
     </DocsPageSection>
 
 </DocsPage>

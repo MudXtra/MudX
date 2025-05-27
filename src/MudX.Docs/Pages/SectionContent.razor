@@ -1,7 +1,7 @@
 @using MudX.Models
 @namespace MudX.Docs
 
-<MudPaper id="@_contentId" Elevation="4" Class="docs-section-content pb-6">
+<MudPaper id="@_contentId" Elevation="4" Class="docs-section-content pb-6 mb-0">
     <MudToolBar Class="docs-section-toolbar">
         <MudSpacer />
         <MudButton OnClick="OnShowCode" StartIcon="@(ShowCode ? @Icons.Material.Rounded.CodeOff : Icons.Material.Rounded.Code)" Color="Color.Default" Size="Size.Small">
@@ -16,11 +16,11 @@
             @ChildContent
         </CascadingValue>        
     </div>
-    @if (ShowCode && Codes.Count() > 0)
-    {
-        <MudXCodeDisplay Codes="@Codes" />
-    }
 </MudPaper>
+@if (ShowCode && Codes.Count() > 0)
+{
+    <MudXCodeDisplay Codes="@Codes" Class="mt-0" />
+}
 
 @code {
     private bool _hasCode;
@@ -33,11 +33,6 @@
     /// The Id of the content
     /// </summary>
     public string ContentId { get => _contentId; }
-
-    protected override void OnParametersSet()
-    {
-
-    }
 
     private void OnShowCode() => ShowCode = !ShowCode;
 

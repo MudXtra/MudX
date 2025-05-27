@@ -11,14 +11,12 @@
         {
             <MudText Class="mb-2" Typo="@Typo.body1">@DescriptionText</MudText>
         }
-        <DocsPageSectionContent>
-            @SectionContent
-        </DocsPageSectionContent>
+        @ChildContent
     </MudXOutlineSection>
 </div>
 
 @code {
-    [Parameter, EditorRequired] public RenderFragment SectionContent { get; set; } = default!;
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
     [Parameter, EditorRequired] public string Title { get; set; } = default!;
     [Parameter] public string DescriptionText { get; set; } = default!;
     [Parameter] public RenderFragment? Description { get; set; }

@@ -1,0 +1,64 @@
+using System.Collections.Generic;
+using MudX;
+
+namespace MudX.Docs.Examples
+{
+    public static class BreadcrumbsHomeFormatExampleCode
+    {
+        public static readonly IEnumerable<CodeFile> Files = new[]
+        {
+            new CodeFile
+            (
+                Title: "BreadcrumbsHomeFormatExample.razor",
+                Code: @"@namespace MudX.Docs.Breadcrumbs
+ 
+<MudXBreadcrumbs HomeText=""@_homeText"">
+    <ItemTemplate Context=""item"">
+        @switch(item.Text.ToLower())
+        {
+            case ""mudxhome"":
+            case ""home"":
+                <MudStack Row Justify=""Justify.Center"" AlignItems=""AlignItems.Center"">
+                    <MudIcon Icon=""@Icons.Material.Outlined.Home"" Class=""me-1"" />
+                    <MudText Class=""ml-n2"">@item.Text</MudText>
+                </MudStack>
+                break;
+            case ""docs"":
+                <MudStack Row Justify=""Justify.Center"" AlignItems=""AlignItems.Center"">
+                    <MudIcon Icon=""@Icons.Material.Outlined.Description"" Class=""me-1"" />
+                    <MudText Class=""ml-n2"">@item.Text</MudText>
+                </MudStack>
+                break;
+            case ""install"":
+                <MudStack Row Justify=""Justify.Center"" AlignItems=""AlignItems.Center"">
+                    <MudIcon Icon=""@Icons.Material.Outlined.Download"" Class=""me-1"" />
+                    <MudText Class=""ml-n2"">@item.Text</MudText>
+                </MudStack>
+                break;
+            case ""api"":
+                <MudStack Row Justify=""Justify.Center"" AlignItems=""AlignItems.Center"">
+                    <MudIcon Icon=""@Icons.Material.Outlined.Api"" Class=""me-1"" />
+                    <MudText Class=""ml-n2"">@item.Text</MudText>
+                </MudStack>
+                break;
+            default:
+                @item.Text
+                break;
+        }
+    </ItemTemplate>
+</MudXBreadcrumbs>
+
+<MudStack Row Breakpoint=""Breakpoint.Xs"" AlignItems=""AlignItems.Center"" Justify=""Justify.SpaceEvenly"">
+    <div style=""min-width: 200px;"">
+        <MudTextField Label=""Home Text"" Immediate @bind-Value=""_homeText"" />
+    </div> 
+</MudStack>
+
+@code {
+    private string _homeText = ""MudXHome"";
+}",
+                Language: CodeLanguage.Razor
+            )
+        };
+    }
+}

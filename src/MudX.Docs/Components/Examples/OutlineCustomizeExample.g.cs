@@ -1,39 +1,46 @@
-@namespace MudX.Docs.Outline
+using System.Collections.Generic;
+using MudX;
 
-<MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceEvenly" Breakpoint="Breakpoint.Md">
-    <div class="docs-stack-col">
-        <MudSelect T="Anchor" Label="TOC Anchor" @bind-Value="@_outlineAnchor">
-            <MudSelectItem Value="Anchor.Left">Left</MudSelectItem>
-            <MudSelectItem Value="Anchor.Right">Right</MudSelectItem>
+namespace MudX.Docs.Examples
+{
+    public static class OutlineCustomizeExampleCode
+    {
+        public static readonly IEnumerable<CodeFile> Files = new[]
+        {
+            new CodeFile
+            (
+                Title: "OutlineCustomizeExample.razor",
+                Code: @"@namespace MudX.Docs.Outline
+
+<MudStack Row AlignItems=""AlignItems.Center"" Justify=""Justify.SpaceEvenly"" Breakpoint=""Breakpoint.Md"">
+    <div class=""docs-stack-col"">
+        <MudSelect T=""Anchor"" Label=""TOC Anchor"" @bind-Value=""@_outlineAnchor"">
+            <MudSelectItem Value=""Anchor.Left"">Left</MudSelectItem>
+            <MudSelectItem Value=""Anchor.Right"">Right</MudSelectItem>
         </MudSelect>
     </div>
     <div>
-        <MudSelect T="OutlineStyleVariant" Label="Variant" @bind-Value="@_outlineStyleVariant">
-            <MudSelectItem Value="OutlineStyleVariant.None">None</MudSelectItem>
-            <MudSelectItem Value="OutlineStyleVariant.Minimal">Minimal</MudSelectItem>
-            <MudSelectItem Value="OutlineStyleVariant.Bullet">Bullet</MudSelectItem>
-            <MudSelectItem Value="OutlineStyleVariant.Scroll">Scroll</MudSelectItem>
-        </MudSelect>
+        <MudSwitch Label=""TOC Show"" @bind-Value=""@_showOutline"" />
     </div>
     <div>
-        <MudSwitch Label="Underline" @bind-Value="@_underline" />
+        <MudNumericField Label=""TOC Width"" @bind-Value=""@_width"" Min=""100"" Step=""10"" Max=""400"" />
     </div>
 </MudStack>
 
-<MudXOutline ScrollContainerSelector="@($"#{ContentId}")" Width="@_width" Anchor="@_outlineAnchor"
-             StyleVariant="@_outlineStyleVariant" UnderlineActiveSections="@_underline">
-    <MudXOutlineSection Title="Item 7">
-        <MudText Typo="Typo.h6">Item 7</MudText>
+<MudXOutline ScrollContainerSelector=""@($""#{ContentId}"")"" Anchor=""@_outlineAnchor"" ContentDrawerOpen=""@_showOutline"" Width=""@_width""
+             StyleVariant=""OutlineStyleVariant.Bullet"">
+    <MudXOutlineSection Title=""Item 4"">
+        <MudText Typo=""Typo.h6"">Item 4</MudText>
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         <br /><br /><br /><br /><br />
     </MudXOutlineSection>
-    <MudXOutlineSection Title="Item 8">
-        <MudText Typo="Typo.h6">Item 8</MudText>
+    <MudXOutlineSection Title=""Item 5"">
+        <MudText Typo=""Typo.h6"">Item 5</MudText>
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         <br /><br /><br /><br /><br />
     </MudXOutlineSection>
-    <MudXOutlineSection Title="Item 9">
-        <MudText Typo="Typo.h6">Item 9</MudText>
+    <MudXOutlineSection Title=""Item 6"">
+        <MudText Typo=""Typo.h6"">Item 6</MudText>
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         <br /><br /><br /><br /><br />
     </MudXOutlineSection>
@@ -43,11 +50,15 @@
     /// <summary>
     /// The id of the scrollable container
     /// </summary>
-    [CascadingParameter(Name = "ContentId")]
+    [CascadingParameter(Name = ""ContentId"")]
     public string ContentId { get; set; } = default!;
 
     private Anchor _outlineAnchor = Anchor.Right;
+    private bool _showOutline = true;
     private int _width = 200;
-    private OutlineStyleVariant _outlineStyleVariant = OutlineStyleVariant.Minimal;
-    private bool _underline = false;
+}",
+                Language: CodeLanguage.Razor
+            )
+        };
+    }
 }

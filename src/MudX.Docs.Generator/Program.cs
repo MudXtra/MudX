@@ -1,5 +1,6 @@
 ﻿
 using System.Text.Json;
+using MudX.Docs.Generator;
 using MudX.Docs.NavGenerator;
 
 if (args.Length < 2)
@@ -15,6 +16,9 @@ if (args.Length < 2)
 }
 try
 {
+    Console.WriteLine("******");
+    Console.WriteLine();
+    Console.WriteLine("MudX.Docs.Generator: Building Nav Structure");
     var outputFileName = args[0];
     var rootDirectory = args[1];
     var outputDirectory = Path.GetDirectoryName(rootDirectory);
@@ -30,10 +34,16 @@ try
     });
 
     File.WriteAllText(outputFileName, json);
-    //Console.WriteLine();
     Console.WriteLine("MudX.Docs.Generator: Nav structure written to {" + outputDirectory + "/" + outputFileName + "}");
-    //Console.WriteLine();
-    //Console.WriteLine("******");
+    Console.WriteLine();
+    var result = ExampleSource.GenerateExamples(rootDirectory);
+    if (!result)
+    {
+        return 1;
+    }
+    Console.WriteLine("MudX.Docs.Generator: Examples written to {" + outputDirectory + "/Examples}");
+    Console.WriteLine();
+    Console.WriteLine("******");
     return 0;
 }
 catch (Exception ex)
