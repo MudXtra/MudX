@@ -1,8 +1,16 @@
 .docs-section-content {
     background-color: var(--mud-palette-surface);
-    max-height: 400px;
-    overflow-y: auto;
 }
+
+    .docs-section-content .docs-section-inner {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .docs-section-content .docs-section-code {
+        max-height: 300px;
+        overflow-y: auto;
+    }
 
 .mudx-outlined-text {
     letter-spacing: 2px;
@@ -43,20 +51,19 @@
     line-height: 1.4;
     border-radius: 2px;
     -webkit-font-smoothing: subpixel-antialiased;
-    &.docs-code-primary
-
-{
-    color: var(--mud-palette-primary);
-    background-color: var(--mud-palette-primary-hover);
 }
 
-&.docs-code-secondary {
-    color: var(--mud-palette-secondary);
-    background-color: var(--mud-palette-secondary-hover);
-}
+    .docs-code.docs-code-primary {
+        color: var(--mud-palette-primary);
+        background-color: var(--mud-palette-primary-hover);
+    }
 
-&.docs-code-tertiary {
-    color: var(--mud-palette-tertiary);
-    background-color: var(--mud-palette-tertiary-hover);
-}
-}
+    .docs-code.docs-code-secondary {
+        color: var(--mud-palette-secondary);
+        background-color: var(--mud-palette-secondary-hover);
+    }
+
+    .docs-code.docs-code-tertiary {
+        color: var(--mud-palette-tertiary);
+        background-color: var(--mud-palette-tertiary-hover);
+    }

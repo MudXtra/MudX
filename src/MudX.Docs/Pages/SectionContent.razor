@@ -1,7 +1,7 @@
 @using MudX.Models
 @namespace MudX.Docs
 
-<MudPaper id="@_contentId" Elevation="4" Class="docs-section-content pb-6 mb-0">
+<MudPaper Elevation="4" Class="docs-section-content">
     <MudToolBar Class="docs-section-toolbar">
         <MudSpacer />
         <MudButton OnClick="OnShowCode" StartIcon="@(ShowCode ? @Icons.Material.Rounded.CodeOff : Icons.Material.Rounded.Code)" Color="Color.Default" Size="Size.Small">
@@ -11,16 +11,19 @@
             <MudButton OnClick="RunOnTryMudX" StartIcon="@Icons.Material.Rounded.PlayArrow" IconColor="Color.Success" Color="Color.Default" Size="Size.Small">Run</MudButton>
         </MudTooltip>
     </MudToolBar>
-    <div class="docs-section-inner pt-3">
+    <div id="@_contentId" class="docs-section-inner py-3">
         <CascadingValue Name="ContentId" Value="ContentId" IsFixed="true">
             @ChildContent
-        </CascadingValue>        
+        </CascadingValue>
+    </div>
+    <div class="docs-section-code">
+        @if (ShowCode && Codes.Count() > 0)
+        {
+            <MudXCodeDisplay Codes="@Codes" Class="mt-0" />
+        }
     </div>
 </MudPaper>
-@if (ShowCode && Codes.Count() > 0)
-{
-    <MudXCodeDisplay Codes="@Codes" Class="mt-0" />
-}
+
 
 @code {
     private bool _hasCode;
@@ -38,6 +41,6 @@
 
     private async Task RunOnTryMudX()
     {
-        
+
     }
 }

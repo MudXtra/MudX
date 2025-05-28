@@ -20,5 +20,9 @@ namespace MudX
         SolarizedLight,
         [Description("tomorrownight")]
         TomorrowNight,
+        [Description("materiallight")]
+        MaterialLight,
+        [Description("materialdark")]
+        MaterialDark
     }
 }

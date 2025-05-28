@@ -1,8 +1,65 @@
 @namespace MudX
+@using MudX.Extensions;
 @inherits MudComponentBase
 
-@PrismTheme
+<style id="@_styleId">
+</style>
+<style>
+    .mudx-code-display pre code {
+        border-radius: var(--mud-default-borderradius);
+    }
+    @GetInvisiblesStyle()
+</style>
 
-<div class="@Classname" style="@Stylename" @attributes="@UserAttributes">
-    <pre><code class="@_languageClass">@_codeFile?.Code</code></pre>
+@{
+    var counter = Codes?.Count() ?? 0;
+}
+<div id="@_elementId" class="@Classname" style="@Stylename" @onmouseenter="@(() => _showCopy = true)" @onmouseleave="@(() => _showCopy = false)" @attributes="@UserAttributes">
+    @if (counter == 1)
+    {
+        var codes = Codes!.First();
+        @CodeDisplay(codes.Code, codes.Language.ToDescription())
+    }
+    else if (counter > 1)
+    {
+        <MudDynamicTabs @bind-ActivePanelIndex="_index">
+            @foreach (var codePage in Codes!)
+            {
+                <MudTabPanel Text="@codePage.Title">
+                    @CodeDisplay(codePage.Code, codePage.Language.ToDescription())
+                </MudTabPanel>
+            }
+        </MudDynamicTabs>
+    }
+    @if (CopyOrigin.HasValue)
+    {
+        @CopyButton(CopyOrigin.Value)
+    }
 </div>
+
+@code {
+    private RenderFragment CodeDisplay(string codeStr, string lang) => @<pre><code class="@CodeClass(lang)">@codeStr</code></pre>;
+
+    private RenderFragment CopyButton(Origin origin) =>
+    @<MudPopover Open="true" Paper="false" Class="mudx-copy-button my-4 px-4" Duration="500" TransformOrigin="@origin" AnchorOrigin="@origin" OverflowBehavior="OverflowBehavior.FlipNever">
+        <style>
+            .mudx-copy-button button span {
+                opacity: @(_showCopy ? ".8" : ".1");
+                transition: opacity .2s ease-in-out;
+            }
+
+            .mudx-copy-button button:hover span {
+                opacity: .8;
+            }
+        </style>
+        <MudTooltip Visible="_showMessage" ShowOnHover="false" Delay="150" Duration="300"
+                    Placement="@GetPlacement(origin)" Color="Color.Transparent">
+            <ChildContent>
+                <MudIconButton Class="mud-theme-transparent" OnClick="CopyToClipboard" Icon="@CopyIcon" Size="Size.Small" />
+            </ChildContent>
+            <TooltipContent>
+                <MudAlert Severity="@(_copySuccess ? Severity.Success : Severity.Error)" Dense="true">@_copyMessage</MudAlert>
+            </TooltipContent>
+        </MudTooltip>
+    </MudPopover>;
+}
