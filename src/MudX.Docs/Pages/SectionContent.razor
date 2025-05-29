@@ -11,7 +11,7 @@
             <MudButton OnClick="RunOnTryMudX" StartIcon="@Icons.Material.Rounded.PlayArrow" IconColor="Color.Success" Color="Color.Default" Size="Size.Small">Run</MudButton>
         </MudTooltip>
     </MudToolBar>
-    <div id="@_contentId" class="docs-section-inner py-3">
+    <div id="@_contentId" class="docs-section-inner py-3 px-2">
         <CascadingValue Name="ContentId" Value="ContentId" IsFixed="true">
             @ChildContent
         </CascadingValue>
@@ -19,7 +19,8 @@
     <div class="docs-section-code">
         @if (ShowCode && Codes.Count() > 0)
         {
-            <MudXCodeBlock Codes="@Codes" Class="mt-0" />
+            <MudDivider />
+            <MudXCodeBlock Codes="@Codes" Class="mt-0 px-2 py-2" />
         }
     </div>
 </MudPaper>

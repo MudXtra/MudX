@@ -64,6 +64,20 @@
         </ChildContent>
     </DocsPageSection>
 
+    <DocsPageSection Title="Customized">
+        <Description>
+            You can display a code block using the <CodeInline>MudXCodeBlock</CodeInline> component. The minimum required
+            parameter is an <CodeInline Tag="false">IEnumerable&lt;CodeFile&gt;</CodeInline>. Each <CodeInline Tag="false">
+            CodeFile</CodeInline> has a <CodeInline Tag="false">Title</CodeInline>, <CodeInline Tag="false">Language</CodeInline>
+            and <CodeInline Tag="false">Code</CodeInline> parameter. The title is used as a Tab if you supply multiple code files.
+        </Description>
+        <ChildContent>
+            <SectionContent Codes="@CodeBlockBasicExampleCode.Files">
+                <CodeBlockBasicExample />
+            </SectionContent>
+        </ChildContent>
+    </DocsPageSection>
+
 </DocsPage>
 
 @code {

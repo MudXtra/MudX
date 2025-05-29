@@ -85,11 +85,11 @@ namespace MudX
         public required IEnumerable<CodeFile> Codes { get; set; } = [];
 
         /// <summary>
-        /// The Code Theme for Syntax Highlighting
+        /// The Prism Theme for Syntax Highlighting
         /// </summary>
-        /// <remarks>Defaults to Prism Coy</remarks>
+        /// <remarks>Defaults to Prism Default</remarks>
         [Parameter]
-        public CodeTheme Theme { get; set; } = CodeTheme.MaterialLight;
+        public CodeTheme Theme { get; set; } = CodeTheme.Default;
 
         /// <summary>
         /// Enable Line Numbers for Syntax Highlighting
