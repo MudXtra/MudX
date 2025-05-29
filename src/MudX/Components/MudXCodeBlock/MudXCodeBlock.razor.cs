@@ -11,13 +11,16 @@ namespace MudX
     /// Displays Code Files with Syntax Highlighting using Prism.js. Add-ons include Autolinker, Match Braces (toggleable, <c>true</c> by default),
     /// Line Numbers(toggleable, <c>false</c> by default) and Invisibles(toggleable, <c>false</c> by default).
     /// </summary>
-    public partial class MudXCodeDisplay : MudComponentBase, IAsyncDisposable
+    public partial class MudXCodeBlock : MudComponentBase, IAsyncDisposable
     {
+        private bool _isRendered = false;
         private string _elementId = $"mudx-code-element-{Guid.NewGuid()}";
         private string _styleId = $"mudx-code-style-{Guid.NewGuid()}";
+        private MudPopover? _popover;
         private bool _generateCode = true;
         private IJSObjectReference? _module;
         private bool _showCopy = false;
+        private int _codeFileCount = 0;
         private int _index = 0;
         private System.Timers.Timer? _copyTimer;
         private CancellationTokenSource? _cts;
@@ -36,7 +39,7 @@ namespace MudX
             _ => Placement.Bottom
         };
 
-        private string GetInvisiblesStyle() => EnableInvisibles
+        private string GetInvisiblesStyle() => Invisibles
             ? string.Empty
             : $$"""
               #{{_elementId}} .token.space,
@@ -46,11 +49,12 @@ namespace MudX
               #{{_elementId}} .token.lf {
                   opacity: 0 !important;
               }
-      """;
+             """;
 
         protected string Classname =>
             new CssBuilder("mudx-code-display")
                 .AddClass(Class, !string.IsNullOrWhiteSpace(Class))
+                .AddClass("invisible", !_isRendered)
                 .Build();
 
         protected string Stylename =>
@@ -61,19 +65,24 @@ namespace MudX
         protected string CodeClass(string lang) => new CssBuilder()
             .AddClass($"lang-{lang}", !string.IsNullOrWhiteSpace(lang))
             .AddClass($"lang-html", string.IsNullOrWhiteSpace(lang))
-            .AddClass("line-numbers", EnableLineNumbers)
-            .AddClass("match-braces", EnableMatchBraces)
+            .AddClass("line-numbers", LineNumbers)
+            .AddClass("match-braces", MatchBraces)
+            .Build();
+
+        protected string CopyButtonClass => new CssBuilder("mud-theme-transparent")
+            .AddClass("mudx-code-tabs", _codeFileCount > 1)
             .Build();
 
         [Inject]
         public IJSRuntime _js { get; set; } = default!;
 
         /// <summary>
-        /// An IEnumerable of CodeFiles. Each CodeFile has a Name and the code.
+        /// An IEnumerable of CodeFiles. Each CodeFile has an Id, title, language, and code. You can provide as many CodeFiles as you want though both
+        /// this parameter and as CodeBlock child components.
         /// </summary>
         /// <remarks>At least one CodeFile is required, otherwise an exception is thrown.</remarks>
         [Parameter, EditorRequired]
-        public required IEnumerable<CodeFile> Codes { get; set; }
+        public required IEnumerable<CodeFile> Codes { get; set; } = [];
 
         /// <summary>
         /// The Code Theme for Syntax Highlighting
@@ -87,21 +96,21 @@ namespace MudX
         /// </summary>
         /// <remarks>Defaults to false</remarks>
         [Parameter]
-        public bool EnableLineNumbers { get; set; }
+        public bool LineNumbers { get; set; }
 
         /// <summary>
         /// Show Invisibles for Syntax Highlighting such as CR, LF, Tab, and Space
         /// </summary>
         /// <remarks>Defaults to false</remarks>
         [Parameter]
-        public bool EnableInvisibles { get; set; }
+        public bool Invisibles { get; set; }
 
         /// <summary>
         /// Show Match Braces for Syntax Highlighting so when you highlight one brace it highlights the corresponding brace.
         /// </summary>
         /// <remarks>Defaults to true</remarks>
         [Parameter]
-        public bool EnableMatchBraces { get; set; } = true;
+        public bool MatchBraces { get; set; } = true;
 
         /// <summary>
         /// The Copy Button Origin, nullable field indicating where the copy button should be placed. If null no button will be rendered.
@@ -117,18 +126,16 @@ namespace MudX
         [Parameter]
         public string CopyIcon { get; set; } = Icons.Material.Filled.ContentCopy;
 
-        /// <summary>
-        /// The current active CodeFile
-        /// </summary>
-        public CodeFile CodeFile { get; private set; } = default!;
-
-        protected override void OnInitialized()
+        protected override void OnParametersSet()
         {
-            if (!Codes.Any())
-                throw new Exception("MudXCodeDisplay must have at least one CodeFile");
-
-            CodeFile = Codes.First();
-            base.OnInitialized();
+            if (_codeFileCount != Codes.Count())
+            {
+                _generateCode = true;
+                _codeFileCount = Codes.Count();
+                _isRendered = false;
+                StateHasChanged();
+            }
+            base.OnParametersSet();
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -143,6 +150,8 @@ namespace MudX
             else if (_generateCode)
             {
                 await GenerateCode();
+                _isRendered = true;
+                StateHasChanged();
             }
         }
 
@@ -154,22 +163,11 @@ namespace MudX
             _generateCode = false;
         }
 
-        public async ValueTask DisposeAsync()
+        private void ChangedTabIndex()
         {
-            _cts?.Cancel();
-            if (_copyTimer != null)
-            {
-                _copyTimer.Stop();
-                _copyTimer.Dispose();
-                _copyTimer = null;
-            }
-            _cts?.Dispose();
-            _cts = null;
-            if (_module != null)
-            {
-                await _module.DisposeAsync();
-            }
-            GC.SuppressFinalize(this);
+            _isRendered = false;
+            _generateCode = true;
+            StateHasChanged();
         }
 
         private async Task CopyToClipboard(MouseEventArgs args)
@@ -233,5 +231,24 @@ namespace MudX
             };
             _copyTimer.Start();
         }
+
+        public async ValueTask DisposeAsync()
+        {
+            _cts?.Cancel();
+            if (_copyTimer != null)
+            {
+                _copyTimer.Stop();
+                _copyTimer.Dispose();
+                _copyTimer = null;
+            }
+            _cts?.Dispose();
+            _cts = null;
+            if (_module != null)
+            {
+                await _module.DisposeAsync();
+            }
+            GC.SuppressFinalize(this);
+        }
+
     }
 }

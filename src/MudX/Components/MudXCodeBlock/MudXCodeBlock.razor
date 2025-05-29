@@ -8,6 +8,9 @@
     .mudx-code-display pre code {
         border-radius: var(--mud-default-borderradius);
     }
+    .mudx-code-tabs {
+        margin-top: 48px;
+    }
     @GetInvisiblesStyle()
 </style>
 
@@ -22,14 +25,14 @@
     }
     else if (counter > 1)
     {
-        <MudDynamicTabs @bind-ActivePanelIndex="_index">
+        <MudTabs @bind-ActivePanelIndex="_index" @bind-ActivePanelIndex:after="ChangedTabIndex">
             @foreach (var codePage in Codes!)
             {
                 <MudTabPanel Text="@codePage.Title">
                     @CodeDisplay(codePage.Code, codePage.Language.ToDescription())
                 </MudTabPanel>
             }
-        </MudDynamicTabs>
+        </MudTabs>
     }
     @if (CopyOrigin.HasValue)
     {
@@ -41,24 +44,28 @@
     private RenderFragment CodeDisplay(string codeStr, string lang) => @<pre><code class="@CodeClass(lang)">@codeStr</code></pre>;
 
     private RenderFragment CopyButton(Origin origin) =>
-    @<MudPopover Open="true" Paper="false" Class="mudx-copy-button my-4 px-4" Duration="500" TransformOrigin="@origin" AnchorOrigin="@origin" OverflowBehavior="OverflowBehavior.FlipNever">
+    @<MudPopover @ref="_popover" Open="true" Paper="false" Class="mudx-copy-button my-4 px-4" Duration="500" TransformOrigin="@origin" AnchorOrigin="@origin" OverflowBehavior="OverflowBehavior.FlipNever">
         <style>
-            .mudx-copy-button button span {
-                opacity: @(_showCopy ? ".8" : ".1");
-                transition: opacity .2s ease-in-out;
+            #popovercontent-@(_popover?.Id) button span {
+                opacity: @(_showCopy ? ".8" : ".1") !important;
+                transition: opacity .3s ease-in-out;
             }
 
-            .mudx-copy-button button:hover span {
-                opacity: .8;
+            #popovercontent-@(_popover?.Id) button:hover span {
+                opacity: 1 !important;
+                transition: opacity .3s ease-in-out;
             }
         </style>
-        <MudTooltip Visible="_showMessage" ShowOnHover="false" Delay="150" Duration="300"
+        <MudTooltip Visible="_showMessage" ShowOnHover="false" Delay="150" Duration="300" ShowOnFocus="false"
                     Placement="@GetPlacement(origin)" Color="Color.Transparent">
             <ChildContent>
-                <MudIconButton Class="mud-theme-transparent" OnClick="CopyToClipboard" Icon="@CopyIcon" Size="Size.Small" />
+                <MudIconButton Class="@CopyButtonClass" OnClick="CopyToClipboard" Icon="@CopyIcon" Size="Size.Small" />
             </ChildContent>
             <TooltipContent>
-                <MudAlert Severity="@(_copySuccess ? Severity.Success : Severity.Error)" Dense="true">@_copyMessage</MudAlert>
+                @if (_showMessage)
+                {
+                    <MudAlert Class="@(_codeFileCount > 1 ? "mudx-code-tabs" : "")" Severity="@(_copySuccess ? Severity.Success : Severity.Error)" Dense="true">@_copyMessage</MudAlert>
+                }                
             </TooltipContent>
         </MudTooltip>
     </MudPopover>;

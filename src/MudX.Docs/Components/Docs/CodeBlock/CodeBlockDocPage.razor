@@ -1,0 +1,104 @@
+@page "/docs/codedisplay"
+@using MudX.Docs.CodeBlock
+@using MudX.Docs.Examples
+
+<PageTitle>Code Syntax Display</PageTitle>
+
+<DocsPage>
+    <DocsPageHeader>
+        <Description>
+            A new componenet <CodeInline>MudXCodeBlock</CodeInline> will display code blocks using Prism.js syntax highlighter. A number of
+            themes are included to choose from as well as languages, multiple codefiles, line numbers, matching braces, invisibles, and copy to clipboard.
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudStack Spacing="2">
+                        <MudButton Color="Color.Primary" OnClick="@((e) => _expanded = !_expanded)" Class="mt-3">
+                            @(_expanded ? "Collapse Languages" : "Expand Languages")
+                        </MudButton>
+                        <MudCollapse Expanded="_expanded">
+                            <MudDivider Class="pb-4 mb-2" />
+                            <MudGrid>
+                                @foreach (var language in _languageNames)
+                                {
+                                    <MudItem xs="12" sm="6" md="4" lg="3" Class="pt-1">
+                                        <CodeInline Tag="false"><MudText Typo="Typo.caption">@language</MudText></CodeInline>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </MudCollapse>
+                    </MudStack>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudStack Spacing="2">
+                        <MudButton Color="Color.Primary" OnClick="@((e) => _expanded = !_expanded)" Class="mt-3">
+                            @(_expanded ? "Collapse Themes" : "Expand Themes")
+                        </MudButton>
+                        <MudCollapse Expanded="_expanded">
+                            <MudDivider Class="pb-4 mb-2" />
+                            <MudGrid>
+                                @foreach (var theme in _themes)
+                                {
+                                    <MudItem xs="12" sm="6" md="4" lg="3" Class="pt-1">
+                                        <CodeInline Tag="false"><MudText Typo="Typo.caption">@theme</MudText></CodeInline>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </MudCollapse>
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
+        </Description>
+    </DocsPageHeader>
+
+    <DocsPageSection Title="Basic Usage">
+        <Description>
+            You can display a code block using the <CodeInline>MudXCodeBlock</CodeInline> component. The minimum required
+            parameter is an <CodeInline Tag="false">IEnumerable&lt;CodeFile&gt;</CodeInline>. Each <CodeInline Tag="false">
+            CodeFile</CodeInline> has a <CodeInline Tag="false">Title</CodeInline>, <CodeInline Tag="false">Language</CodeInline>
+            and <CodeInline Tag="false">Code</CodeInline> parameter. The title is used as a Tab if you supply multiple code files.
+        </Description>
+        <ChildContent>
+            <SectionContent Codes="@CodeBlockBasicExampleCode.Files">
+                <CodeBlockBasicExample />
+            </SectionContent>
+        </ChildContent>
+    </DocsPageSection>
+
+</DocsPage>
+
+@code {
+    private static string __title__ = "Code Block";
+
+    private bool _expanded = false;
+    private readonly List<string> _languageNames = new()
+    {
+        "HTML",
+        "XML",
+        "Markup",
+        "SVG",
+        "MathML",
+        "SSML",
+        "Atom",
+        "RSS",
+        "CSS",
+        "C-like",
+        "JavaScript",
+        "Docker",
+        "Markdown",
+        "JSON",
+        "Java",
+        "Go",
+        "PowerShell",
+        "Python",
+        "TypeScript",
+        "PHP",
+        "MongoDB",
+        "C#",
+        "ASP.NET",
+        "Razor",
+        "Ruby",
+        "SQL",
+        "YAML"
+    };
+    private readonly List<string> _themes = new() { "Default", "Material Dark", "Material Light", "Okaidia", "Dark", "Funky", "Twilight", "Coy", "Solarized Light", "Tomorrow Night" };
+}

@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Components\Docs\CodeDisplay\" />
+    <Folder Include="Components\Docs\CodeBlock\Examples\" />
     <Folder Include="Components\Docs\SignalCode\" />
     <Folder Include="Services\" />
   </ItemGroup>

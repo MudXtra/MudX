@@ -1,0 +1,55 @@
+using System.Collections.Generic;
+using MudX;
+
+namespace MudX.Docs.Examples
+{
+    public static class CodeBlockBasicExampleCode
+    {
+        public static readonly IEnumerable<CodeFile> Files = new[]
+        {
+            new CodeFile
+            (
+                Title: "CodeBlockBasicExample.razor",
+                Code: @"@namespace MudX.Docs.CodeBlock
+
+<MudButton Variant=""Variant.Filled"" Color=""Color.Primary"" OnClick=""AddCode"">Add CodeFile</MudButton>
+
+<MudXCodeBlock Codes=""@_codes"" />
+
+@code {
+    private int _counter = 0;
+    private IEnumerable<CodeFile> _codes = [];
+
+    private void AddCode() 
+    {
+        _counter++;
+        _codes = _codes.Append(GenerateCodeFile(_counter));
+    }
+
+    protected override void OnInitialized()
+    {
+        AddCode();
+        base.OnInitialized();
+    }
+
+    private CodeFile GenerateCodeFile(int counter) 
+    {
+        return new CodeFile(
+            Title: $""Main{counter}.cs"",
+            Language: CodeLanguage.CSharp,
+            Code: 
+            ""public class Program\r\n"" +
+            ""{\t\\\\ Counter: "" + counter + ""\r\n"" +            
+            ""    static void Main(string[] args)\r\n"" +
+            ""    {\r\n"" +
+            ""        Console.WriteLine(\""Hello World!\"");\r\n"" +
+            ""    }\r\n"" +
+            ""}""
+        );
+    }
+}",
+                Language: CodeLanguage.Razor
+            )
+        };
+    }
+}
