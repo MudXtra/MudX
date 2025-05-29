@@ -130,11 +130,11 @@ namespace MudX
         {
             if (_codeFileCount != Codes.Count())
             {
-                _generateCode = true;
                 _codeFileCount = Codes.Count();
                 _isRendered = false;
-                StateHasChanged();
             }
+            _generateCode = true;
+            StateHasChanged();
             base.OnParametersSet();
         }
 
