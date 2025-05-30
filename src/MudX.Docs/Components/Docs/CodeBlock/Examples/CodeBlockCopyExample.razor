@@ -20,11 +20,11 @@
     private int _counter = 0;
     private Origin? _origin = Origin.TopRight;
     private IReadOnlyList <Origin?> _origins = Enum.GetValues(typeof(Origin))
-    .Cast<Origin>()
-    .Select(o => (Origin?)o)
-    .Append(null)
-    .OrderBy(o => o.HasValue)
-    .ToList();
+        .Cast<Origin>()
+        .Select(o => (Origin?)o)
+        .Append(null)
+        .OrderBy(o => o.HasValue)
+        .ToList();
 
     private IEnumerable<CodeFile> _codes = [];
 
