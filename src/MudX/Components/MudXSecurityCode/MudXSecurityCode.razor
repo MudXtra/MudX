@@ -2,17 +2,10 @@
 @inherits MudComponentBase
 
 <div class="mudx-code-container" @attributes="@UserAttributes">
-    @if (ChildContent != null)
-    {
-        @ChildContent;
-    }
-    else
-    {
-        <MudStack Row="@Row"
-                  AlignItems="AlignItems.Center"
-                  Justify="Justify.Center"
-                  Spacing="@Spacing">
+    <MudStack Row="@Row"
+                AlignItems="AlignItems.Center"
+                Justify="Justify.Center"
+                Spacing="@Spacing">
 
-        </MudStack>
-    }
+    </MudStack>
 </div>

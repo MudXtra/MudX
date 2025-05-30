@@ -17,7 +17,7 @@ namespace MudX
         /// </summary>
         /// <remarks>Defaults to <langword="false" /></remarks>
         [Parameter]
-        public bool Row { get; set; } = false;
+        public bool Row { get; set; } = true;
 
         /// <summary>
         /// <para>The display variant of the component. Options are Outlined, Text, and Filled.</para>
@@ -27,11 +27,5 @@ namespace MudX
         [Parameter]
         public Variant? Variant { get; set; }
 
-        /// <summary>
-        /// The content of the component. If supplied this will override the default content and allow you to create it customized.
-        /// </summary>
-        /// <remarks>Defaults to <langword="null" /></remarks>
-        [Parameter]
-        public RenderFragment? ChildContent { get; set; }
     }
 }
