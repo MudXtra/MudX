@@ -2,8 +2,6 @@
 @using MudX.Extensions;
 @inherits MudComponentBase
 
-<style id="@_styleId">
-</style>
 <style>
     .mudx-code-display pre code {
         border-radius: var(--mud-default-borderradius);
@@ -41,7 +39,7 @@
 </div>
 
 @code {
-    private RenderFragment CodeDisplay(string codeStr, string lang) => @<pre><code class="@CodeClass(lang)">@codeStr</code></pre>;
+    private RenderFragment CodeDisplay(string codeStr, string lang) => @<pre class="@PreClass()"><code class="@CodeClass(lang)">@codeStr</code></pre>;
 
     private RenderFragment CopyButton(Origin origin) =>
     @<MudPopover @ref="_popover" Open="true" Paper="false" Class="mudx-copy-button my-4 px-4" Duration="500" TransformOrigin="@origin" AnchorOrigin="@origin" OverflowBehavior="OverflowBehavior.FlipNever">

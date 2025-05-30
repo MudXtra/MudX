@@ -15,7 +15,7 @@ namespace MudX
     {
         private bool _isRendered = false;
         private string _elementId = $"mudx-code-element-{Guid.NewGuid()}";
-        private string _styleId = $"mudx-code-style-{Guid.NewGuid()}";
+        private CodeTheme? _theme;
         private MudPopover? _popover;
         private bool _generateCode = true;
         private IJSObjectReference? _module;
@@ -65,8 +65,11 @@ namespace MudX
         protected string CodeClass(string lang) => new CssBuilder()
             .AddClass($"lang-{lang}", !string.IsNullOrWhiteSpace(lang))
             .AddClass($"lang-html", string.IsNullOrWhiteSpace(lang))
-            .AddClass("line-numbers", LineNumbers)
             .AddClass("match-braces", MatchBraces)
+            .Build();
+
+        protected string PreClass() => new CssBuilder()
+            .AddClass("line-numbers", LineNumbers)
             .Build();
 
         protected string CopyButtonClass => new CssBuilder("mud-theme-transparent")
@@ -126,8 +129,17 @@ namespace MudX
         [Parameter]
         public string CopyIcon { get; set; } = Icons.Material.Filled.ContentCopy;
 
-        protected override void OnParametersSet()
+        protected override async Task OnParametersSetAsync()
         {
+            if (_theme is null)
+            {
+                _theme = Theme;
+            }
+            else if (_theme != Theme && _module != null)
+            {
+                _theme = Theme;
+                await _module.InvokeVoidAsync("injectCssFromFile", PrismCSSPath);
+            }
             if (_codeFileCount != Codes.Count())
             {
                 _codeFileCount = Codes.Count();
@@ -144,7 +156,7 @@ namespace MudX
             if (firstRender)
             {
                 _module = await _js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxPrismWrapper.js");
-                await _module.InvokeAsync<bool>("initialize", PrismCSSPath, _styleId);
+                await _module.InvokeAsync<bool>("initialize", PrismCSSPath);
                 StateHasChanged();
             }
             else if (_generateCode)

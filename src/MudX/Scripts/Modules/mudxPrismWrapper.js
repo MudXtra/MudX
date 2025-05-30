@@ -1,31 +1,44 @@
 ﻿
-async function injectCssFromFile(cssPath, styleId) {
-    const styleTag = document.getElementById(styleId);
-    if (!styleTag) {
-        console.error("No Style Tag found for code display.")
-        return;
+export async function injectCssFromFile(cssPath) {
+    // Look for an existing <link> tag with data-prism="true"
+    let linkTag = document.querySelector('link[data-prism="true"]');
+
+    if (linkTag) {
+        // If it exists, update the href
+        linkTag.href = cssPath;
+    } else {
+        // Otherwise, create a new <link> tag
+        linkTag = document.createElement("link");
+        linkTag.setAttribute("data-prism", "true");
+        linkTag.rel = "stylesheet";
+        linkTag.href = cssPath;
+        
+        document.head.appendChild(linkTag);
     }
-    const cssText = await fetch(cssPath).then(res => res.text());
-    styleTag.innerHTML = cssText;
 }
 
-async function loadPrism() {
-    const prismTag = document.querySelector("script[data-prism]");
-    if (!prismTag) {
+export async function loadPrism() {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector("script[data-prism]")) {
+            // Already loaded
+            return resolve();
+        }
+
         const script = document.createElement("script");
         script.setAttribute("data-prism", "true");
         script.type = "text/javascript";
+        script.src = "./_content/MudX/prism/prism.js";
 
-        const jsText = await fetch("./_content/MudX/prism/prism.js").then(res => res.text());
-        script.text = jsText;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("Failed to load Prism.js"));
 
         document.head.appendChild(script);
-    }
+    });
 }
 
-export async function initialize(cssPath, styleId) {
+export async function initialize(cssPath) {
     try {
-        await injectCssFromFile(cssPath, styleId);
+        await injectCssFromFile(cssPath);
         await loadPrism();
         return true;
     } catch (error) {

@@ -1,27 +1,31 @@
 @namespace MudX.Docs.CodeBlock
 
 <MudGrid>
-    <MudItem xs="12" sm="9" md="6" lg="3" xl="2">
+    <MudItem xs="6">
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddCode">Add CodeFile</MudButton>
     </MudItem>
-    <MudItem xs="12" sm="9" md="6" lg="3" xl="2">
-        <MudSwitch @bind-Value="@_invisibles" Color="Color.Primary">Invisibles</MudSwitch>
-    </MudItem>
-    <MudItem xs="12" sm="9" md="6" lg="3" xl="2">
-        <MudSwitch @bind-Value="@_matchcase" Color="Color.Primary">Match Braces</MudSwitch>
-    </MudItem>
-    <MudItem xs="12" sm="9" md="6" lg="3" xl="2">
-        <MudSwitch @bind-Value="@_lineNumbers" Color="Color.Primary">Line Numbers</MudSwitch>
+    <MudItem xs="6">
+        <MudSelect @bind-Value="@_origin" Label="Copy Origin">
+            @foreach (var origin in _origins)
+            {
+                <MudSelectItem Value="@origin">@(origin.HasValue ? origin.Value.ToString() : "Disable")</MudSelectItem>
+            }
+        </MudSelect>
     </MudItem>
 </MudGrid>
 
-<MudXCodeBlock Codes="@_codes" LineNumbers="@_lineNumbers" Invisibles="@_invisibles" MatchBraces="@_matchcase" />
+<MudXCodeBlock CopyOrigin="@_origin" Codes="@_codes" />
 
 @code {
-    private bool _lineNumbers = false;
-    private bool _invisibles = false;
-    private bool _matchcase = true;
     private int _counter = 0;
+    private Origin? _origin = Origin.TopRight;
+    private IReadOnlyList <Origin?> _origins = Enum.GetValues(typeof(Origin))
+    .Cast<Origin>()
+    .Select(o => (Origin?)o)
+    .Append(null)
+    .OrderBy(o => o.HasValue)
+    .ToList();
+
     private IEnumerable<CodeFile> _codes = [];
 
     private void AddCode() 
