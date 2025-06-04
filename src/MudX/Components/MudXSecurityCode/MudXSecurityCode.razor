@@ -3,9 +3,21 @@
 
 <div class="mudx-code-container" @attributes="@UserAttributes">
     <MudStack Row="@Row"
-                AlignItems="AlignItems.Center"
-                Justify="Justify.Center"
-                Spacing="@Spacing">
-
+              Justify="Justify.SpaceBetween"
+              Spacing="@Spacing">
+        @for (var i = 0; i < CodeItems.Count; i++)
+        {
+            <MudTextField @ref="@CodeItems[i].TextFieldRef"
+                          @bind-Value="@CodeItems[i].Value"
+                          InputType="@(Password ? InputType.Password : InputType.Text)"
+                          Variant="@Variant"
+                          Margin="@Margin"
+                          Underline="@(CodeItems[i].IsEditable ? Underline : false)"
+                          Immediate="true"
+                          OnInternalInputChanged="@(e => OnInput(i,e))"
+                          OnKeyDown="@(e => OnKeyDown(i, e))"
+                          Disabled="!CodeItems[i].IsEditable"
+                          ReadOnly="!CodeItems[i].IsEditable" />                          
+        }
     </MudStack>
 </div>
