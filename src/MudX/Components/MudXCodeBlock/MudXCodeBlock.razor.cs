@@ -74,6 +74,13 @@ namespace MudX
 
         protected string CopyButtonClass => new CssBuilder("mud-theme-transparent")
             .AddClass("mudx-code-tabs", _codeFileCount > 1)
+            .AddClass(CopyButtonClassname, !string.IsNullOrWhiteSpace(CopyButtonClassname))
+            .Build();
+
+        protected string CopyPopoverClass => new CssBuilder("mudx-copy-button")
+            .AddClass("my-4")
+            .AddClass("mt-n4", CopyOrigin?.ToDescription().StartsWith("bottom"))
+            .AddClass("px-4")
             .Build();
 
         [Inject]
@@ -129,6 +136,13 @@ namespace MudX
         [Parameter]
         public string CopyIcon { get; set; } = Icons.Material.Filled.ContentCopy;
 
+        /// <summary>
+        /// The Copy Button Classname to add to the copy button
+        /// </summary>
+        /// <remarks>Defaults to null</remarks>
+        [Parameter]
+        public string CopyButtonClassname { get; set; } = string.Empty;
+
         protected override async Task OnParametersSetAsync()
         {
             if (_theme is null)
@@ -163,7 +177,7 @@ namespace MudX
             {
                 await GenerateCode();
                 _isRendered = true;
-                StateHasChanged();
+                await InvokeAsync(StateHasChanged);
             }
         }
 

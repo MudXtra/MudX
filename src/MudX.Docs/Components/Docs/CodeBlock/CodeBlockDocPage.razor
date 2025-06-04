@@ -96,10 +96,11 @@
 
     <DocsPageSection Title="Copy to Clipboard">
         <Description>
-            You can customize the Origin point of the Copy Button as well as the Copy Icon. You can disable the Copy Button complete by setting
-            <CodeInline Tag="false">CopyOrigin</CodeInline> to <CodeInline Tag="false">null</CodeInline>. The copy button will always copy the
-            current Page/Tab onto the clipboard. Upon success or failure it will issue a MudAlert immediately adjacent to the icon button. The icon
-            itself will have an opacity of .1 until you enter the code area. You can override this with CSS.
+            You can customize both the origin point and icon of the copy button. To disable the copy button entirely, set 
+            <CodeInline Tag="false">CopyOrigin</CodeInline> to <CodeInline Tag="false">null</CodeInline>. The button always copies the current page or tab 
+            to the clipboard. After copying, a <CodeInline>MudAlert</CodeInline> is shown next to the icon button to indicate success or failure. 
+            By default, the icon has an opacity of 0.1 until you enter the code area, but you can override this using the 
+            <CodeInline Tag="false">CopyButtonClassname</CodeInline> CSS property.
         </Description>
         <ChildContent>
             <SectionContent Codes="@CodeBlockCopyExampleCode.Files">
