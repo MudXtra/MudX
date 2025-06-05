@@ -1,4 +1,5 @@
 ﻿using MudX.Generator.JSCompiler;
+using NUglify;
 
 // this will compress and put all module js files into wwwroot
 if (args.Length < 2)
@@ -48,6 +49,37 @@ try
         // write contents to file
         File.WriteAllText(jsOutFile, contents);
     }
+
+    var jsMainFile = Directory.GetFiles(Path.Combine(modulesDirectory, "../"), "mudx.js").FirstOrDefault();
+    if (jsMainFile == null)
+    {
+        Console.WriteLine("MudX.Generator: Primary JS File not found.");
+        return 1;
+    }
+
+    var jsMainOutFile = Path.Combine(modulesDirectory, "../", "mudx.min.js");
+    var maincontents = JavaScriptCompressor.Compress(File.ReadAllText(jsMainFile));
+    // write contents to file
+    File.WriteAllText(jsMainOutFile, maincontents);
+
+    var cssMainFile = Directory.GetFiles(Path.Combine(modulesDirectory, "../"), "mudx.css").FirstOrDefault();
+
+    if (cssMainFile == null)
+    {
+        Console.WriteLine("MudX.Generator: Primary CSS File not found.");
+        return 1;
+    }
+
+    var cssMainOutFile = Path.Combine(modulesDirectory, "../", "mudx.min.css");
+    var csscontents = Uglify.Css(File.ReadAllText(cssMainFile));
+    if (csscontents.HasErrors)
+    {
+        Console.WriteLine("MudX.Generator: Primary CSS File generated errors during minification.");
+        return 1;
+    }
+    // write contents to file
+    File.WriteAllText(cssMainOutFile, csscontents.Code);
+
     return 0;
 }
 catch (Exception ex)

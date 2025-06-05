@@ -1,0 +1,203 @@
+/* MudX Security Code */
+.mudx-code-item .mud-input {
+    height: 42px;
+    width: 42px;
+}
+
+.mudx-code-item.dense .mud-input {
+    height: 32px;
+    width: 32px;
+}
+
+.mudx-code-container .d-flex .mud-input-control.mudx-code-item.dense, 
+.mudx-code-container .d-flex .mud-input-control.mudx-code-item.vertical {
+    margin: 0px;
+}
+
+.mudx-code-item input {
+    text-align: center;
+    padding: 0px !important;
+}
+
+/* MudX Code Block */
+.mudx-code-display pre code {
+    border-radius: var(--mud-default-borderradius);
+}
+
+.mudx-code-tabs {
+    margin-top: 48px;
+}
+
+/* MudX Outline */
+.mudx-toc-nav-popover {
+    position: absolute;
+}
+
+    .mudx-toc-nav-popover.mudx-toc-nav-popover-fixed {
+        position: fixed;
+    }
+
+.mudx-toc-nav-links {
+    position: relative;
+    transition: all 0.3s ease;
+    padding-left: .5rem;
+}
+
+    /* =========================
+   Padding by Navigation Level
+========================= */
+
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.navigation-level-1 {
+        padding-left: 0.75rem;
+    }
+
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.navigation-level-2 {
+        padding-left: 1.50rem;
+    }
+
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.navigation-level-3 {
+        padding-left: 2.25rem;
+    }
+
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.navigation-level-4 {
+        padding-left: 3.00rem;
+    }
+
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.navigation-level-5 {
+        padding-left: 3.75rem;
+    }
+
+    /* =========================
+   Base NavLink
+========================= */
+
+    .mudx-toc-nav-links .mud-nav-item.mudx-toc-nav-navlink .mud-nav-link:hover,
+    .mudx-toc-nav-links .mud-nav-item.mudx-toc-nav-navlink .mud-nav-link:active,
+    .mudx-toc-nav-links .mud-nav-item.mudx-toc-nav-navlink .mud-nav-link:focus {
+        background-color: inherit;
+    }
+
+    .mudx-toc-nav-links .mudx-toc-nav-navlink {
+        position: relative;
+        margin-bottom: 0.1rem;
+        transition: color 0.3s ease;
+        text-decoration: none;
+        display: block;
+    }
+
+    .mudx-toc-nav-links .mud-nav-link {
+        padding: 2px;
+    }
+
+    /* Active */
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.active .mud-nav-link-text {
+        font-weight: bold;
+        color: var(--mud-palette-primary);
+    }
+
+    .mudx-toc-nav-links .mudx-toc-nav-navlink.active.underline .mud-nav-link-text {
+        font-weight: bold;
+        color: var(--mud-palette-primary);
+        text-decoration: underline;
+    }
+
+/* =========================
+   Bullet Style
+========================= */
+
+.mudx-style-bullet {
+    padding-left: .2rem;
+}
+
+    .mudx-style-bullet .mudx-toc-nav-navlink {
+        padding-left: 1rem; /* tighter space between bullet and text */
+    }
+
+        .mudx-style-bullet .mudx-toc-nav-navlink::before {
+            content: "";
+            position: absolute;
+            top: 0.55rem;
+            left: .4rem;
+            width: 10px;
+            height: 10px;
+            background-color: var(--mud-palette-primary-text);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .mudx-style-bullet .mudx-toc-nav-navlink.active::before {
+            background-color: var(--mud-palette-primary);
+            transform: scale(1.4);
+            box-shadow: 0 0 6px var(--mud-palette-primary);
+        }
+
+/* =========================
+   Scroll Style
+========================= */
+
+.mudx-style-scroll {
+    position: relative;
+    padding-left: 0.2rem;
+}
+
+    .mudx-style-scroll::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px; /* Same as active bar width */
+        height: 100%;
+        background-color: var(--mud-palette-divider);
+        border-radius: 2px;
+    }
+
+    .mudx-style-scroll .mudx-toc-nav-navlink {
+        padding-left: 0rem;
+    }
+
+        .mudx-style-scroll .mudx-toc-nav-navlink::before {
+            content: "";
+            position: absolute;
+            left: -3.5px;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background-color: transparent;
+            border-radius: 2px;
+            transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(0);
+        }
+
+        .mudx-style-scroll .mudx-toc-nav-navlink.active::before {
+            background-color: var(--mud-palette-primary);
+            transform: translateY(0);
+            box-shadow: 0 0 8px rgba(var(--mud-palette-primary-rgb), 0.4);
+        }
+
+/* =========================
+   Minimal Style
+========================= */
+
+.mudx-style-minimal {
+    padding-left: 0.2rem;
+}
+
+    .mudx-style-minimal .mudx-toc-nav-navlink {
+        padding-left: 0.1rem; /* Tighter padding between | and text */
+    }
+
+        .mudx-style-minimal .mudx-toc-nav-navlink::before {
+            content: "|";
+            position: absolute;
+            top: 0.15rem;
+            left: 0rem;
+            font-weight: bold;
+            font-size: 1rem;
+            color: var(--mud-palette-text-secondary);
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .mudx-style-minimal .mudx-toc-nav-navlink.active::before {
+            color: var(--mud-palette-primary);
+            transform: translateX(0.1rem);
+        }
