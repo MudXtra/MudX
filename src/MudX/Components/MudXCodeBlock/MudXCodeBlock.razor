@@ -33,8 +33,8 @@
     private RenderFragment CodeDisplay(string codeStr, string lang) => @<pre class="@PreClass()"><code class="@CodeClass(lang)">@codeStr</code></pre>;
 
     private RenderFragment CopyButton(Origin origin) =>
-    @<MudPopover @ref="_popover" Open="true" Paper="false" Class="@CopyPopoverClass" Duration="500" UserAttributes="@PositionAttributes"
-                 TransformOrigin="@origin" AnchorOrigin="@origin" OverflowBehavior="OverflowBehavior.FlipNever">
+    @<MudPopover @ref="_popover" Open="true" Paper="false" Class="@CopyPopoverClass" Duration="500" Style="@PositionAttributes"
+                 TransformOrigin="@GetTransform(origin)" AnchorOrigin="@origin" OverflowBehavior="OverflowBehavior.FlipNever">
         <style>
             #popovercontent-@(_popover?.Id) button span {
                 opacity: @(_showCopy ? ".8" : ".1") !important;

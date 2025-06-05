@@ -17,7 +17,7 @@ namespace MudX
         private bool _isRendered = false;
         private string _elementId = $"mudx-code-element-{Guid.NewGuid()}";
         private ElementReference _elementRef;
-        private (double x, double Y) _position = (0, 0);
+        private (double X, double Y) _position = (0, 0);
         private CodeTheme? _theme;
         private MudPopover? _popover;
         private bool _generateCode = true;
@@ -40,6 +40,20 @@ namespace MudX
             Origin.TopRight or Origin.CenterRight or Origin.BottomRight => Placement.Left,
             Origin.BottomCenter => Placement.Top,
             _ => Placement.Bottom
+        };
+
+        private Origin GetTransform(Origin origin) => origin switch
+        {
+            Origin.TopLeft => Origin.BottomRight,
+            Origin.TopCenter => Origin.BottomCenter,
+            Origin.TopRight => Origin.BottomLeft,
+            Origin.CenterLeft => Origin.CenterRight,
+            Origin.CenterCenter => Origin.CenterCenter,
+            Origin.CenterRight => Origin.CenterLeft,
+            Origin.BottomLeft => Origin.TopRight,
+            Origin.BottomCenter => Origin.TopCenter,
+            Origin.BottomRight => Origin.TopLeft,
+            _ => Origin.TopCenter
         };
 
         private string GetInvisiblesStyle() => Invisibles
@@ -82,17 +96,17 @@ namespace MudX
 
         protected string CopyPopoverClass => new CssBuilder("mudx-copy-button")
             .AddClass("mud-popover-position-override") // js module sets position
-            .AddClass("my-4")
+            .AddClass("my-6")
             .AddClass("mt-n4", CopyOrigin?.ToDescription().StartsWith("bottom"))
             .AddClass("px-4")
+            .AddClass("ml-n14", CopyOrigin?.ToDescription().EndsWith("right"))
             .Build();
 
-        private Dictionary<string, object?> PositionAttributes =>
-            new()
-            {
-                { "data-pc-x", _position.x },
-                { "data-pc-y", _position.Y }
-            };
+        private string PositionAttributes =>
+            new StyleBuilder()
+            .AddStyle("left", _position.X.ToPx())
+            .AddStyle("top", _position.Y.ToPx())
+            .Build();
 
         [Inject]
         public IJSRuntime _js { get; set; } = default!;
@@ -180,11 +194,6 @@ namespace MudX
             await base.OnAfterRenderAsync(firstRender);
             if (firstRender)
             {
-                if (CopyOrigin.HasValue)
-                {
-                    var boundingRect = await _elementRef.MudGetBoundingClientRectAsync();
-                    _position = GetPositionFromOrigin(boundingRect, CopyOrigin.Value);
-                }
                 _module = await _js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxPrismWrapper.js");
                 await _module.InvokeAsync<bool>("initialize", PrismCSSPath);
                 StateHasChanged();
@@ -193,6 +202,11 @@ namespace MudX
             {
                 await GenerateCode();
                 _isRendered = true;
+                if (CopyOrigin.HasValue)
+                {
+                    var boundingRect = await _elementRef.MudGetBoundingClientRectAsync();
+                    _position = GetPagePositionFromOrigin(boundingRect, CopyOrigin.Value);
+                }
                 await InvokeAsync(StateHasChanged);
             }
         }
@@ -277,7 +291,7 @@ namespace MudX
             _copyTimer.Start();
         }
 
-        (double X, double Y) GetPositionFromOrigin(BoundingClientRect rect, Origin origin)
+        (double X, double Y) GetPagePositionFromOrigin(BoundingClientRect rect, Origin origin)
         {
             var left = rect.AbsoluteLeft;
             var top = rect.AbsoluteTop;
@@ -303,6 +317,7 @@ namespace MudX
                 _ => (centerX, centerY)
             };
         }
+
 
 
         public async ValueTask DisposeAsync()
