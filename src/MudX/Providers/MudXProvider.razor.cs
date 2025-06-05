@@ -19,12 +19,14 @@ namespace MudX
         {
             if (firstRender)
             {
+                bool isDev = true;
                 string version = DateTime.Now.ToFileTimeUtc().ToString();
 #if !DEBUG
     version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? version;
+    isDev = false;
 #endif
                 _jsModule = await _js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxProvider.js");
-                var result = await _jsModule.InvokeAsync<bool>("initialize", version);
+                var result = await _jsModule.InvokeAsync<bool>("initialize", version, isDev);
                 if (!result)
                 {
                     throw new InvalidOperationException("Failed to initialize MudX");
