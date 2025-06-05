@@ -14,16 +14,17 @@ namespace MudX.Docs.Examples
 
 <style>
     .set-text {
-        width: 300px;
+    width: 300px;
     }
 
-        .set-text input {
-            text-align: center;
-        }
+    .set-text input {
+    text-align: center;
+    }
 </style>
-<MudStack Class=""d-flex mx-auto"">
-    <MudTextField Class=""set-text"" @bind-Value=""_text"" Label=""Text To Copy"" Adornment=""Adornment.End"" AdornmentIcon=""@Icons.Material.Outlined.ContentCopy"" OnAdornmentClick=""@CopyClick"" />
-    <MudSwitch Label=""Snackbar"" @bind-Value=""_snackbar"" />
+
+<MudStack>
+    <MudTextField Class=""mx-auto set-text"" @bind-Value=""_text"" Label=""Text To Copy"" Adornment=""Adornment.End"" AdornmentIcon=""@Icons.Material.Outlined.ContentCopy"" OnAdornmentClick=""@CopyClick"" />
+    <MudSwitch Class=""mx-auto"" Label=""Snackbar"" @bind-Value=""_snackbar"" />
 </MudStack>
 
 <MudXCopyToClipboard @ref=""_copyToClipboard"" Snackbar=""_snackbar"" />

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using MudBlazor;
+using MudBlazor.Interop;
 using MudBlazor.Utilities;
 using MudX.Extensions;
 
@@ -15,6 +16,8 @@ namespace MudX
     {
         private bool _isRendered = false;
         private string _elementId = $"mudx-code-element-{Guid.NewGuid()}";
+        private ElementReference _elementRef;
+        private (double x, double Y) _position = (0, 0);
         private CodeTheme? _theme;
         private MudPopover? _popover;
         private bool _generateCode = true;
@@ -78,10 +81,18 @@ namespace MudX
             .Build();
 
         protected string CopyPopoverClass => new CssBuilder("mudx-copy-button")
+            .AddClass("mud-popover-position-override") // js module sets position
             .AddClass("my-4")
             .AddClass("mt-n4", CopyOrigin?.ToDescription().StartsWith("bottom"))
             .AddClass("px-4")
             .Build();
+
+        private Dictionary<string, object?> PositionAttributes =>
+            new()
+            {
+                { "data-pc-x", _position.x },
+                { "data-pc-y", _position.Y }
+            };
 
         [Inject]
         public IJSRuntime _js { get; set; } = default!;
@@ -169,6 +180,11 @@ namespace MudX
             await base.OnAfterRenderAsync(firstRender);
             if (firstRender)
             {
+                if (CopyOrigin.HasValue)
+                {
+                    var boundingRect = await _elementRef.MudGetBoundingClientRectAsync();
+                    _position = GetPositionFromOrigin(boundingRect, CopyOrigin.Value);
+                }
                 _module = await _js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxPrismWrapper.js");
                 await _module.InvokeAsync<bool>("initialize", PrismCSSPath);
                 StateHasChanged();
@@ -260,6 +276,34 @@ namespace MudX
             };
             _copyTimer.Start();
         }
+
+        (double X, double Y) GetPositionFromOrigin(BoundingClientRect rect, Origin origin)
+        {
+            var left = rect.AbsoluteLeft;
+            var top = rect.AbsoluteTop;
+            var right = rect.AbsoluteRight;
+            var bottom = rect.AbsoluteBottom;
+            var centerX = left + rect.Width / 2;
+            var centerY = top + rect.Height / 2;
+
+            return origin switch
+            {
+                Origin.TopLeft => (left, top),
+                Origin.TopCenter => (centerX, top),
+                Origin.TopRight => (right, top),
+
+                Origin.CenterLeft => (left, centerY),
+                Origin.CenterCenter => (centerX, centerY),
+                Origin.CenterRight => (right, centerY),
+
+                Origin.BottomLeft => (left, bottom),
+                Origin.BottomCenter => (centerX, bottom),
+                Origin.BottomRight => (right, bottom),
+
+                _ => (centerX, centerY)
+            };
+        }
+
 
         public async ValueTask DisposeAsync()
         {
