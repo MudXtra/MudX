@@ -219,11 +219,13 @@ namespace MudX
 
                 // Use cancellation token with timeout
                 _cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-                _copySuccess = await _module.InvokeAsync<bool>(
-                    "copyToClipboard",
+                var result = await _js.InvokeAsync<string>(
+                    "mudxGeneral.copyToClipboard",
                     _cts.Token,
                     currCode.Code.Trim()
                 );
+
+                _copySuccess = result == "success";
 
                 UpdateCopyStatus(_copySuccess);
             }
@@ -241,6 +243,7 @@ namespace MudX
         private void UpdateCopyStatus(bool success, string? customMessage = null)
         {
             _copyMessage = customMessage ?? (success ? "Copied!" : "Failed to copy");
+            _copySuccess = success;
             _showMessage = true;
 
             // Dispose previous timer if exists

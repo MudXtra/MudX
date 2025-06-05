@@ -10,6 +10,7 @@ export async function injectCssFromFile(cssPath) {
         // Otherwise, create a new <link> tag
         linkTag = document.createElement("link");
         linkTag.setAttribute("data-prism", "true");
+        linkTag.type = "text/css";
         linkTag.rel = "stylesheet";
         linkTag.href = cssPath;
         
@@ -28,7 +29,6 @@ export async function loadPrism() {
         script.setAttribute("data-prism", "true");
         script.type = "text/javascript";
         script.src = "./_content/MudX/prism/prism.js";
-
         script.onload = () => resolve();
         script.onerror = () => reject(new Error("Failed to load Prism.js"));
 
@@ -60,35 +60,4 @@ export async function highlightElementById(elementId) {
     }
 
     window.Prism.highlightAllUnder(element);
-}
-
-export async function copyToClipboard(copyText) {
-    try {
-        // Focus workaround - ensures document has focus
-        if (!document.hasFocus()) {
-            window.focus();
-        }
-
-        await navigator.clipboard.writeText(copyText);
-        return true;
-    } catch (error) {
-        console.error('Clipboard copy failed:', error);
-
-        // Fallback method for problematic browsers
-        try {
-            const textarea = document.createElement('textarea');
-            textarea.value = copyText;
-            textarea.style.position = 'fixed';  // Prevent scrolling
-            document.body.appendChild(textarea);
-            textarea.select();
-
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textarea);
-
-            return successful;
-        } catch (fallbackError) {
-            console.error('Fallback copy failed:', fallbackError);
-            return false;
-        }
-    }
 }
