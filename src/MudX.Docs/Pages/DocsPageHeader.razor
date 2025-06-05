@@ -1,6 +1,6 @@
 @namespace MudX.Docs
 
-<div class="docs-page-header mb-8">
+<div class="@($"docs-page-header mb-8 {Class}")">
     <MudText Typo="@Typo.h4" Class="mb-2">@Title</MudText>
     @if (Description != null)
     {
@@ -16,4 +16,5 @@
     [Parameter] public string Title { get; set; } = "Overview";
     [Parameter] public string DescriptionText { get; set; } = default!;
     [Parameter] public RenderFragment? Description { get; set; }
+    [Parameter] public string Class { get; set; } = string.Empty;
 }

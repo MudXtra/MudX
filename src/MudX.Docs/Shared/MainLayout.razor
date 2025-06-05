@@ -8,7 +8,7 @@
 
 <MudLayout>
     <MudAppBar Elevation="4" Fixed=true>
-        <MudIconButton Color="Color.Inherit" Icon="@Icons.Material.Outlined.Menu" Edge="Edge.Start" OnClick="@(() => _drawer = !_drawer)" />
+        <MudIconButton Color="Color.Inherit" Icon="@Icons.Material.Outlined.Menu" Edge="Edge.Start" aria-label="Toggle Drawer" OnClick="@(() => _drawer = !_drawer)" />
         <MudButton Class="ml-2" Href="/" Variant="Variant.Text">
             <MudImage Src="/_content/MudX.Docs/images/MudX_Transparent_Logo.png" Alt="An image of the MudX logo!"
                       Style="width: 48px; height: 48px;" Class="mr-5 ml-n2" />
@@ -17,23 +17,23 @@
         </MudButton>    
         <MudSpacer />
         <MudTooltip Text="Search the Documentation">
-            <MudIconButton Color="Color.Inherit" Target="_blank" Icon="@Icons.Material.Outlined.Search" OnClick="@(() => _searchOpen = true)" />
+            <MudIconButton Color="Color.Inherit" Target="_blank" Icon="@Icons.Material.Outlined.Search" aria-label="Search" OnClick="@(() => _searchOpen = true)" />
         </MudTooltip>
         <MudDivider Vertical="true" />
             <MudTooltip Text="Try MudX Online">
-            <MudIconButton Color="Color.Inherit" Target="_blank" Icon="@Icons.Material.Outlined.PlayCircleOutline" Href="https://try.arctechonline.tech" />
+            <MudIconButton Color="Color.Inherit" Target="_blank" Icon="@Icons.Material.Outlined.PlayCircleOutline" aria-label="Run MudX Code Snippets" Href="https://try.arctechonline.tech" />
         </MudTooltip>
         <MudDivider Vertical="true" />
-        <MudTooltip Text="Theme Manager">
-            <MudIconButton Color="Color.Inherit" Target="_blank" Icon="@Icons.Material.Outlined.ColorLens" Href="https://themes.arctechonline.tech" />
+        <MudTooltip Text="Theme Creator">
+            <MudIconButton Color="Color.Inherit" Target="_blank" Icon="@Icons.Material.Outlined.ColorLens" aria-label="Theme Creator" Href="https://themes.arctechonline.tech" />
         </MudTooltip>
         <MudDivider Vertical="true" />
         <MudTooltip Text="MudBlazor Primary Site">
-            <MudIconButton Color="Color.Inherit" Target="_blank" Icon="@Icons.Custom.Brands.MudBlazor" Href="https://mudblazor.com" />
+            <MudIconButton Color="Color.Inherit" Target="_blank" Icon="@Icons.Custom.Brands.MudBlazor" aria-label="MudBlazor Primary Site" Href="https://mudblazor.com" />
         </MudTooltip>
         <MudDivider Vertical="true" />
         <MudTooltip Text="Toggle Dark Mode">
-            <MudIconButton Color="Color.Inherit" Edge="Edge.End" Icon="@(!_isDarkMode ? Icons.Material.Outlined.WbSunny : Icons.Material.Outlined.NightsStay)"
+            <MudIconButton Color="Color.Inherit" Edge="Edge.End" aria-label="Toggle Dark Mode" Icon="@(!_isDarkMode ? Icons.Material.Outlined.WbSunny : Icons.Material.Outlined.NightsStay)"
                            OnClick="@(() => _isDarkMode = !_isDarkMode)" />
         </MudTooltip>
     </MudAppBar>

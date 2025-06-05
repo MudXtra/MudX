@@ -14,7 +14,7 @@ namespace MudX.Docs.Examples
 
 <MudXBreadcrumbs MaxItems=""@((byte)_maxItems)"" ExpanderIcon=""@_icon"" />
 
-<MudStack Row Breakpoint=""Breakpoint.Xs"" AlignItems=""AlignItems.Center"" Justify=""Justify.SpaceEvenly"">
+<MudStack Row Breakpoint=""Breakpoint.Xs"" AlignItems=""AlignItems.End"" Justify=""Justify.SpaceEvenly"" Class=""mt-2 mb-2"">
     <div style=""min-width: 200px;"">
         <MudSelect T=""string"" Label=""Max Items Icon"" @bind-Value=""_icon"">
             <MudSelectItem Value=""@Icons.Material.Filled.SettingsEthernet"">SettingsEthernet</MudSelectItem>
@@ -26,7 +26,9 @@ namespace MudX.Docs.Examples
     <div>
         
         <MudSlider T=""int"" ValueLabel=""true"" @bind-Value=""_maxItems"" Min=""1"" Max=""5""
-                   TickMarks=""true"" TickMarkLabels=""@_labels"" />        
+                   TickMarks=""true"" TickMarkLabels=""@_labels"">
+            <MudText Typo=""Typo.caption"">Max Items</MudText>
+        </MudSlider>       
     </div>    
 </MudStack>
 
