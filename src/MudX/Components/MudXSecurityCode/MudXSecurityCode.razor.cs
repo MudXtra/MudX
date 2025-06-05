@@ -1,20 +1,44 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using MudBlazor;
-using MudX.Components.MudXSecurityCode;
+using MudBlazor.Utilities;
 
 namespace MudX
 {
-    public partial class MudXSecurityCode : MudComponentBase
+    public partial class MudXSecurityCode : MudComponentBase, IAsyncDisposable
     {
+        private ElementReference? _elementRef;
+        private string Id = $"mudx-code-id-{Guid.NewGuid()}";
+        private DotNetObjectReference<MudXSecurityCode>? _dotNetRef;
+        private Dictionary<string, object?> _attributes = [];
+
+        [Inject]
+        private IJSRuntime Js { get; set; } = default!;
+
+        private IJSObjectReference? _module;
 
         protected List<CodeItem> CodeItems = [];
+
+        protected string CodeClassname => new CssBuilder("mudx-code-item")
+            .AddClass("dense", Margin == Margin.Dense)
+            .Build();
+
+        /// <summary>
+        /// The width of the container which is CodeItems at 32px each plus spacing between items
+        /// </summary>
+        private string ContainerClass =>
+            $"<style> " +
+            $"#{Id} {{ width: {CodeItems.Count * (Margin == Margin.Dense ? 32 : 42) + (CodeItems.Count - 1) * Spacing}px; }} " +
+            $"#{Id} .flex-column .mud-input-control.mudx-code-item.dense {{ margin: 0px; }} " +
+            $"</style>";
 
         /// <summary>
         /// The pattern of the security code. e.g. ("<c>##/##/19##</c>" would represent "MM/DD/YYYY" where the first two YY are filled in.).
         /// <para><b>Default Placeholders (can be changed)</b>>.</para>
         /// <para># is a placeholder for a numeric value.</para>
         /// <para>A is a placeholder for an alphabetic character.</para>
+        /// <para>? is a placeholder for an alphabetic or numeric character.</para>
         /// <para>@ is a placeholder for a special symbol.</para>
         /// <para>* is a placeholder for any UTF-8 character.</para>
         /// </summary>
@@ -22,15 +46,38 @@ namespace MudX
         [Parameter]
         public string Pattern { get; set; } = "####";
 
+        /// <summary>
+        /// The placeholder character for numeric values.
+        /// </summary>
+        /// <remarks>Defaults to '#', translates to char.IsDigit </remarks>
         [Parameter]
         public char PlaceholderNumeric { get; set; } = '#';
 
+        /// <summary>
+        /// The placeholder character for alphabetic characters.
+        /// </summary>
+        /// <remarks>Defaults to 'A', translates to char.IsLetter </remarks>
         [Parameter]
         public char PlaceholderAlpha { get; set; } = 'A';
 
+        /// <summary>
+        /// The placeholder character for alphabetic or numeric characters.
+        /// </summary>
+        /// <remarks>Defaults to '?', translates to char.IsLetterOrDigit </remarks>
+        [Parameter]
+        public char PlaceholderAlphaNumeric { get; set; } = '?';
+
+        /// <summary>
+        /// The placeholder character for special characters, typically symbols.
+        /// </summary>
+        /// <remarks>Defaults to '@', translates to char.IsSymbol or char.IsPunctuation </remarks>
         [Parameter]
         public char PlaceholderSpecial { get; set; } = '@';
 
+        /// <summary>
+        /// The placeholder character for any UTF-8 character.
+        /// </summary>
+        /// <remarks>Defaults to '*', translates to any UTF-8 char.</remarks>
         [Parameter]
         public char PlaceholderAny { get; set; } = '*';
 
@@ -59,14 +106,14 @@ namespace MudX
         /// </summary>
         /// <remarks>Defaults to 3, maximum of 20 (80px)</remarks>
         [Parameter]
-        public int Spacing { get; set; } = 3;
+        public int Spacing { get; set; } = 2;
 
         /// <summary>
-        /// Displays items horizontally, if true will display items horizontally, false will display items vertically
+        /// Whether to display items horizontally, if true will display items horizontally, false will display items vertically
         /// </summary>
         /// <remarks>Defaults to <langword="true" /></remarks>
         [Parameter]
-        public bool Row { get; set; } = true;
+        public bool Horizontal { get; set; } = true;
 
         /// <summary>
         /// <para>The display variant of the component. Options are Outlined, Text, and Filled.</para>
@@ -74,6 +121,13 @@ namespace MudX
         /// <remarks>Defaults to <see cref="Variant.Outlined" /></remarks>
         [Parameter]
         public Variant Variant { get; set; } = Variant.Outlined;
+
+        /// <summary>
+        /// <para>The display variant of the code when readonly. Options are Outlined, Text, and Filled.</para>
+        /// </summary>
+        /// <remarks>Defaults to <see cref="Variant.Text" /></remarks>
+        [Parameter]
+        public Variant ReadOnlyVariant { get; set; } = Variant.Text;
 
         /// <summary>
         /// If true, the underline will be visible.
@@ -89,54 +143,116 @@ namespace MudX
         [Parameter]
         public Margin Margin { get; set; } = Margin.Normal;
 
+        protected override void OnParametersSet()
+        {
+            base.OnParametersSet();
+            if (UserAttributes is { Count: > 0 })
+            {
+                foreach (KeyValuePair<string, object?> attr in UserAttributes)
+                    _attributes.TryAdd(attr.Key, attr.Value);
+            }
+            StateHasChanged();
+        }
+
         protected override void OnInitialized()
         {
             base.OnInitialized();
+            _attributes.Add("autocomplete", "off");
+            foreach (KeyValuePair<string, object?> attr in UserAttributes)
+                _attributes.Add(attr.Key, attr.Value);
             GenerateFromPattern(Pattern);
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            await base.OnAfterRenderAsync(firstRender);
+            if (firstRender)
+            {
+                _dotNetRef = DotNetObjectReference.Create(this);
+                _module = await Js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxSecurityCode.js");
+                await _module.InvokeVoidAsync("init", _dotNetRef, _elementRef);
+            }
         }
 
         private void GenerateFromPattern(string pattern)
         {
+            var index = 0;
+            char[] patternList = { PlaceholderAlpha, PlaceholderNumeric, PlaceholderAlphaNumeric, PlaceholderSpecial, PlaceholderAny };
             CodeItems.Clear();
             foreach (var ch in pattern)
             {
+                var isEditable = patternList.Contains(ch);
                 CodeItems.Add(new CodeItem
                 {
+                    Index = index++,
+                    Value = !isEditable ? ch.ToString() : string.Empty,
                     PatternChar = ch,
-                    IsEditable = $"{PlaceholderAlpha}{PlaceholderNumeric}{PlaceholderSpecial}{PlaceholderAny}".Contains(ch)
+                    IsEditable = isEditable
                 });
             }
         }
 
-        private async Task OnInput(int index, ChangeEventArgs e)
+        private async Task OnAfterChange(int index)
         {
-            var input = e.Value?.ToString();
-            if (string.IsNullOrEmpty(input)) return;
+            var input = CodeItems[index].Value;
+            if (string.IsNullOrEmpty(input))
+            {
+                CodeItems[index].Value = string.Empty;
+                await UpdateCodeValue();
+                return;
+            }
 
             var val = input[0].ToString(); // first char
             if (IsValidInput(CodeItems[index].PatternChar, val))
             {
                 CodeItems[index].Value = val;
-                await MoveFocus(index + 1);
-                await UpdateCodeValue();
+                // Find next editable index
+                int next = index + 1;
+                while (next < CodeItems.Count && !CodeItems[next].IsEditable)
+                {
+                    next++;
+                }
+
+                if (next < CodeItems.Count)
+                {
+                    await MoveFocus(next);
+                }
+                else
+                {
+                    // We're at the last editable index — move to the next focusable element
+                    if (_module != null)
+                        await _module.InvokeVoidAsync("focusNextAfterContainer", _elementRef);
+                }
             }
+            else
+            {
+                CodeItems[index].Value = string.Empty;
+            }
+            await UpdateCodeValue();
         }
 
         private async Task OnKeyDown(int index, KeyboardEventArgs e)
         {
-            if (e.Key == "Backspace" && string.IsNullOrEmpty(CodeItems[index].Value))
+            if (e.Key == "Backspace" && string.IsNullOrEmpty(CodeItems[index].Value) && index > 0)
             {
-                await MoveFocus(index - 1);
+                int prev = index - 1;
+                while (prev >= 0 && !CodeItems[prev].IsEditable)
+                {
+                    prev--;
+                }
+
+                if (prev >= 0)
+                {
+                    await MoveFocus(prev);
+                }
             }
         }
 
         private async Task MoveFocus(int index)
         {
-            if (index >= 0 && index < CodeItems.Count && CodeItems[index].IsEditable)
+            if (index >= 0 && index < CodeItems.Count && CodeItems[index].IsEditable && _module != null)
             {
-                var task = CodeItems[index].TextFieldRef?.InputReference?.ElementReference.FocusAsync();
-                if (task.HasValue)
-                    await task.Value;
+                await _module.InvokeVoidAsync("focusBlock", _elementRef, CodeItems[index].InputId);
             }
         }
 
@@ -152,6 +268,9 @@ namespace MudX
             if (pattern == PlaceholderAlpha)
                 return char.IsLetterOrDigit(ch);
 
+            if (pattern == PlaceholderAlphaNumeric)
+                return char.IsLetterOrDigit(ch);
+
             if (pattern == PlaceholderSpecial)
                 return char.IsSymbol(ch) || char.IsPunctuation(ch);
 
@@ -161,11 +280,140 @@ namespace MudX
             return false;
         }
 
+        [JSInvokable]
+        public async Task ClipboardPasteEvent(string fullid, string text)
+        {
+            if (string.IsNullOrWhiteSpace(text) || fullid.Length <= 10)
+                return;
+
+            var id = fullid[10..];
+
+            if (!int.TryParse(id, out int index))
+                return;
+
+            var chars = text.ToCharArray();
+            int charIndex = 0;
+
+            for (int i = index; i < CodeItems.Count && charIndex < chars.Length; i++)
+            {
+                var patternChar = CodeItems[i].PatternChar;
+
+                var isEditable = CodeItems[i].IsEditable;
+                var pasteChar = chars[charIndex].ToString();
+
+                if (isEditable)
+                {
+                    // Skip any invalid characters until we find a match
+                    while (charIndex < chars.Length &&
+                           !IsValidInput(patternChar, chars[charIndex].ToString()))
+                    {
+                        charIndex++;
+                    }
+
+                    if (charIndex >= chars.Length)
+                        break;
+
+                    pasteChar = chars[charIndex].ToString();
+                    CodeItems[i].Value = pasteChar;
+                    charIndex++;
+                }
+                else
+                {
+                    // Fixed character like '/', or '1', '9'
+                    if (charIndex >= chars.Length)
+                        break;
+
+                    if (chars[charIndex] == patternChar)
+                    {
+                        // Match – consume and move forward
+                        CodeItems[i].Value = patternChar.ToString();
+                        charIndex++;
+                    }
+                    else
+                    {
+                        // Mismatch – don't consume, but still set the fixed value
+                        // This allows skipping over fixed parts even if missing in input
+                        CodeItems[i].Value = patternChar.ToString();
+                        // DO NOT increment charIndex here
+                    }
+                }
+            }
+
+            await UpdateCodeValue();
+
+            // Move to next focusable item
+            int nextIndex = CodeItems.FindLastIndex(ci => !string.IsNullOrEmpty(ci.Value)) + 1;
+            if (nextIndex < CodeItems.Count)
+            {
+                await MoveFocus(nextIndex);
+            }
+            else if (_module != null)
+            {
+                await _module.InvokeVoidAsync("focusNextAfterContainer", _elementRef);
+            }
+
+            StateHasChanged(); // re-render UI
+        }
+
         private async Task UpdateCodeValue()
         {
-            var joined = string.Concat(CodeItems.Select(ci => ci.Value));
-            Code = joined;
-            await CodeChanged.InvokeAsync(joined);
+            string result = string.Empty;
+            int editableFilledCount = 0;
+            int editableSeenCount = 0;
+
+            // First, count how many editable inputs have been filled
+            foreach (var item in CodeItems)
+            {
+                if (item.IsEditable)
+                {
+                    editableSeenCount++;
+                    if (!string.IsNullOrEmpty(item.Value))
+                        editableFilledCount++;
+                }
+            }
+
+            int filledSoFar = 0;
+
+            foreach (var item in CodeItems)
+            {
+                if (item.IsEditable)
+                {
+                    // Always show editable values as-is
+                    result += item.Value;
+                    if (!string.IsNullOrEmpty(item.Value))
+                        filledSoFar++;
+                }
+                else
+                {
+                    // Only show static (non-editable) characters if we've filled enough inputs to reach this point
+                    int editableBefore = CodeItems
+                        .TakeWhile(ci => ci != item)
+                        .Count(ci => ci.IsEditable);
+
+                    if (filledSoFar >= editableBefore)
+                        result += item.PatternChar;
+                    else
+                        result += ""; // Don't show it yet
+                }
+            }
+
+            Code = result;
+            await CodeChanged.InvokeAsync(Code);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (IsJSRuntimeAvailable)
+            {
+                if (_module != null)
+                {
+                    await _module.InvokeVoidAsync("cleanup", _elementRef);
+                    await _module.DisposeAsync();
+                    _module = null;
+                }
+                _dotNetRef?.Dispose();
+                _dotNetRef = null;
+            }
         }
     }
 }

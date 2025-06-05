@@ -1,3 +1,19 @@
+/* MudX Security Code */
+.mudx-code-item .mud-input {
+    height: 42px;
+    width: 42px;
+}
+
+.mudx-code-item.dense .mud-input {
+    height: 32px;
+    width: 32px;
+}
+
+.mudx-code-item input {
+    text-align: center;
+    padding: 0px !important;
+}
+
 /* MudX Code Block */
 .mudx-code-display pre code {
     border-radius: var(--mud-default-borderradius);
@@ -12,9 +28,9 @@
     position: absolute;
 }
 
-  .mudx-toc-nav-popover.mudx-toc-nav-popover-fixed {
-      position: fixed;
-  }
+    .mudx-toc-nav-popover.mudx-toc-nav-popover-fixed {
+        position: fixed;
+    }
 
 .mudx-toc-nav-links {
     position: relative;

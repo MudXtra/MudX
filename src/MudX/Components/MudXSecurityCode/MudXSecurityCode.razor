@@ -1,23 +1,27 @@
 @namespace MudX
 @inherits MudComponentBase
 
-<div class="mudx-code-container" @attributes="@UserAttributes">
-    <MudStack Row="@Row"
+@((MarkupString)ContainerClass)
+
+<div @ref="@_elementRef" id="@Id" class="@($"mudx-code-container {Class}")" @attributes="@UserAttributes">
+    <MudStack Row="@Horizontal"
               Justify="Justify.SpaceBetween"
               Spacing="@Spacing">
-        @for (var i = 0; i < CodeItems.Count; i++)
+        @foreach (var item in CodeItems.OrderBy(x => x.Index))
         {
-            <MudTextField @ref="@CodeItems[i].TextFieldRef"
-                          @bind-Value="@CodeItems[i].Value"
-                          InputType="@(Password ? InputType.Password : InputType.Text)"
-                          Variant="@Variant"
-                          Margin="@Margin"
-                          Underline="@(CodeItems[i].IsEditable ? Underline : false)"
+            <MudTextField InputId="@item.InputId" Class="@CodeClassname"
+                          MaxLength="1" FullWidth="false"
+                          @bind-Value="@item.Value"
+                          @bind-Value:after="@(() => OnAfterChange(item.Index))"
                           Immediate="true"
-                          OnInternalInputChanged="@(e => OnInput(i,e))"
-                          OnKeyDown="@(e => OnKeyDown(i, e))"
-                          Disabled="!CodeItems[i].IsEditable"
-                          ReadOnly="!CodeItems[i].IsEditable" />                          
+                          UserAttributes="@_attributes"
+                          InputType="@(Password ? InputType.Password : InputType.Text)"
+                          InputMode="@(item.PatternChar == PlaceholderNumeric ? InputMode.numeric : InputMode.text)"
+                          Variant="@(!item.IsEditable ? Variant.Text : Variant)"
+                          Margin="@Margin"
+                          Underline="@(item.IsEditable ? Underline : false)"                          
+                          OnKeyDown="@(e => OnKeyDown(item.Index, e))"                          
+                          ReadOnly="!item.IsEditable" />
         }
     </MudStack>
 </div>

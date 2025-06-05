@@ -21,7 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Components\Docs\SignalCode\" />
     <Folder Include="Services\" />
   </ItemGroup>
 
