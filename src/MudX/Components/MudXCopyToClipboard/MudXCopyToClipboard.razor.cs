@@ -1,11 +1,20 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using MudBlazor;
 
 namespace MudX
 {
     public partial class MudXCopyToClipboard : ComponentBase
     {
         [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+        [Inject] ISnackbar SnackbarService { get; set; } = default!;
+
+        /// <summary>
+        /// Indicates if the snackbar should be shown as a result of a copy operation. A success will be Severity.Success
+        /// and an error will be Severity.Error.
+        /// </summary>
+        /// <remarks>Default is false</remarks>
+        [Parameter] public bool Snackbar { get; set; }
 
         protected override void OnAfterRender(bool firstRender)
         {
@@ -34,9 +43,15 @@ namespace MudX
                     result.Success = true;
                     result.Message = "Copied to clipboard";
                 }
-                return result;
             }
-            result.Message = "JSRuntime is not available";
+            else
+            {
+                result.Message = "JSRuntime is not available";
+            }
+            if (Snackbar)
+            {
+                SnackbarService.Add(result.Message, result.Success ? Severity.Success : Severity.Error);
+            }
             return result;
         }
 

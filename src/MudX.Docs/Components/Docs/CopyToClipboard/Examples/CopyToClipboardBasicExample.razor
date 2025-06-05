@@ -1,0 +1,32 @@
+@namespace MudX.Docs.CopyToClipboard
+
+<style>
+    .set-text {
+    width: 300px;
+    }
+
+    .set-text input {
+    text-align: center;
+    }
+</style>
+
+<MudStack>
+    <MudTextField Class="mx-auto set-text" @bind-Value="_text" Label="Text To Copy" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Outlined.ContentCopy" OnAdornmentClick="@CopyClick" />
+    <MudSwitch Class="mx-auto" Label="Snackbar" @bind-Value="_snackbar" />
+</MudStack>
+
+<MudXCopyToClipboard @ref="_copyToClipboard" Snackbar="_snackbar" />
+
+@code {
+    private MudXCopyToClipboard? _copyToClipboard;
+    private string _text = "Text To Copy";
+    private bool _snackbar = true;
+
+    private async Task CopyClick(MouseEventArgs args)
+    {
+        if (_copyToClipboard == null)
+            return;
+
+        var copyResult = await _copyToClipboard.CopyToClipboardAsync(_text);
+    }
+}

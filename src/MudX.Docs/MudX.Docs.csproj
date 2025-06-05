@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Components\Docs\CopyToClipboard\Examples\" />
     <Folder Include="Services\" />
   </ItemGroup>
 

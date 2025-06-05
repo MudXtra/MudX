@@ -5,7 +5,14 @@ window.mudxGeneral = {
             if (!document.hasFocus()) {
                 window.focus();
             }
-
+            if (!window.hasFocus) {
+                const textarea = document.createElement('textarea');
+                textarea.value = copyText;
+                textarea.style.position = 'fixed';  // Prevent scrolling
+                textarea.style.opacity = '0';       // Hide from view
+                document.body.appendChild(textarea);
+                textarea.focus();
+            }
             await navigator.clipboard.writeText(copyText);
             return "success";
         } catch (error) {
@@ -23,7 +30,7 @@ window.mudxGeneral = {
                 const successful = document.execCommand('copy');
                 document.body.removeChild(textarea);
 
-                return successful ? "success" : "fallback failed";
+                return successful ? "success" : "Fallback Failed";
             } catch (fallbackError) {
                 console.error('Fallback copy failed:', fallbackError);
                 return `Copy and Fallback failed: ${fallbackError}`;

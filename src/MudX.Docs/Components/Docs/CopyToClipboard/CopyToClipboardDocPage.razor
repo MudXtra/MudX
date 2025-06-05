@@ -1,0 +1,35 @@
+@page "/docs/copytoclipboard"
+@using MudX.Docs.CopyToClipboard
+@using MudX.Docs.Examples
+
+<PageTitle>Copy To Clipboard</PageTitle>
+
+<DocsPage>
+    <DocsPageHeader>
+        <Description>
+            A new componenet <CodeInline>MudXCopyToClipboard</CodeInline> will provide a fast and easy way to copy text directly to the clipboard
+            using browser tools. 
+        </Description>
+    </DocsPageHeader>
+
+    <DocsPageSection Title="Basic Usage">
+        <Description>
+            You can put a <CodeInline>MudXCopyToClipboard</CodeInline> anywhere inside a page or component. It will not generate anything in the DOM
+            but make available one parameter, <CodeInline Tag="false">Snackbar</CodeInline>, that defaults to false. You have one exposed method, 
+            <CodeInline Tag="false">CopyToClipboardAsync</CodeInline> that will copy the supplied parameter text to the clipboard. If <CodeInline Tag="false">
+            Snackbar</CodeInline> is true it will show a snackbar with a success/failure message. In all cases it will return a <CodeInline Tag="false">
+            CopyResult</CodeInline> object with a <CodeInline Tag="false">Success</CodeInline> property that indicates if the copy was successful.
+        </Description>
+        <ChildContent>
+            <SectionContent Codes="@CopyToClipboardBasicExampleCode.Files">
+                <CopyToClipboardBasicExample />
+            </SectionContent>
+        </ChildContent>
+    </DocsPageSection>
+
+</DocsPage>
+
+@code {
+    private static string __title__ = "Copy To Clipboard";
+
+}
