@@ -15,17 +15,22 @@ namespace MudX.Docs.Examples
 <style>
     .set-width {
         max-width: 300px;
-        text-align: center;
     }
+
+        .set-width input {
+            text-align: center;
+        }
 </style>
 
-<MudTextField Class=""d-flex mx-auto set-width"" Immediate=""true"" FullWidth=""false"" Label=""Pattern"" @bind-Value=""_pattern"" />
+<MudStack>
+    <MudTextField Class=""mx-auto set-width"" Immediate=""true"" FullWidth=""false"" Label=""Pattern"" @bind-Value=""_pattern"" />
 
-<MudXSecurityCode @key=""_pattern"" Class=""d-flex mx-auto"" @bind-Code=""_code"" Pattern=""@_pattern"" />
+    <MudXSecurityCode @key=""_pattern"" Class=""d-flex mx-auto"" @bind-Code=""_code"" Pattern=""@_pattern"" />
 
-<MudText Class=""d-flex mx-auto"" Color=""Color.Info"">
-    Security Code: @_code
-</MudText>
+    <MudText Class=""mx-auto"" Color=""Color.Info"">
+        Security Code: @_code
+    </MudText>
+</MudStack>
 
 @code {
     private string? _code;

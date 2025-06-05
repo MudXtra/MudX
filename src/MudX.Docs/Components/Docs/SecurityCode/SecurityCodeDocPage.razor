@@ -10,7 +10,10 @@
             A segmented input control for entering verification codes, such as two-factor authentication tokens or access codes.
             Typically, you would use <CodeInline>MudXSecurityCode</CodeInline> to display a series of text fields that match a 
             customizable pattern (e.g., <CodeInline>####</CodeInline> or <CodeInline>##-##</CodeInline>). Each placeholder accepts 
-            numeric, alphabetic, symbolic, or any <c>UTF-8</c> character types based on your configuration. 
+            numeric, alphabetic, symbolic, or any <c>UTF-8</c> character types based on your configuration. Entering text in a code
+            box will automatically move to the next code box. Pressing backspace will clear the box and once cleared it will move
+            to the previous code box. Both of these actions skip non-placeholders. When the final box is filled, it will automatically
+            focus the first focusable element after the last code box.
         </Description>
     </DocsPageHeader>
 
@@ -18,10 +21,13 @@
         <Description>
             The default settings of <CodeInline>MudXSecurityCode</CodeInline> include a numeric pattern of 4 digits. You
             can change the pattern by using the <CodeInline Tag="false">Pattern</CodeInline> parameter, and you can change the Placeholders
-            used to display the pattern by using the individual Placeholder parameters (e.g., 
+            used to display the pattern by using the individual Placeholder parameters [e.g., 
             <CodeInline Tag="false">PlaceholderNumeric(#)</CodeInline>, <CodeInline Tag="false">PlaceholderAlpha(A)</CodeInline>, 
             <CodeInline Tag="false">PlaceholderAlphaNumeric(?)</CodeInline>, <CodeInline Tag="false">PlaceholderSpecial(@@)</CodeInline>,
-            and <CodeInline Tag="false">PlaceholderAny(*)</CodeInline>).
+            and <CodeInline Tag="false">PlaceholderAny(*)</CodeInline>]. Patterns consist of Placeholder characters and non-Placeholder
+            characters. When a character is not a placeholder, it is displayed as it appears in the pattern read-only. So in the above
+            scneario, <CodeInline Tag="false">##/##/####</CodeInline> would style to a typical American Date and allow two digits
+            for the month, two digits for the day, and four digits for the year, filling in the non-placeholder characters as you type.
         </Description>
         <ChildContent>
             <SectionContent Codes="@SecurityCodeBasicExampleCode.Files">
@@ -55,6 +61,22 @@
         <ChildContent>
             <SectionContent Codes="@SecurityCodeStylingExampleCode.Files">
                 <SecurityCodeStylingExample />
+            </SectionContent>
+        </ChildContent>
+    </DocsPageSection>
+
+    <DocsPageSection Title="Copy/Paste">
+        <Description>
+            The browser <CodeInline Tag="false">Paste</CodeInline> command allows you to insert the current value from your clipboard into the 
+            <CodeInline>MudXSecurityCode</CodeInline> component. Using a lightweight algorithm, it attempts to intelligently place your 
+            pasted value—regardless of whether it includes read-only characters or the position where you start pasting.
+
+            Try copying the example text below and pasting it into the component. Additionally, the <CodeInline>Code</CodeInline> parameter
+            is two-way bound, so it updates as you type and also reflects changes made externally, as if a paste began at position 0.
+        </Description>
+        <ChildContent>
+            <SectionContent Codes="@SecurityCodePastingExampleCode.Files">
+                <SecurityCodePastingExample />
             </SectionContent>
         </ChildContent>
     </DocsPageSection>

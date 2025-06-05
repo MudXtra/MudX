@@ -1,0 +1,69 @@
+using System.Collections.Generic;
+using MudX;
+
+namespace MudX.Docs.Examples
+{
+    public static class SecurityCodePastingExampleCode
+    {
+        public static readonly IEnumerable<CodeFile> Files = new[]
+        {
+            new CodeFile
+            (
+                Title: "SecurityCodePastingExample.razor",
+                Code: @"@namespace MudX.Docs.SecurityCode
+@inject ISnackbar Snackbar
+
+<style>
+    .set-text {
+        max-width: 200px;
+    }
+
+        .set-text input {
+            text-align: center;
+        }
+</style>
+<MudStack>
+    <MudStack Row AlignItems=""AlignItems.Center"" Justify=""Justify.SpaceAround"" Breakpoint=""Breakpoint.SmAndDown"">
+        <MudSwitch Label=""Password"" @bind-Value=""_password"" />
+        <MudTextField T=""string"" @bind-Value=""@_copyCode"" Label=""Copyable Text"" Class=""set-text"" Immediate=""true""
+                      AdornmentIcon=""@Icons.Material.Outlined.ContentCopy"" Adornment=""Adornment.End"" OnAdornmentClick=""@CopyClick"" />
+    </MudStack>
+
+    <MudXSecurityCode Class=""mx-auto"" @bind-Code=""_code""
+                      Password=""@_password"" Pattern=""##/##/####"" />
+
+    <MudText Class=""mx-auto"" Color=""Color.Info"">
+        Security Code: @_code
+    </MudText>
+</MudStack>
+
+<MudXCopyToClipboard @ref=""copyToClipboard"" />
+
+@code {
+    private string? _code;
+    private string _copyCode = ""01/19/2022"";
+    private bool _password = false;
+    private MudXCopyToClipboard? copyToClipboard;
+
+    private async Task CopyClick(MouseEventArgs args)
+    {
+        var copyResult = new CopyResult();
+        if (copyToClipboard != null)
+        {
+            copyResult = await copyToClipboard.CopyToClipboardAsync(_copyCode);
+        }
+        if (copyResult.Success)
+        {
+            Snackbar.Add(copyResult.Message, Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add(copyResult.Message, Severity.Error);
+        }
+    }
+}",
+                Language: CodeLanguage.Razor
+            )
+        };
+    }
+}

@@ -15,7 +15,7 @@
                           @bind-Value:after="@(() => OnAfterChange(item.Index))"
                           Immediate="true"
                           UserAttributes="@_attributes"
-                          InputType="@(Password ? InputType.Password : InputType.Text)"
+                          InputType="@(item.IsEditable && Password ? InputType.Password : InputType.Text)"
                           InputMode="@(item.PatternChar == PlaceholderNumeric ? InputMode.numeric : InputMode.text)"
                           Variant="@(!item.IsEditable ? Variant.Text : Variant)"
                           Margin="@Margin"

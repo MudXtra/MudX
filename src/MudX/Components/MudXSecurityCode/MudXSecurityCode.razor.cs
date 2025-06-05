@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using MudBlazor;
+using MudBlazor.State;
 using MudBlazor.Utilities;
 
 namespace MudX
@@ -12,6 +13,17 @@ namespace MudX
         private string Id = $"mudx-code-id-{Guid.NewGuid()}";
         private DotNetObjectReference<MudXSecurityCode>? _dotNetRef;
         private Dictionary<string, object?> _attributes = [];
+        private ParameterState<string?> _codeState;
+        private bool _isInternalChange = false;
+
+        public MudXSecurityCode()
+        {
+            using var registerScope = CreateRegisterScope();
+            _codeState = registerScope.RegisterParameter<string?>(nameof(Code))
+                .WithParameter(() => Code)
+                .WithEventCallback(() => CodeChanged)
+                .WithChangeHandler(OnChangeHandler);
+        }
 
         [Inject]
         private IJSRuntime Js { get; set; } = default!;
@@ -22,15 +34,15 @@ namespace MudX
 
         protected string CodeClassname => new CssBuilder("mudx-code-item")
             .AddClass("dense", Margin == Margin.Dense)
+            .AddClass("vertical", !Horizontal)
             .Build();
 
         /// <summary>
-        /// The width of the container which is CodeItems at 32px each plus spacing between items
+        /// The width of the container which is CodeItems at 32 or 42px each plus spacing between items
         /// </summary>
         private string ContainerClass =>
             $"<style> " +
             $"#{Id} {{ width: {CodeItems.Count * (Margin == Margin.Dense ? 32 : 42) + (CodeItems.Count - 1) * Spacing}px; }} " +
-            $"#{Id} .flex-column .mud-input-control.mudx-code-item.dense {{ margin: 0px; }} " +
             $"</style>";
 
         /// <summary>
@@ -92,7 +104,7 @@ namespace MudX
         /// Called when the value of the security code changes.
         /// </summary>
         [Parameter]
-        public EventCallback<string> CodeChanged { get; set; }
+        public EventCallback<string?> CodeChanged { get; set; }
 
         /// <summary>
         /// If true, each input will be masked as a password.
@@ -151,6 +163,7 @@ namespace MudX
                 foreach (KeyValuePair<string, object?> attr in UserAttributes)
                     _attributes.TryAdd(attr.Key, attr.Value);
             }
+
             StateHasChanged();
         }
 
@@ -397,8 +410,33 @@ namespace MudX
                 }
             }
 
-            Code = result;
+            _isInternalChange = true;
+            await _codeState.SetValueAsync(result);
             await CodeChanged.InvokeAsync(Code);
+            _isInternalChange = false;
+        }
+
+        private async Task OnChangeHandler(ParameterChangedEventArgs<string?> args)
+        {
+            // No change at all? Skip.
+            if (args.Value == args.LastValue)
+                return;
+
+            // We triggered this change ourselves? Skip.
+            if (_isInternalChange)
+                return;
+
+            // either initial bind-code value or the user updates the value externally
+            if (string.IsNullOrEmpty(args.Value))
+            {
+                foreach (var item in CodeItems)
+                    item.Value = string.Empty;
+                StateHasChanged();
+            }
+            else
+            {
+                await ClipboardPasteEvent("mudx-code-0", args.Value);
+            }
         }
 
         public async ValueTask DisposeAsync()
