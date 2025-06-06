@@ -42,20 +42,6 @@ namespace MudX
             _ => Placement.Bottom
         };
 
-        private Origin GetTransform(Origin origin) => origin switch
-        {
-            Origin.TopLeft => Origin.BottomRight,
-            Origin.TopCenter => Origin.BottomCenter,
-            Origin.TopRight => Origin.BottomLeft,
-            Origin.CenterLeft => Origin.CenterRight,
-            Origin.CenterCenter => Origin.CenterCenter,
-            Origin.CenterRight => Origin.CenterLeft,
-            Origin.BottomLeft => Origin.TopRight,
-            Origin.BottomCenter => Origin.TopCenter,
-            Origin.BottomRight => Origin.TopLeft,
-            _ => Origin.TopCenter
-        };
-
         private string GetInvisiblesStyle() => Invisibles
             ? string.Empty
             : $$"""
@@ -96,14 +82,17 @@ namespace MudX
 
         protected string CopyPopoverClass => new CssBuilder("mudx-copy-button")
             .AddClass("mud-popover-position-override") // js module sets position
-            .AddClass("my-6")
-            .AddClass("mt-n4", CopyOrigin?.ToDescription().StartsWith("bottom"))
-            .AddClass("px-4")
-            .AddClass("ml-n14", CopyOrigin?.ToDescription().EndsWith("right"))
+            .AddClass("mt-4", CopyOrigin?.ToDescription().StartsWith("top"))
+            .AddClass("mt-n2", CopyOrigin?.ToDescription().StartsWith("center"))
+            .AddClass("mt-n10", CopyOrigin?.ToDescription().StartsWith("bottom"))
+            .AddClass("ml-4", CopyOrigin?.ToDescription().EndsWith("left"))
+            .AddClass("ml-n10", CopyOrigin?.ToDescription().EndsWith("right"))
+            .AddClass("ml-n5", CopyOrigin?.ToDescription().EndsWith("center"))
             .Build();
 
         private string PositionAttributes =>
             new StyleBuilder()
+            .AddStyle("position", "absolute")
             .AddStyle("left", _position.X.ToPx())
             .AddStyle("top", _position.Y.ToPx())
             .Build();
