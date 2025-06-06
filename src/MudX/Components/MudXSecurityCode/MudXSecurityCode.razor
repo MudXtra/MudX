@@ -4,24 +4,31 @@
 @((MarkupString)ContainerClass)
 
 <div @ref="@_elementRef" id="@Id" class="@($"mudx-code-container {Class}")" @attributes="@UserAttributes">
-    <MudStack Row="@Horizontal"
-              Justify="Justify.SpaceBetween"
-              Spacing="@Spacing">
-        @foreach (var item in CodeItems.OrderBy(x => x.Index))
-        {
-            <MudTextField InputId="@item.InputId" Class="@CodeClassname"
-                          MaxLength="1" FullWidth="false"
-                          @bind-Value="@item.Value"
-                          @bind-Value:after="@(() => OnAfterChange(item.Index))"
-                          Immediate="true"
-                          UserAttributes="@_attributes"
-                          InputType="@(item.IsEditable && Password ? InputType.Password : InputType.Text)"
-                          InputMode="@(item.PatternChar == PlaceholderNumeric ? InputMode.numeric : InputMode.text)"
-                          Variant="@(!item.IsEditable ? Variant.Text : Variant)"
-                          Margin="@Margin"
-                          Underline="@(item.IsEditable ? Underline : false)"                          
-                          OnKeyDown="@(e => OnKeyDown(item.Index, e))"                          
-                          ReadOnly="!item.IsEditable" />
-        }
-    </MudStack>
+    <MudForm @ref="@_form">
+        <MudStack Row="@Horizontal"
+        Justify="Justify.SpaceBetween"
+        Spacing="@Spacing">
+
+            @foreach (var item in CodeItems.OrderBy(x => x.Index))
+            {                
+                <MudTextField @ref="@item.TextFieldRef"
+                              InputId="@item.InputId" Class="@CodeClassname"
+                              MaxLength="1" FullWidth="false"
+                              @bind-Value="@item.Value"
+                              @bind-Value:after="@(() => OnAfterChange(item.Index))"
+                              Immediate="true"
+                              TextUpdateSuppression="false"
+                              Validation="@((string val) => CharPatternValidator(item.Index, val))"
+                              UserAttributes="@_attributes"
+                              InputType="@(item.IsEditable && Password ? InputType.Password : InputType.Text)"
+                              InputMode="@(item.PatternChar == PlaceholderNumeric ? InputMode.numeric : InputMode.text)"
+                              Variant="@(!item.IsEditable ? Variant.Text : Variant)"
+                              Margin="@Margin"
+                              Underline="@(item.IsEditable ? Underline : false)"
+                              OnKeyDown="@(e => OnKeyDown(item.Index, e))"
+                              ReadOnly="!item.IsEditable" />
+            }
+
+        </MudStack>
+    </MudForm>
 </div>

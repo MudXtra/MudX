@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using MudBlazor;
 
 namespace MudX
 {
@@ -10,5 +11,6 @@ namespace MudX
         public char PatternChar { get; set; }
         public bool IsEditable { get; set; }
         public string InputId => $"mudX-code-{Index}";
+        public MudTextField<string>? TextFieldRef = null!;
     }
 }

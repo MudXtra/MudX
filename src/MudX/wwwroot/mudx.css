@@ -19,6 +19,10 @@
     padding: 0px !important;
 }
 
+.mudx-code-item .mud-input-control-helper-container {
+    justify-items: center;
+}
+
 /* MudX Code Block */
 .mudx-code-display pre code {
     border-radius: var(--mud-default-borderradius);

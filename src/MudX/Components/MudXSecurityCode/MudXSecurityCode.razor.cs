@@ -15,6 +15,7 @@ namespace MudX
         private Dictionary<string, object?> _attributes = [];
         private ParameterState<string?> _codeState;
         private bool _isInternalChange = false;
+        private MudForm? _form = null!;
 
         public MudXSecurityCode()
         {
@@ -155,6 +156,11 @@ namespace MudX
         [Parameter]
         public Margin Margin { get; set; } = Margin.Normal;
 
+        /// <summary>
+        /// Whether all the code boxes have valid inputs.
+        /// </summary>
+        public bool IsValid => _form?.IsValid ?? false;
+
         protected override void OnParametersSet()
         {
             base.OnParametersSet();
@@ -187,6 +193,14 @@ namespace MudX
             }
         }
 
+        private IEnumerable<string> CharPatternValidator(int index, string val)
+        {
+            if (string.IsNullOrEmpty(val))
+                yield return "*";
+            else if (val.Length > 1 && !IsValidInput(CodeItems[index].PatternChar, val))
+                yield return "*";
+        }
+
         private void GenerateFromPattern(string pattern)
         {
             var index = 0;
@@ -212,6 +226,7 @@ namespace MudX
             {
                 CodeItems[index].Value = string.Empty;
                 await UpdateCodeValue();
+                await MoveFocus(index);
                 return;
             }
 
@@ -230,16 +245,20 @@ namespace MudX
                 {
                     await MoveFocus(next);
                 }
-                else
-                {
-                    // We're at the last editable index — move to the next focusable element
-                    if (_module != null)
-                        await _module.InvokeVoidAsync("focusNextAfterContainer", _elementRef);
-                }
+                // We're at the last editable index — move to the next focusable element
+                else if (index == CodeItems.Count - 1 && _module != null && (_form?.IsValid ?? false))
+                    await _module.InvokeVoidAsync("focusNextAfterContainer", _elementRef);
             }
             else
             {
                 CodeItems[index].Value = string.Empty;
+            }
+            var textFieldRef = CodeItems[index].TextFieldRef;
+            if (textFieldRef != null && index < CodeItems.Count - 1)
+                await textFieldRef.Validate();
+            else
+            {
+                _form?.Validate().CatchAndLog();
             }
             await UpdateCodeValue();
         }
@@ -365,7 +384,8 @@ namespace MudX
                 await _module.InvokeVoidAsync("focusNextAfterContainer", _elementRef);
             }
 
-            StateHasChanged(); // re-render UI
+            if (_form != null)
+                await _form.Validate();
         }
 
         private async Task UpdateCodeValue()
@@ -414,6 +434,7 @@ namespace MudX
             await _codeState.SetValueAsync(result);
             await CodeChanged.InvokeAsync(Code);
             _isInternalChange = false;
+            StateHasChanged();
         }
 
         private async Task OnChangeHandler(ParameterChangedEventArgs<string?> args)

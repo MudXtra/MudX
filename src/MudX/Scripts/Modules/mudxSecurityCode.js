@@ -67,6 +67,7 @@ function focusNextElement() {
     // Focus next element if it exists
     if (nextIndex < focusableElements.length) {
         focusableElements[nextIndex].focus();
+        focusableElements[nextIndex].select();
     }
 }
 
