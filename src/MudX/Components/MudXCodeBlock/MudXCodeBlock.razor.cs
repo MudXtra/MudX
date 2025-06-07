@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Globalization;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using MudBlazor;
-using MudBlazor.Interop;
 using MudBlazor.Utilities;
 using MudX.Extensions;
+using MudX.Utilities;
 
 namespace MudX
 {
@@ -90,12 +91,19 @@ namespace MudX
             .AddClass("ml-n5", CopyOrigin?.ToDescription().EndsWith("center"))
             .Build();
 
-        private string PositionAttributes =>
+        private string PopoverStylename =>
             new StyleBuilder()
             .AddStyle("position", "absolute")
-            .AddStyle("left", _position.X.ToPx())
-            .AddStyle("top", _position.Y.ToPx())
             .Build();
+
+        /// <summary>
+        /// Inline data attributes for positioning the copy icon at the coordinate location.
+        /// </summary>
+        private Dictionary<string, object> PositionAttributes => new()
+        {
+            { "data-pc-x", _position.X.ToString(CultureInfo.InvariantCulture) },
+            { "data-pc-y", _position.Y.ToString(CultureInfo.InvariantCulture) }
+        };
 
         [Inject]
         public IJSRuntime _js { get; set; } = default!;
@@ -194,7 +202,7 @@ namespace MudX
                 if (CopyOrigin.HasValue)
                 {
                     var boundingRect = await _elementRef.MudGetBoundingClientRectAsync();
-                    _position = GetPagePositionFromOrigin(boundingRect, CopyOrigin.Value);
+                    _position = PagePosition.GetPagePositionFromOrigin(boundingRect, CopyOrigin.Value);
                 }
                 await InvokeAsync(StateHasChanged);
             }
@@ -279,35 +287,6 @@ namespace MudX
             };
             _copyTimer.Start();
         }
-
-        (double X, double Y) GetPagePositionFromOrigin(BoundingClientRect rect, Origin origin)
-        {
-            var left = rect.AbsoluteLeft;
-            var top = rect.AbsoluteTop;
-            var right = rect.AbsoluteRight;
-            var bottom = rect.AbsoluteBottom;
-            var centerX = left + rect.Width / 2;
-            var centerY = top + rect.Height / 2;
-
-            return origin switch
-            {
-                Origin.TopLeft => (left, top),
-                Origin.TopCenter => (centerX, top),
-                Origin.TopRight => (right, top),
-
-                Origin.CenterLeft => (left, centerY),
-                Origin.CenterCenter => (centerX, centerY),
-                Origin.CenterRight => (right, centerY),
-
-                Origin.BottomLeft => (left, bottom),
-                Origin.BottomCenter => (centerX, bottom),
-                Origin.BottomRight => (right, bottom),
-
-                _ => (centerX, centerY)
-            };
-        }
-
-
 
         public async ValueTask DisposeAsync()
         {
