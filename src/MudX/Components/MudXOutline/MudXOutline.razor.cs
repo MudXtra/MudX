@@ -1,16 +1,19 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Globalization;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.State;
 using MudBlazor.Utilities;
 using MudX.Components.MudXOutline;
 using MudX.Extensions;
+using MudX.Utilities;
 
 namespace MudX
 {
     public partial class MudXOutline : MudComponentBase, IAsyncDisposable, IOutlineContainer
     {
         private readonly string _id = $"mudx-toc-{Guid.NewGuid()}";
+        private (double X, double Y) _position = (0, 0);
         private bool _shouldRepositionPopover = true;
         private string _scrollContainerSelector = "html";
         private ElementReference _anchorRef;
@@ -19,9 +22,7 @@ namespace MudX
         private Anchor _anchor = Anchor.End;
         internal List<MudXOutlineSection> _sections = [];
         private OutlineScrollSpy? _scrollSpy;
-        private IJSObjectReference? _viewPortModule;
-        private DotNetObjectReference<MudXOutline>? _dotNetReference;
-        internal Dictionary<string, int> _idCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        internal Dictionary<string, int> _idCounts = new(StringComparer.OrdinalIgnoreCase);
 
         public MudXOutline()
         {
@@ -42,8 +43,12 @@ namespace MudX
             .AddClass($"mudx-style-{StyleVariant.ToDescription()}", StyleVariant != OutlineStyleVariant.None)
             .Build();
 
-        protected string PopoverClassName => new CssBuilder("mudx-toc-nav-popovers")
-            //.AddClass("mudx-toc-nav-popover-fixed", ScrollContainerSelector == "html")
+        protected string PopoverClassname => new CssBuilder("")
+            .AddClass("mud-popover-position-override") // not fixed we hard code the position
+            .AddClass("fixed", IsFixed)
+            .Build();
+
+        protected string CardClassname => new CssBuilder("mudx-toc-nav-popovers")
             .AddClass($"mud-theme-{Color.ToDescriptionString()}")
             .Build();
 
@@ -51,6 +56,8 @@ namespace MudX
             .AddStyle("width", $"{Width}px", _contentDrawerOpenState.Value)
             .AddStyle("max-width", $"{Width}px", _contentDrawerOpenState.Value)
             .AddStyle("z-index", ZIndex.ToString(), _contentDrawerOpenState.Value)
+            .AddStyle("top", _position.Y.ToPx(), IsFixed && !IsJSRuntimeAvailable) // fixed position MudPopover will handle resize
+            .AddStyle("left", _position.X.ToPx(), IsFixed && !IsJSRuntimeAvailable) // fixed position MudPopover will handle resize
             .Build();
 
         protected string NavDrawerStyle => new StyleBuilder()
@@ -58,7 +65,16 @@ namespace MudX
             .AddStyle("margin-left", $"{Width}px", _contentDrawerOpenState.Value && _anchor == Anchor.Left)
             .Build();
 
-        private string? IsFixed => ScrollContainerSelector == "html" ? null : ScrollContainerSelector;
+        /// <summary>
+        /// Inline data attributes for positioning the Table of Contents at the coordinate location.
+        /// </summary>
+        private Dictionary<string, object> PositionAttributes => new()
+        {
+            { "data-pc-x", _position.X.ToString(CultureInfo.InvariantCulture) },
+            { "data-pc-y", _position.Y.ToString(CultureInfo.InvariantCulture) }
+        };
+
+        private bool IsFixed => ScrollContainerSelector == "html";
 
         [Inject]
         private IJSRuntime? Js { get; set; }
@@ -119,6 +135,18 @@ namespace MudX
         public RenderFragment? ChildContent { get; set; }
 
         /// <summary>
+        /// Option content above the table of contents
+        /// </summary>
+        [Parameter]
+        public RenderFragment? HeaderIndexContent { get; set; }
+
+        /// <summary>
+        /// Option content below the table of contents
+        /// </summary>
+        [Parameter]
+        public RenderFragment? FooterIndexContent { get; set; }
+
+        /// <summary>
         /// Where you want the Table of Contents to be rendered
         /// </summary>
         /// <remarks>Defaults to <see cref="Anchor.Right"/>. Only Valid values are <see cref="Anchor.Left"/> and <see cref="Anchor.Right"/>.</remarks>
@@ -171,20 +199,12 @@ namespace MudX
         protected override void OnParametersSet()
         {
             base.OnParametersSet();
-            switch (Anchor)
+            _anchor = Anchor switch
             {
-                case Anchor.Top:
-                case Anchor.Start:
-                    _anchor = Anchor.Left;
-                    break;
-                case Anchor.End:
-                case Anchor.Bottom:
-                    _anchor = Anchor.Right;
-                    break;
-                default:
-                    _anchor = Anchor;
-                    break;
-            }
+                Anchor.Top or Anchor.Start => Anchor.Left,
+                Anchor.End or Anchor.Bottom => Anchor.Right,
+                _ => Anchor,
+            };
             if (string.IsNullOrEmpty(ScrollContainerSelector))
             {
                 _scrollContainerSelector = "html";
@@ -207,7 +227,6 @@ namespace MudX
                 RegisterUniqueIds(_sections);
                 if (Js is null) throw new Exception("JSRuntime is not available");
                 _scrollSpy = new OutlineScrollSpy(Js);
-                _viewPortModule = await Js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxOutline.js");
                 if (_scrollSpy is not null)
                 {
                     _scrollSpy.ScrollSpySectionCentered += ScrollSpySectionCentered;
@@ -221,6 +240,7 @@ namespace MudX
                     if (section is { SectionId: not null })
                         SelectActiveSection(section.SectionId);
                 }
+                await PositionIndex();
             }
             if (_shouldRepositionPopover)
             {
@@ -233,15 +253,12 @@ namespace MudX
         /// </summary>
         public async Task PositionIndex()
         {
-            var _popoverId = string.Empty;
-            if (_popoverRef is not null)
+            if (IsJSRuntimeAvailable)
             {
-                _popoverId = $"popovercontent-{_popoverRef?.Id}";
-            }
-            if (IsJSRuntimeAvailable && _viewPortModule is not null)
-            {
-                var result = await _viewPortModule.InvokeAsync<bool>("getViewportCorners", _anchorRef, _popoverId, _anchor == Anchor.Left);
-                _shouldRepositionPopover = result;
+                var rect = await _anchorRef.MudGetBoundingClientRectAsync();
+                _position = PagePosition.GetPagePositionFromOrigin(rect, PopoverAnchor);
+                _shouldRepositionPopover = false;
+                StateHasChanged();
             }
         }
 
@@ -369,24 +386,13 @@ namespace MudX
         // Dispose the scrollspy
         public async ValueTask DisposeAsync()
         {
-            //if (_popoverRef is not null)
-            //{
-            //    await _popoverRef.DisposeAsync();
-            //}
             if (_scrollSpy is not null)
             {
                 _scrollSpy.ScrollSpySectionCentered -= ScrollSpySectionCentered;
                 await _scrollSpy.DisposeAsync();
                 _scrollSpy = null;
             }
-            if (_viewPortModule is not null)
-            {
-                await _viewPortModule.InvokeVoidAsync("disposePopoverResize", _id);
-                await _viewPortModule.DisposeAsync();
-                _viewPortModule = null;
-            }
-            _dotNetReference?.Dispose();
-            _dotNetReference = null;
+            GC.SuppressFinalize(this);
         }
     }
 }

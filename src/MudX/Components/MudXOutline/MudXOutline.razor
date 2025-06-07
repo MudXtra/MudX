@@ -8,9 +8,13 @@
     </div>
 
     <MudPopover @ref="@_popoverRef" AnchorOrigin="@(PopoverAnchor)" TransformOrigin="@(PopoverTransform)" Elevation="0" Paper="false"
-                Fixed="@(ScrollContainerSelector == "html")" Class="mud-popover-position-override"
-                Style="@(PopoverStyleName)" Open="@_contentDrawerOpenState.Value" OverflowBehavior="@OverflowBehavior.FlipNever">
-        <MudCard Elevation="0" Class="@PopoverClassName" Style="@PopoverStyleName">
+    Class="@PopoverClassname" UserAttributes="@PositionAttributes"
+    Style="@(PopoverStyleName)" Open="@_contentDrawerOpenState.Value" OverflowBehavior="@OverflowBehavior.FlipNever">
+        @if (HeaderIndexContent != null)
+        {
+            @HeaderIndexContent
+        }
+        <MudCard Elevation="0" Class="@CardClassname" Style="@PopoverStyleName">
             <MudCardHeader>
                 <MudText Typo="Typo.subtitle1" Class="mudx-toc-title" GutterBottom="true">
                     @Headline
@@ -22,6 +26,10 @@
                 </div>
             </MudCardContent>
         </MudCard>
+        @if (FooterIndexContent != null)
+        {
+            @FooterIndexContent
+        }
     </MudPopover>
 
 </div>

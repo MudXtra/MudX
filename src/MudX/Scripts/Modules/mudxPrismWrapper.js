@@ -33,6 +33,8 @@ export async function loadPrism() {
         script.onerror = () => reject(new Error("Failed to load Prism.js"));
 
         document.head.appendChild(script);
+        // wait 150ms to return
+        setTimeout(resolve, 150);
     });
 }
 
@@ -47,7 +49,7 @@ export async function initialize(cssPath) {
     }
 }
 
-export async function highlightElementById(elementId) {
+export function highlightElementById(elementId) {
     if (!window.Prism) {
         console.error("Prism is not loaded.");
         return;

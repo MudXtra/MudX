@@ -16,7 +16,7 @@ namespace MudX
     public partial class MudXCodeBlock : MudComponentBase, IAsyncDisposable
     {
         private bool _isRendered = false;
-        private string _elementId = $"mudx-code-element-{Guid.NewGuid()}";
+        private readonly string _elementId = $"mudx-code-element-{Guid.NewGuid()}";
         private ElementReference _elementRef;
         private (double X, double Y) _position = (0, 0);
         private CodeTheme? _theme;
@@ -35,7 +35,7 @@ namespace MudX
         private string PrismCSSPath =>
             new($"./_content/MudX/prism/prism-{Theme.ToDescription()}.css");
 
-        private Placement GetPlacement(Origin origin) => origin switch
+        private static Placement GetPlacement(Origin origin) => origin switch
         {
             Origin.TopLeft or Origin.CenterLeft or Origin.BottomLeft => Placement.Right,
             Origin.TopRight or Origin.CenterRight or Origin.BottomRight => Placement.Left,
@@ -82,18 +82,13 @@ namespace MudX
             .Build();
 
         protected string CopyPopoverClass => new CssBuilder("mudx-copy-button")
-            .AddClass("mud-popover-position-override") // js module sets position
+            .AddClass("mud-popover-position-override")
             .AddClass("mt-4", CopyOrigin?.ToDescription().StartsWith("top"))
             .AddClass("mt-n2", CopyOrigin?.ToDescription().StartsWith("center"))
             .AddClass("mt-n10", CopyOrigin?.ToDescription().StartsWith("bottom"))
             .AddClass("ml-4", CopyOrigin?.ToDescription().EndsWith("left"))
             .AddClass("ml-n10", CopyOrigin?.ToDescription().EndsWith("right"))
             .AddClass("ml-n5", CopyOrigin?.ToDescription().EndsWith("center"))
-            .Build();
-
-        private string PopoverStylename =>
-            new StyleBuilder()
-            .AddStyle("position", "absolute")
             .Build();
 
         /// <summary>
@@ -106,7 +101,7 @@ namespace MudX
         };
 
         [Inject]
-        public IJSRuntime _js { get; set; } = default!;
+        public IJSRuntime JsRuntime { get; set; } = default!;
 
         /// <summary>
         /// An IEnumerable of CodeFiles. Each CodeFile has an Id, title, language, and code. You can provide as many CodeFiles as you want though both
@@ -191,7 +186,7 @@ namespace MudX
             await base.OnAfterRenderAsync(firstRender);
             if (firstRender)
             {
-                _module = await _js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxPrismWrapper.js");
+                _module = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxPrismWrapper.js");
                 await _module.InvokeAsync<bool>("initialize", PrismCSSPath);
                 StateHasChanged();
             }
@@ -199,13 +194,17 @@ namespace MudX
             {
                 await GenerateCode();
                 _isRendered = true;
-                if (CopyOrigin.HasValue)
-                {
-                    var boundingRect = await _elementRef.MudGetBoundingClientRectAsync();
-                    _position = PagePosition.GetPagePositionFromOrigin(boundingRect, CopyOrigin.Value);
-                }
-                await InvokeAsync(StateHasChanged);
             }
+        }
+
+        private async Task PositionCopyButton()
+        {
+            if (CopyOrigin.HasValue)
+            {
+                var boundingRect = await _elementRef.MudGetBoundingClientRectAsync();
+                _position = PagePosition.GetPagePositionFromOrigin(boundingRect, CopyOrigin.Value);
+            }
+            StateHasChanged();
         }
 
         private async Task GenerateCode()
@@ -214,6 +213,8 @@ namespace MudX
                 return;
             await _module.InvokeVoidAsync("highlightElementById", _elementId);
             _generateCode = false;
+            _isRendered = true;
+            await PositionCopyButton();
         }
 
         private void ChangedTabIndex()
@@ -246,7 +247,7 @@ namespace MudX
 
                 // Use cancellation token with timeout
                 _cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-                var result = await _js.InvokeAsync<string>(
+                var result = await JsRuntime.InvokeAsync<string>(
                     "mudxGeneral.copyToClipboard",
                     _cts.Token,
                     currCode.Code.Trim()

@@ -34,7 +34,7 @@
 
     private RenderFragment CopyButton(Origin origin) =>
     @<MudPopover @ref="_popover" Open="true" Paper="false" Class="@CopyPopoverClass" Duration="500" 
-                 Style="@PopoverStylename" UserAttributes="@PositionAttributes"
+                 UserAttributes="@PositionAttributes"
                  TransformOrigin="@origin" AnchorOrigin="@origin" OverflowBehavior="OverflowBehavior.FlipNever">
         <style>
             #popovercontent-@(_popover?.Id) button span {
