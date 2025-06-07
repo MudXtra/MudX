@@ -112,7 +112,9 @@
 </DocsPage>
 
 @code {
+#pragma warning disable CS0414
     private static string __title__ = "Code Block";
+#pragma warning restore CS0414
 
     private bool _expanded = false;
     private readonly List<string> _languageNames = new()

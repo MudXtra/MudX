@@ -27,8 +27,7 @@
 
 
 @code {
-    private bool _hasCode;
-    private string _contentId = $"content-{Guid.NewGuid().ToString()}";
+    private readonly string _contentId = $"content-{Guid.NewGuid().ToString()}";
     [Parameter] public IEnumerable<CodeFile> Codes { get; set; } = [];
     [Parameter] public bool ShowCode { get; set; }
     [Parameter, EditorRequired] public required RenderFragment ChildContent { get; set; }
