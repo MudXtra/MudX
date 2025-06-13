@@ -298,7 +298,7 @@ namespace MudX
                 return char.IsDigit(ch);
 
             if (pattern == PlaceholderAlpha)
-                return char.IsLetterOrDigit(ch);
+                return char.IsLetter(ch);
 
             if (pattern == PlaceholderAlphaNumeric)
                 return char.IsLetterOrDigit(ch);
