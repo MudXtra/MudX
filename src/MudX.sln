@@ -24,9 +24,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.Docs.Generator", "MudX
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{86B8B012-D9A2-4898-8CE7-BFA193BD65E8}"
 	ProjectSection(SolutionItems) = preProject
-		..\.github\issue_template\bug_report.yml = ..\.github\issue_template\bug_report.yml
-		..\.github\issue_template\feature_request.yml = ..\.github\issue_template\feature_request.yml
-		..\.github\issue_template\need_help.yml = ..\.github\issue_template\need_help.yml
+		..\.github\ISSUE_TEMPLATE\bug_report.yml = ..\.github\ISSUE_TEMPLATE\bug_report.yml
+		..\.github\ISSUE_TEMPLATE\feature_request.yml = ..\.github\ISSUE_TEMPLATE\feature_request.yml
+		..\.github\ISSUE_TEMPLATE\need_help.yml = ..\.github\ISSUE_TEMPLATE\need_help.yml
 	EndProjectSection
 EndProject
 Global
