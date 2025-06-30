@@ -1,0 +1,62 @@
+﻿name: 💡 Feature Request
+description: Suggest an idea or enhancement for MudX
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature or improvement for **MudX** — a MudBlazor extension library.
+
+        Please be descriptive so we can evaluate the usefulness and scope of your request.
+  - type: input
+    id: title
+    attributes:
+      label: 🌟 Feature Title
+      placeholder: e.g. "Add feature to existing MudXSignalCode or New component"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 💡 What would you like to see?
+      description: Clearly describe the new feature or behavior you'd like to have.
+      placeholder: Explain your feature idea here...
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 🚀 Why is this important?
+      description: Tell us why this matters — what problem does it solve or improve?
+      placeholder: Explain the use case or problem it addresses.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 🔄 Alternatives Considered
+      description: Did you consider other approaches? How is this better?
+      placeholder: Share any alternative approaches or thoughts.
+    validations:
+      required: false
+
+  - type: textarea
+    id: visuals
+    attributes:
+      label: 🎨 Visuals / Mockups (optional)
+      description: Include screenshots, diagrams, or links if they help explain your request.
+      placeholder: Paste any visuals or URLs here.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 📜 Code of Conduct
+      description: By submitting this idea, you agree to follow our [Code of Conduct](https://github.com/MudXtra/MudX/blob/dev/CODE_OF_CONDUCT.md).
+      options:
+        - label: I agree to follow this project’s Code of Conduct
+          required: true

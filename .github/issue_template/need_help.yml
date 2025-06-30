@@ -1,0 +1,82 @@
+﻿name: 🙋 Need Help
+description: Ask a question or get help with MudX
+labels: [question]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Need assistance with **MudX**? You’re in the right place.
+
+        - [Documentation](https://www.mudx.org)
+
+        Please fill in the details below so we can better help you.
+  - type: input
+    id: help-topic
+    attributes:
+      label: 📌 Topic
+      placeholder: e.g. MudXChart not rendering in WASM
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 🧠 What are you trying to do?
+      description: Explain what you're working on and what you expected to happen.
+      placeholder: Describe the task or problem you’re encountering...
+    validations:
+      required: true
+
+  - type: textarea
+    id: attempted
+    attributes:
+      label: 🔍 What have you tried?
+      description: Tell us what you've already tried or ruled out.
+      placeholder: Steps you've taken so far...
+    validations:
+      required: false
+
+  - type: textarea
+    id: code-snippet
+    attributes:
+      label: 🧩 Code Snippet / Output (optional)
+      description: Paste code or logs related to the problem. Use backticks for formatting if needed.
+      render: shell
+      placeholder: |
+        <MudXSomething Color="Color.Primary" ... />
+
+  - type: input
+    id: repro-link
+    attributes:
+      label: 🔗 Reproduction Link
+      description: Please reproduce the issue on [try.mudx.org](https://try.mudx.org) or share a minimal GitHub repo. Failure to provide a snippet may result in your help request being closed.
+      placeholder: https://try.mudx.org/snippet/XXXXXXXXXXXXXXXX
+    validations:
+      required: true
+
+  - type: input
+    id: mudx-version
+    attributes:
+      label: 🔢 MudX Version
+      placeholder: e.g. 1.3.0
+    validations:
+      required: false
+
+  - type: dropdown
+    id: rendering-mode
+    attributes:
+      label: 🧭 Blazor Rendering Mode
+      options:
+        - Server
+        - WASM
+        - Hybrid
+      default: 0
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 📜 Code of Conduct
+      description: By submitting this request, you agree to follow our [Code of Conduct](https://github.com/MudXtra/MudX/blob/dev/CODE_OF_CONDUCT.md).
+      options:
+        - label: I agree to follow this project’s Code of Conduct
+          required: true

@@ -1,0 +1,155 @@
+﻿name: 🐞 Bug Report
+description: File a reproducible bug found in the MudX extension
+labels: [triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report for **MudX** — a community-powered MudBlazor extension library.
+
+        ⚠️ This form is for **bugs only**. If you have questions, ideas, or need help, please choose Feature Request or Help
+  - type: checkboxes
+    id: preconditions
+    attributes:
+      label: ✅ Pre-checks
+      options:
+        - label: I have searched **existing issues** to avoid duplicates
+          required: true
+        - label: I verified this still happens in a **private/incognito window**
+          required: true
+
+  - type: dropdown
+    id: bug-type
+    attributes:
+      label: 🧱 Bug Area
+      multiple: true
+      options:
+        - MudX Component
+        - MudX Docs
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: component-name
+    attributes:
+      label: 🔤 Component Name (if applicable)
+      description: If this is related to a specific component, please name it.
+      placeholder: e.g. MudXSecurityCode
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 🐞 What happened?
+      description: What did you observe? Include code snippets, screenshots, or a short video if possible.
+      placeholder: Describe the issue clearly and concisely.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: ✅ Expected Behavior
+      description: What *should* have happened instead?
+      placeholder: Describe the expected outcome.
+    validations:
+      required: true
+
+  - type: input
+    id: repro-link
+    attributes:
+      label: 🔗 Reproduction Link
+      description: Please reproduce the issue on [try.mudx.org](https://try.mudx.org) or share a minimal GitHub repo. Failure to provide a snippet may result in your report being closed.
+      placeholder: https://try.mudx.org/snippet/XXXXXXXXXXXXXXXX
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro-steps
+    attributes:
+      label: 🧪 Reproduction Steps
+      description: List the steps to reproduce the bug.
+      value: |
+        1.
+        2.
+        3.
+        ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 📝 Relevant Logs or Errors
+      description: Paste any browser console logs or build errors here. No backticks needed.
+      render: shell
+
+  - type: input
+    id: bug-version
+    attributes:
+      label: 🔢 MudX Version (Bug Occurred)
+      placeholder: e.g. 1.3.0
+    validations:
+      required: true
+
+  - type: input
+    id: working-version
+    attributes:
+      label: ⬅️ MudX Version (Last Known Working)
+      placeholder: e.g. 1.2.9
+
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: 🌐 Affected Browsers
+      multiple: true
+      options:
+        - Firefox
+        - Chrome
+        - Edge
+        - Safari
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 💻 Operating System(s)
+      multiple: true
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - iOS
+        - Android
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: rendering-mode
+    attributes:
+      label: 🧭 Blazor Rendering Mode
+      options:
+        - Server
+        - WASM
+        - Hybrid
+      default: 0
+
+  - type: checkboxes
+    id: pr
+    attributes:
+      label: 💪 Want to Contribute a Fix?
+      description: We welcome community PRs!
+      options:
+        - label: I’d like to submit a Pull Request for this issue and will wait until pre-approved for such a request.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 📜 Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/MudXtra/MudX/blob/dev/CODE_OF_CONDUCT.md).
+      options:
+        - label: I agree to follow this project’s Code of Conduct
+          required: true
