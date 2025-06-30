@@ -29,6 +29,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{
 		..\.github\ISSUE_TEMPLATE\need_help.yml = ..\.github\ISSUE_TEMPLATE\need_help.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "markdownfiles", "markdownfiles", "{49DA93C4-D5F6-4DE5-A724-5A82F2EFC304}"
+	ProjectSection(SolutionItems) = preProject
+		..\CODE_OF_CONDUCT.md = ..\CODE_OF_CONDUCT.md
+		..\CONTRIBUTING.md = ..\CONTRIBUTING.md
+		..\README.md = ..\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
