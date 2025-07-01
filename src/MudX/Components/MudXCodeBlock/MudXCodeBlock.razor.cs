@@ -55,32 +55,59 @@ namespace MudX
               }
              """;
 
+        /// <summary>
+        /// Gets the CSS class name for the code display element, including any additional classes based on the current
+        /// state.
+        /// </summary>
         protected string Classname =>
             new CssBuilder("mudx-code-display")
                 .AddClass(Class, !string.IsNullOrWhiteSpace(Class))
                 .AddClass("invisible", !_isRendered)
                 .Build();
 
+        /// <summary>
+        /// Gets the name of the style constructed using the current style settings.
+        /// </summary>
         protected string Stylename =>
             new StyleBuilder()
                 .AddStyle(Style, !string.IsNullOrWhiteSpace(Style))
                 .Build();
 
+        /// <summary>
+        /// Builds a CSS class string based on the specified language and configuration settings.
+        /// </summary>
+        /// <param name="lang">The programming language identifier used to generate the CSS class. If null or whitespace, a default class
+        /// for HTML is applied.</param>
+        /// <returns>A string containing the constructed CSS class names based on the provided language and configuration.</returns>
         protected string CodeClass(string lang) => new CssBuilder()
             .AddClass($"lang-{lang}", !string.IsNullOrWhiteSpace(lang))
             .AddClass($"lang-html", string.IsNullOrWhiteSpace(lang))
             .AddClass("match-braces", MatchBraces)
             .Build();
 
+        /// <summary>
+        /// Builds a CSS class string for the current element, including the "line-numbers" class if applicable.
+        /// </summary>
+        /// <returns>A string containing the constructed CSS class names. The string will include "line-numbers" if the         
+        /// <see cref="LineNumbers"/> condition is met.</returns>
         protected string PreClass() => new CssBuilder()
             .AddClass("line-numbers", LineNumbers)
             .Build();
 
+        /// <summary>
+        /// Gets the CSS class string for the copy button, dynamically built based on the current state.
+        /// </summary>
         protected string CopyButtonClass => new CssBuilder("mud-theme-transparent")
             .AddClass("mudx-code-tabs", _codeFileCount > 1)
             .AddClass(CopyButtonClassname, !string.IsNullOrWhiteSpace(CopyButtonClassname))
             .Build();
 
+        /// <summary>
+        /// Gets the CSS class string for the copy button's popover, dynamically built based on its position.
+        /// </summary>
+        /// <remarks>The resulting CSS class string includes default styles for the copy button popover
+        /// and position-specific overrides. This property is useful for ensuring consistent styling and alignment of
+        /// the popover based on its origin.</remarks>
         protected string CopyPopoverClass => new CssBuilder("mudx-copy-button")
             .AddClass("mud-popover-position-override")
             .AddClass("mt-4", CopyOrigin?.ToDescription().StartsWith("top"))
@@ -100,6 +127,9 @@ namespace MudX
             { "data-pc-y", _position.Y.ToString(CultureInfo.InvariantCulture) }
         };
 
+        /// <summary>
+        /// Gets or sets the JavaScript runtime instance used for interop calls between .NET and JavaScript.
+        /// </summary>
         [Inject]
         public IJSRuntime JsRuntime { get; set; } = default!;
 
@@ -160,6 +190,9 @@ namespace MudX
         [Parameter]
         public string CopyButtonClassname { get; set; } = string.Empty;
 
+        /// <summary>
+        /// OnParameterSetAsync overricde
+        /// </summary>
         protected override async Task OnParametersSetAsync()
         {
             if (_theme is null)
@@ -181,6 +214,10 @@ namespace MudX
             base.OnParametersSet();
         }
 
+        /// <summary>
+        /// OnAfterRenderAsync override
+        /// </summary>
+        /// <param name="firstRender"></param>
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             await base.OnAfterRenderAsync(firstRender);
@@ -289,6 +326,10 @@ namespace MudX
             _copyTimer.Start();
         }
 
+        /// <summary>
+        /// DisposeAsync
+        /// </summary>
+        /// <returns></returns>
         public async ValueTask DisposeAsync()
         {
             _cts?.Cancel();

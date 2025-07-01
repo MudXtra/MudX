@@ -4,6 +4,9 @@ using MudBlazor;
 
 namespace MudX.Components.MudXOutline
 {
+    /// <summary>
+    /// Provides functionality to observe and manage scroll-based interactions with sections of a web page.
+    /// </summary>
     public sealed class OutlineScrollSpy : IAsyncDisposable
     {
         private readonly string _spyId = Guid.NewGuid().ToString();

@@ -6,8 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-
-  <ItemGroup>
+  <ItemGroup>    
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
@@ -15,5 +14,19 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.5" />
     <PackageReference Include="MudBlazor" Version="8.7.0" />
   </ItemGroup>
+
+    <Target Name="CopyMudBlazorXml" AfterTargets="ResolveReferences">
+        <ItemGroup>
+            <!-- Find the reference to MudBlazor.dll -->
+            <MudBlazorReference Include="@(ReferencePath)"
+                                Condition=" '%(FileName)' == 'MudBlazor' and '%(Extension)' == '.dll' " />
+        </ItemGroup>
+
+        <Copy SourceFiles="%(MudBlazorReference.Identity)"
+              DestinationFiles="%(MudBlazorReference.Identity).xml"
+              SkipUnchangedFiles="true"
+              Condition="Exists('%(MudBlazorReference.Identity).xml')" />
+    </Target>
+
 
 </Project>

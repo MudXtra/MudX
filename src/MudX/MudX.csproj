@@ -6,6 +6,15 @@
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+
+        <!-- https://github.com/dotnet/runtime/issues/95134 -->
+        <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    </PropertyGroup>    
+    
     <!-- Define paths -->
     <PropertyGroup>
         <ProjectRoot>$(MSBuildProjectDirectory)</ProjectRoot>
