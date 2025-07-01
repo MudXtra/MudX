@@ -2,15 +2,18 @@
 @namespace MudX.Docs
 
 <MudPaper Elevation="4" Class="docs-section-content">
-    <MudToolBar Class="docs-section-toolbar">
-        <MudSpacer />
-        <MudButton OnClick="OnShowCode" StartIcon="@(ShowCode ? @Icons.Material.Rounded.CodeOff : Icons.Material.Rounded.Code)" Color="Color.Default" Size="Size.Small">
-            @(ShowCode ? "Hide code" : "Show code")
-        </MudButton>
-        <MudTooltip Text="Online Playground" Arrow="true" Color="Color.Dark" Placement="Placement.Top" Delay="300" Duration="500" ShowOnFocus="false">
-            <MudButton OnClick="RunOnTryMudX" StartIcon="@Icons.Material.Rounded.PlayArrow" IconColor="Color.Success" Color="Color.Default" Size="Size.Small">Run</MudButton>
-        </MudTooltip>
-    </MudToolBar>
+    @if (Codes.Count() > 0)
+    {
+        <MudToolBar Class="docs-section-toolbar">
+            <MudSpacer />
+            <MudButton OnClick="OnShowCode" StartIcon="@(ShowCode? @Icons.Material.Rounded.CodeOff : Icons.Material.Rounded.Code)" Color="Color.Default" Size="Size.Small">
+                @(ShowCode ? "Hide code" : "Show code")
+            </MudButton>
+            <MudTooltip Text="Online Playground" Arrow="true" Color="Color.Dark" Placement="Placement.Top" Delay="300" Duration="500" ShowOnFocus="false">
+                <MudButton OnClick="RunOnTryMudX" StartIcon="@Icons.Material.Rounded.PlayArrow" IconColor="Color.Success" Color="Color.Default" Size="Size.Small">Run</MudButton>
+            </MudTooltip>
+        </MudToolBar>
+    }
     <div id="@_contentId" class="docs-section-inner py-3 px-2">
         <CascadingValue Name="ContentId" Value="ContentId" IsFixed="true">
             @ChildContent

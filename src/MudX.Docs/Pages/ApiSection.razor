@@ -1,0 +1,60 @@
+@namespace MudX.Docs
+@using MudX.Docs.Data
+
+<MudDataGrid Items="@FilteredItems" Breakpoint="Breakpoint.Sm" Elevation="0" Class="docs-api-grid"
+             Hover Dense FixedHeader>
+    <ToolBarContent>
+        @if (FilteredItems.Count > 4)
+        {
+            <MudSpacer />
+            <MudTextField AdornmentIcon="@Icons.Material.Outlined.Search" Adornment="Adornment.End" Placeholder="Filter Results"
+                          @bind-Value="_searchString" @bind-Value:after="@UpdateFilter"
+                          DebounceInterval="300" Variant="Variant.Outlined" Clearable />
+        }
+    </ToolBarContent>
+    <ColGroup>
+        <col style="width: 175px;" />
+        <col style="width: 175px;" />
+        <col />
+        <col />
+    </ColGroup>
+    <Columns>
+        <PropertyColumn Property="p => p.Name" Title="Name" />
+        <PropertyColumn Property="p => p.Type" Title="Type" />
+        <PropertyColumn Property="p => p.Default" Title="Default">
+            <CellTemplate>
+                    @if (context.Item.Default is not null && context.Item.Default.StartsWith("<path"))
+                    {
+                        <MudIcon Icon="@(context.Item.Default)" />
+                    }
+                    else
+                    {
+                        @context.Item.Default
+                    }
+            </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="p => p.Description" Title="Description" />
+    </Columns>
+</MudDataGrid>
+
+@code {
+    [Parameter]
+    public required List<ApiMember> Mode { get; set; }
+
+    [Parameter]
+    public required string Title { get; set; }
+
+    private string _searchString = string.Empty;
+
+    private List<ApiMember> FilteredItems = [];
+
+    protected override void OnInitialized()
+    {
+        FilteredItems = Mode;
+    }
+
+    private void UpdateFilter()
+    {
+        FilteredItems = Mode.Where(x => x.Name.Contains(_searchString, StringComparison.CurrentCultureIgnoreCase)).ToList();
+    }
+}

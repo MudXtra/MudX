@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Components;
@@ -7,7 +8,7 @@ namespace MudX.Docs.Generator
 {
     internal static class ApiSource
     {
-        private static Dictionary<string, string> _xmlDocs = new();
+        private static Dictionary<string, string> _xmlDocs = [];
 
         public static bool GenerateApiDocs(string rootDirectory)
         {
@@ -27,13 +28,31 @@ namespace MudX.Docs.Generator
                 Console.WriteLine($"⚠️ MudX XML documentation file not found: {xmlPath}");
             }
 
-            // Load XML documentation file for the MudBlazor assembly
+            // Load XML documentation file for the MudBlazor assembly since we inherit from MudBlazor types
             Assembly mudAssembly = typeof(MudBlazor._Imports).Assembly;
             xmlPath = Path.ChangeExtension(mudAssembly.Location, ".xml");
+            if (!File.Exists(xmlPath))
+            {
+                // Try to find the XML in the NuGet global packages folder
+                var mudBlazorAssemblyName = mudAssembly.GetName().Name;
+                var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                var nugetPath = Path.Combine(userProfile, ".nuget", "packages", mudBlazorAssemblyName!.ToLower());
+                if (Directory.Exists(nugetPath))
+                {
+                    // Try to find the XML file in any target framework folder
+                    var xmlFiles = Directory.GetFiles(nugetPath, "MudBlazor.xml", SearchOption.AllDirectories);
+                    if (xmlFiles.Length > 0)
+                    {
+                        xmlPath = xmlFiles[0];
+                    }
+                }
+            }
+
             if (File.Exists(xmlPath))
             {
                 var mudDocs = LoadXmlDocumentation(xmlPath);
-                _xmlDocs.Union(mudDocs);
+                foreach (var kv in mudDocs)
+                    _xmlDocs[kv.Key] = kv.Value;
             }
             else
             {
@@ -44,36 +63,81 @@ namespace MudX.Docs.Generator
             var components = targetAssembly.GetTypes()
                 .Where(t => t.IsSubclassOf(typeof(ComponentBase)) && t.Namespace?.Contains("MudX") == true);
 
+            var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+
             foreach (var type in components)
             {
                 var componentDescription = GetSummaryFromXml(type);
 
+                var excludedNames = new List<string>
+                {
+                    "Dispose", "DisposeAsync"
+                };
+
                 var doc = new
                 {
                     Component = type.Name,
-                    Namespace = type.Namespace,
+                    type.Namespace,
                     Description = componentDescription,
+
                     Parameters = type.GetProperties()
                         .Where(p => p.IsDefined(typeof(ParameterAttribute), true))
                         .Select(p => new
                         {
-                            Name = p.Name,
-                            Type = p.PropertyType.Name,
+                            p.Name,
+                            Type = GetFriendlyTypeName(p.PropertyType),
                             Default = GetDefaultValue(p),
                             Description = GetSummaryFromXml(p)
                         }),
+
                     Events = type.GetProperties()
-                        .Where(p => typeof(MulticastDelegate).IsAssignableFrom(p.PropertyType))
+                        .Where(p => typeof(MulticastDelegate).IsAssignableFrom(p.PropertyType)
+                               && !p.IsDefined(typeof(ParameterAttribute), inherit: true))
                         .Select(p => new
                         {
-                            Name = p.Name,
-                            Type = p.PropertyType.Name,
+                            p.Name,
+                            Type = GetFriendlyTypeName(p.PropertyType),
                             Description = GetSummaryFromXml(p)
+                        }),
+
+                    PublicProperties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+                        .Where(p => !p.IsDefined(typeof(ParameterAttribute), true)
+                                    && !typeof(MulticastDelegate).IsAssignableFrom(p.PropertyType))
+                        .Select(p => new
+                        {
+                            p.Name,
+                            Type = GetFriendlyTypeName(p.PropertyType),
+                            Description = GetSummaryFromXml(p)
+                        }),
+
+                    PublicFields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+                        .Select(f => new
+                        {
+                            f.Name,
+                            Type = GetFriendlyTypeName(f.FieldType),
+                            Default = GetDefaultValue(f),
+                            Description = GetSummaryFromXml(f)
+                        }),
+
+                    Methods = type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+                        .Where(m => !m.IsSpecialName && !m.IsDefined(typeof(CompilerGeneratedAttribute), false)
+                               && !excludedNames.Contains(m.Name, StringComparer.CurrentCultureIgnoreCase))
+                        .Select(m => new
+                        {
+                            m.Name,
+                            ReturnType = m.ReturnType.Name,
+                            Parameters = m.GetParameters().Select(p => new
+                            {
+                                p.Name,
+                                Type = GetFriendlyTypeName(p.ParameterType),
+                            }),
+                            Description = GetSummaryFromXml(m)
                         })
                 };
 
+
                 var jsonPath = Path.Combine(outputDir, $"{type.Name}.api.json");
-                File.WriteAllText(jsonPath, JsonSerializer.Serialize(doc, new JsonSerializerOptions { WriteIndented = true }));
+                File.WriteAllText(jsonPath, JsonSerializer.Serialize(doc, jsonOptions));
                 Console.WriteLine($"MudX.Docs.Generator: API doc written: {jsonPath}");
             }
 
@@ -87,9 +151,71 @@ namespace MudX.Docs.Generator
                 .Where(x => x.Attribute("name") != null)
                 .ToDictionary(
                     x => x.Attribute("name")!.Value,
-                    x => x.Element("summary")?.Value.Trim() ?? ""
+                    x =>
+                    {
+                        var summary = x.Element("summary")?.Value ?? "";
+                        var remarks = x.Element("remarks")?.Value ?? "";
+                        return CleanXmlDoc(summary, remarks);
+                    }
                 );
         }
+
+        private static string GetFriendlyTypeName(Type type)
+        {
+            if (type.IsGenericType)
+            {
+                string typeName = type.Name;
+                int backtickIndex = typeName.IndexOf('`');
+                if (backtickIndex > 0)
+                    typeName = typeName[..backtickIndex];
+
+                string genericArgs = string.Join(", ", type.GetGenericArguments()
+                    .Select(GetFriendlyTypeName));
+
+                return $"{typeName}<{genericArgs}>";
+            }
+
+            // Handle nullable types (e.g., Nullable<int> becomes int?)
+            if (Nullable.GetUnderlyingType(type) is Type underlyingType)
+                return $"{GetFriendlyTypeName(underlyingType)}?";
+
+            return type.Name;
+        }
+
+        private static string CleanXmlDoc(string summary, string remarks)
+        {
+            string cleanedSummary = NormalizeText(summary);
+            string cleanedRemarks = NormalizeText(remarks);
+
+            return string.IsNullOrWhiteSpace(cleanedRemarks)
+                ? cleanedSummary
+                : $"{cleanedSummary}\nRemarks: {cleanedRemarks}";
+        }
+
+        private static string NormalizeText(string text)
+        {
+            return string.Join(" ",
+                text.Replace("\r\n", " ")
+                    .Replace("\n", " ")
+                    .Replace("\r", " ")
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            ).Trim();
+        }
+
+        private static string? GetSummaryFromXml(FieldInfo field)
+        {
+            var type = field.DeclaringType;
+            while (type != null)
+            {
+                var key = $"F:{type.FullName}.{field.Name}";
+                if (_xmlDocs.TryGetValue(key, out var summary))
+                    return summary;
+
+                type = type.BaseType;
+            }
+            return null;
+        }
+
 
         private static string? GetSummaryFromXml(PropertyInfo property)
         {
@@ -103,6 +229,25 @@ namespace MudX.Docs.Generator
             return _xmlDocs.TryGetValue(memberName, out var summary) ? summary : null;
         }
 
+        private static string? GetDefaultValue(FieldInfo field)
+        {
+            var type = field.DeclaringType;
+
+            if (type == null || type.IsAbstract)
+                return null;
+
+            try
+            {
+                var instance = Activator.CreateInstance(type);
+                var value = field.GetValue(instance);
+                return value?.ToString();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private static string? GetDefaultValue(PropertyInfo property)
         {
             var type = property.DeclaringType;
@@ -114,12 +259,61 @@ namespace MudX.Docs.Generator
             {
                 var instance = Activator.CreateInstance(type);
                 var value = property.GetValue(instance);
-                return value?.ToString();
+
+                if (value == null)
+                    return "null";
+
+                var valueType = value.GetType();
+
+                // Handle strings
+                if (value is string str)
+                    return $"{str}";
+
+                // Booleans
+                if (value is bool b)
+                    return b.ToString().ToLowerInvariant();
+
+                // Primitive types (int, double, etc.)
+                if (valueType.IsPrimitive || value is decimal)
+                    return Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
+
+                // Enum
+                if (valueType.IsEnum)
+                    return value.ToString();
+
+                // RenderFragment and EventCallback: return simplified marker, not .ToString()
+                if (valueType.Name.StartsWith("RenderFragment"))
+                    return "";
+
+                if (valueType.Name.StartsWith("EventCallback"))
+                    return "";
+
+                // Collections
+                if (value is System.Collections.IEnumerable enumerable)
+                {
+                    var items = enumerable.Cast<object>().Take(3).Select(x => x?.ToString() ?? "null");
+                    return $"[{string.Join(", ", items)}{(items.Count() == 3 ? ", ..." : "")}]";
+                }
+
+                // Fallback: don't emit fully qualified type names
+                return null;
             }
             catch
             {
                 return null;
             }
         }
+
+        private static string? GetSummaryFromXml(MethodInfo method)
+        {
+            var parameters = method.GetParameters();
+            var paramSignature = parameters.Length == 0
+                ? string.Empty
+                : $"({string.Join(",", parameters.Select(p => p.ParameterType.FullName))})";
+
+            string memberName = $"M:{method.DeclaringType!.FullName}.{method.Name}{paramSignature}";
+            return _xmlDocs.TryGetValue(memberName, out var summary) ? summary : null;
+        }
+
     }
 }

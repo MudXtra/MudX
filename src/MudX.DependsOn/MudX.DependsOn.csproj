@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>    
@@ -18,14 +19,10 @@
     <Target Name="CopyMudBlazorXml" AfterTargets="ResolveReferences">
         <ItemGroup>
             <!-- Find the reference to MudBlazor.dll -->
-            <MudBlazorReference Include="@(ReferencePath)"
-                                Condition=" '%(FileName)' == 'MudBlazor' and '%(Extension)' == '.dll' " />
+            <MudBlazorReference Include="@(ReferencePath)" Condition=" '%(FileName)' == 'MudBlazor' and '%(Extension)' == '.dll' " />
         </ItemGroup>
 
-        <Copy SourceFiles="%(MudBlazorReference.Identity)"
-              DestinationFiles="%(MudBlazorReference.Identity).xml"
-              SkipUnchangedFiles="true"
-              Condition="Exists('%(MudBlazorReference.Identity).xml')" />
+        <Copy SourceFiles="%(MudBlazorReference.Identity)" DestinationFiles="%(MudBlazorReference.Identity).xml" SkipUnchangedFiles="true" Condition="Exists('%(MudBlazorReference.Identity).xml')" />
     </Target>
 
 

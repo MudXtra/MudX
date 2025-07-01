@@ -349,6 +349,11 @@ namespace MudX
             }
         }
 
+        private async Task OnNavLinkClick(MudXOutlineSection section)
+        {
+            await OnNavLinkClick(section.SectionId);
+        }
+
         private async Task OnNavLinkClick(string id)
         {
             if (_scrollSpy is not null)

@@ -131,7 +131,7 @@ namespace MudX
         /// Gets or sets the JavaScript runtime instance used for interop calls between .NET and JavaScript.
         /// </summary>
         [Inject]
-        public IJSRuntime JsRuntime { get; set; } = default!;
+        private IJSRuntime JsRuntime { get; set; } = default!;
 
         /// <summary>
         /// An IEnumerable of CodeFiles. Each CodeFile has an Id, title, language, and code. You can provide as many CodeFiles as you want though both

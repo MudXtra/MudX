@@ -8,8 +8,8 @@
     </div>
 
     <MudPopover @ref="@_popoverRef" AnchorOrigin="@(PopoverAnchor)" TransformOrigin="@(PopoverTransform)" Elevation="0" Paper="false"
-    Class="@PopoverClassname" UserAttributes="@PositionAttributes"
-    Style="@(PopoverStyleName)" Open="@_contentDrawerOpenState.Value" OverflowBehavior="@OverflowBehavior.FlipNever">
+                Class="@PopoverClassname" UserAttributes="@PositionAttributes"
+                Style="@(PopoverStyleName)" Open="@_contentDrawerOpenState.Value" OverflowBehavior="@OverflowBehavior.FlipNever">
         @if (HeaderIndexContent != null)
         {
             @HeaderIndexContent
@@ -41,34 +41,34 @@
 @code {
     private RenderFragment DocumentContent =>
     @<text>
-                                        @* This is the actual document that is tracked *@
-        <div class="d-flex justify-center align-center mud-height-full">
-            <MudContainer MaxWidth="MaxWidth.Large">
-                <div class="mudx-toc-content">
-                    <CascadingValue Value="this" IsFixed="true">
-                        @ChildContent
-                    </CascadingValue>
-                </div>
-            </MudContainer>
-        </div>
-    </text>
+@* This is the actual document that is tracked *@
+    <div class="d-flex justify-center align-center mud-height-full">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <div class="mudx-toc-content">
+                <CascadingValue Value="this" IsFixed="true">
+                    @ChildContent
+                </CascadingValue>
+            </div>
+        </MudContainer>
+    </div>
+</text>
     ;
 
     private RenderFragment LevelContent(List<MudXOutlineSection> sections) =>
     @<text>
         @foreach (var docSection in sections.OrderBy(x => x.LevelSortingValue))
-    {
-        <MudNavLink @key="docSection._id"
-                    Match="NavLinkMatch.All"
-                    Class="@GetNavLinkClass(docSection)"
-                    OnClick="@(e => OnNavLinkClick(docSection.SectionId))">
-            @docSection.Title
-        </MudNavLink>
-    if (docSection._subSections.Any())
-    {
-        @LevelContent(docSection._subSections)
-    ;
-    }
-    }
-    </text>;
+        {
+            <MudNavLink @key="docSection._id"
+                        Match="NavLinkMatch.All"
+                        Class="@GetNavLinkClass(docSection)"
+                        OnClick="@(e => OnNavLinkClick(docSection))">
+                @docSection.Title
+            </MudNavLink>
+            if (docSection._subSections.Any())
+            {
+                @LevelContent(docSection._subSections)
+            ;
+            }
+        }
+</text>;
 }
