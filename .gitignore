@@ -5,9 +5,7 @@
 
 # MudX.Generator modules
 src/MudX/wwwroot/modules/
-# MudX Dev mudx.css and mudx.js in wwwroot
-src/MudX/wwwroot/mudx.css
-src/MudX/wwwroot/mudx.js
+
 # MudX.Generator api
 src/MudX.Docs/wwwroot/api
 
@@ -406,5 +404,6 @@ FodyWeavers.xsd
 *.sln.iml
 /src/MudX.Docs/wwwroot/nav-structure.json
 
+# MudX Dev mudx.css and mudx.js in wwwroot
 /src/MudX/wwwroot/mudx.js
 /src/MudX/wwwroot/mudx.css

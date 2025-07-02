@@ -50,19 +50,21 @@ try
         File.WriteAllText(jsOutFile, contents);
     }
 
-    var jsMainFile = Directory.GetFiles(Path.Combine(modulesDirectory, "../"), "mudx.js").FirstOrDefault();
+    var jsMainFile = Directory.GetFiles(Path.Combine("..", jsDirectory), "mudx.js", SearchOption.AllDirectories).FirstOrDefault();
     if (jsMainFile == null)
     {
         Console.WriteLine("MudX.Generator: Primary JS File not found.");
         return 1;
     }
 
+    var jsDevOutFile = Path.Combine(modulesDirectory, "../", "mudx.js");
     var jsMainOutFile = Path.Combine(modulesDirectory, "../", "mudx.min.js");
     var maincontents = JavaScriptCompressor.Compress(File.ReadAllText(jsMainFile));
     // write contents to file
+    File.Copy(jsMainFile, jsDevOutFile);
     File.WriteAllText(jsMainOutFile, maincontents);
 
-    var cssMainFile = Directory.GetFiles(Path.Combine(modulesDirectory, "../"), "mudx.css").FirstOrDefault();
+    var cssMainFile = Directory.GetFiles(Path.Combine("..", jsDirectory), "mudx.css", SearchOption.AllDirectories).FirstOrDefault();
 
     if (cssMainFile == null)
     {
@@ -70,6 +72,7 @@ try
         return 1;
     }
 
+    var cssDevOutFile = Path.Combine(modulesDirectory, "../", "mudx.css");
     var cssMainOutFile = Path.Combine(modulesDirectory, "../", "mudx.min.css");
     var csscontents = Uglify.Css(File.ReadAllText(cssMainFile));
     if (csscontents.HasErrors)
@@ -78,6 +81,7 @@ try
         return 1;
     }
     // write contents to file
+    File.Copy(cssMainFile, cssDevOutFile);
     File.WriteAllText(cssMainOutFile, csscontents.Code);
 
     return 0;

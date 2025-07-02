@@ -31,6 +31,10 @@
         <OutputFiles Include="$(MudXOutputPath)modules\**\*.js" />
     </ItemGroup>
     <ItemGroup>
+      <Content Include="Scripts\mudx.css" />
+      <Content Include="Scripts\mudx.js" />
+    </ItemGroup>
+    <ItemGroup>
       <None Include="wwwroot\prism\prism.js" />
     </ItemGroup>
    
