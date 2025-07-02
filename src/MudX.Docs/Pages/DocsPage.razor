@@ -4,47 +4,7 @@
     @ChildContent
     <DocsPageSection Title="API">
         <ChildContent>
-            @if (DocumentedType is null)
-            {
-                <MudText Color="Color.Secondary">Loading API documentation...</MudText>
-            }
-            else
-            {
-                @if (DocumentedType is { Parameters.Count: > 0 })
-                {
-                    <DocsPageSection Title="Parameters">
-                        <ApiSection Mode="@DocumentedType.Parameters" Title="Parameters" />
-                    </DocsPageSection>
-                }
-
-                @if (DocumentedType is { Properties.Count: > 0 })
-                {
-                    <DocsPageSection Title="Properties">
-                        <ApiSection Mode="@DocumentedType.Properties" Title="Properties" />
-                    </DocsPageSection>
-                }
-
-                @if (DocumentedType is { Methods.Count: > 0 })
-                {
-                    <DocsPageSection Title="Methods">
-                        <ApiSection Mode="@DocumentedType.Methods" Title="Methods" />
-                    </DocsPageSection>
-                }
-
-                @if (DocumentedType is { Fields.Count: > 0 })
-                {
-                    <DocsPageSection Title="Fields">
-                        <ApiSection Mode="@DocumentedType.Fields" Title="Fields" />
-                    </DocsPageSection>
-                }
-
-                @if (DocumentedType is { Events.Count: > 0 })
-                {
-                    <DocsPageSection Title="Events">
-                        <ApiSection Mode="@DocumentedType.Events" Title="Events" />
-                    </DocsPageSection>
-                }
-            }
+            @ApiContent
         </ChildContent>
     </DocsPageSection>
 </MudXOutline>

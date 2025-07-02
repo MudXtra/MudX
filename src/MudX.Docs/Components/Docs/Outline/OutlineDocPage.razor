@@ -4,72 +4,78 @@
 
 <PageTitle>Outline</PageTitle>
 
-<DocsPage ApiJson="mudxoutline.api.json">
-    <DocsPageHeader Title="Outline">
-        <Description>
-            A scrollspy control for displaying an index or table of contents on either side of the text content.
-            Typically you would surround the document with <CodeInline>MudXOutline</CodeInline> and each individual
-            section with <CodeInline>MudXOutlineSection</CodeInline>.
-        </Description>
-    </DocsPageHeader>
+<DocsPage>
+    <ChildContent>
+        <DocsPageHeader Title="Outline">
+            <Description>
+                A scrollspy control for displaying an index or table of contents on either side of the text content.
+                Typically you would surround the document with <CodeInline>MudXOutline</CodeInline> and each individual
+                section with <CodeInline>MudXOutlineSection</CodeInline>.
+            </Description>
+        </DocsPageHeader>
 
-    <DocsPageSection Title="Basic Usage">
-        <Description>
-            The outline is a scrollspy control for displaying an index or table of contents on either side of the text content.
-            The <CodeInline>MudXOutline</CodeInline> is a wrapper for a number of <CodeInline>MudXOutlineSection</CodeInline>'s.
-            Each <CodeInline>MudXOutlineSection</CodeInline> has a <CodeInline Tag="false">Title</CodeInline> that is used for the index
-            and whatever content is supplied inside is what is displayed in the main content area. By default the control
-            requires very minimal setup, however to nest it inside another be sure to set the <CodeInline Tag="false">ScrollContainerSelector</CodeInline>
-            to the outer element with a scrollbar as scrollspy will only work if a scrollbar is present. Remember when using the Selector to
-            preface a class with a . or an id with a #.
-        </Description>
-        <ChildContent>
-            <SectionContent Codes="@OutlineBasicExampleCode.Files">
-                <OutlineBasicExample />
-            </SectionContent>
-        </ChildContent>
-    </DocsPageSection>
+        <DocsPageSection Title="Basic Usage">
+            <Description>
+                The outline is a scrollspy control for displaying an index or table of contents on either side of the text content.
+                The <CodeInline>MudXOutline</CodeInline> is a wrapper for a number of <CodeInline>MudXOutlineSection</CodeInline>'s.
+                Each <CodeInline>MudXOutlineSection</CodeInline> has a <CodeInline Tag="false">Title</CodeInline> that is used for the index
+                and whatever content is supplied inside is what is displayed in the main content area. By default the control
+                requires very minimal setup, however to nest it inside another be sure to set the <CodeInline Tag="false">ScrollContainerSelector</CodeInline>
+                to the outer element with a scrollbar as scrollspy will only work if a scrollbar is present. Remember when using the Selector to
+                preface a class with a . or an id with a #.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@OutlineBasicExampleCode.Files">
+                    <OutlineBasicExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
 
-    <DocsPageSection Title="Index Customization">
-        <Description>
-            There are many properties you can change to customize the look and feel of the control, but ultimately
-            the content is strictly upon you to style and use. <CodeInline Tag="false">Anchor</CodeInline> and
-            <CodeInline Tag="false">Width</CodeInline> are most common.
-        </Description>
-        <ChildContent>
-            <SectionContent Codes="@OutlineCustomizeExampleCode.Files">
-                <OutlineCustomizeExample />
-            </SectionContent>
-        </ChildContent>
-    </DocsPageSection>
+        <DocsPageSection Title="Index Customization">
+            <Description>
+                There are many properties you can change to customize the look and feel of the control, but ultimately
+                the content is strictly upon you to style and use. <CodeInline Tag="false">Anchor</CodeInline> and
+                <CodeInline Tag="false">Width</CodeInline> are most common.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@OutlineCustomizeExampleCode.Files">
+                    <OutlineCustomizeExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
 
-    <DocsPageSection Title="Scroll Style">
-        <Description>
-            You can customize the Variant used for the ScrollSpy by setting the <CodeInline Tag="false">StyleVariant</CodeInline>
-            property. Available options are <CodeInline Tag="false">None</CodeInline>, <CodeInline Tag="false">Bullet</CodeInline>,
-            <CodeInline Tag="false">Scroll</CodeInline> and <CodeInline Tag="false">Minimal</CodeInline>. Additionally,
-            the default behavior of <CodeInline Tag="false">Underline</CodeInline> can be overridden by setting it to false.
-        </Description>
-        <ChildContent>
-            <SectionContent Codes="@OutlineVariantExampleCode.Files">
-                <OutlineVariantExample />
-            </SectionContent>
-        </ChildContent>
-    </DocsPageSection>
+        <DocsPageSection Title="Scroll Style">
+            <Description>
+                You can customize the Variant used for the ScrollSpy by setting the <CodeInline Tag="false">StyleVariant</CodeInline>
+                property. Available options are <CodeInline Tag="false">None</CodeInline>, <CodeInline Tag="false">Bullet</CodeInline>,
+                <CodeInline Tag="false">Scroll</CodeInline> and <CodeInline Tag="false">Minimal</CodeInline>. Additionally,
+                the default behavior of <CodeInline Tag="false">Underline</CodeInline> can be overridden by setting it to false.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@OutlineVariantExampleCode.Files">
+                    <OutlineVariantExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
 
-    <DocsPageSection Title="Other Options">
-        <Description>
-            You can nest both <CodeInline>MudXOutline</CodeInline> and <CodeInline>MudXOutlineSection</CodeInline> components. The Table of Contents is displayed using 
-            <CodeInline>MudPopover</CodeInline>, while scrollspy behavior is managed by JavaScript modules behind the scenes. You can also nest one 
-            <CodeInline>MudXOutlineSection</CodeInline> inside another to create hierarchical sections in the Table of Contents that will indent 
-            automatically up to five levels.
-        </Description>
-        <ChildContent>
-            <SectionContent Codes="@OutlineNestingExampleCode.Files">
-                <OutlineNestingExample />
-            </SectionContent>
-        </ChildContent>
-    </DocsPageSection>
+        <DocsPageSection Title="Other Options">
+            <Description>
+                You can nest both <CodeInline>MudXOutline</CodeInline> and <CodeInline>MudXOutlineSection</CodeInline> components. The Table of Contents is displayed using
+                <CodeInline>MudPopover</CodeInline>, while scrollspy behavior is managed by JavaScript modules behind the scenes. You can also nest one
+                <CodeInline>MudXOutlineSection</CodeInline> inside another to create hierarchical sections in the Table of Contents that will indent
+                automatically up to five levels.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@OutlineNestingExampleCode.Files">
+                    <OutlineNestingExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+    </ChildContent>
+    <ApiContent>
+        <ApiSection ApiJson="MudXOutline.api.json" />
+        <ApiSection ApiJson="MudXOutlineSection.api.json" />
+    </ApiContent>
 
 </DocsPage>
 
