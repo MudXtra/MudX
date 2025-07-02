@@ -270,8 +270,6 @@ namespace MudX
             {
                 // make sure each level is put in the correct order regardless if nested
                 BuildLevelStructure();
-                // Set the Level structure so hierarchial sections can be rendered correctly in the Table of Contents
-                RegisterUniqueIds(_sections);
                 if (Js is null) throw new Exception("JSRuntime is not available");
                 _scrollSpy = new OutlineScrollSpy(Js);
                 if (_scrollSpy is not null)
@@ -328,24 +326,17 @@ namespace MudX
             await Task.CompletedTask;
         }
 
-        private void RegisterUniqueIds(List<MudXOutlineSection> sections)
+        internal void RegisterUniqueIds(MudXOutlineSection section)
         {
-            foreach (var section in sections)
+            var sectionId = section.GetId();
+            if (!_idCounts.TryAdd(sectionId, 0))
             {
-                var sectionId = section.GetId();
-                if (!_idCounts.TryAdd(sectionId, 0))
-                {
-                    _idCounts[sectionId] += 1;
-                    section.SectionId = $"{sectionId}-{_idCounts[sectionId]}";
-                }
-                else
-                {
-                    section.SectionId = sectionId;
-                }
-                if (section._subSections.Count > 0)
-                {
-                    RegisterUniqueIds(section._subSections);
-                }
+                _idCounts[sectionId] += 1;
+                section.SectionId = $"{sectionId}-{_idCounts[sectionId]}";
+            }
+            else
+            {
+                section.SectionId = sectionId;
             }
         }
 

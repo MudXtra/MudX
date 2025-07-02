@@ -22,6 +22,8 @@ namespace MudX
         /// </summary>
         public int Level => ParentContainer?.Level + 1 ?? 0;
 
+        private MudXOutline? _outline;
+
         internal int LevelSortingValue { get; private set; }
 
         [CascadingParameter]
@@ -64,7 +66,30 @@ namespace MudX
             await base.OnInitializedAsync();
             if (ParentContainer != null)
             {
+                SetParentOutline(ParentContainer);
+                _outline?.RegisterUniqueIds(this);
                 await ParentContainer.RegisterSectionAsync(this);
+            }
+        }
+
+        private void SetParentOutline(IOutlineContainer? outlineContainer)
+        {
+            var current = outlineContainer;
+            while (current != null)
+            {
+                if (current is MudXOutline outline)
+                {
+                    _outline = outline;
+                    return;
+                }
+                if (current is MudXOutlineSection section)
+                {
+                    current = section.ParentContainer;
+                }
+                else
+                {
+                    break;
+                }
             }
         }
 
