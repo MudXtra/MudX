@@ -349,12 +349,8 @@ namespace MudX
         {
             if (_scrollSpy is not null)
             {
-                // stop the event from changing the active section in case it doesn't "center" the section
-                _scrollSpy.ScrollSpySectionCentered -= ScrollSpySectionCentered;
                 await _scrollSpy.ScrollToSection(id);
-                _scrollSpy.ScrollSpySectionCentered += ScrollSpySectionCentered;
             }
-            SelectActiveSection(id);
         }
 
         private void ScrollSpySectionCentered(object? sender, ScrollSectionCenteredEventArgs e) =>
