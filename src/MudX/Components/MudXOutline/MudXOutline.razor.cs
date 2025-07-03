@@ -10,6 +10,13 @@ using MudX.Utilities;
 
 namespace MudX
 {
+    /// <summary>
+    /// Represents a Table of Contents (TOC) component that provides navigation links to sections within a document.
+    /// </summary>
+    /// <remarks>The <see cref="MudXOutline"/> component allows users to navigate through sections of a
+    /// document or page. It supports features such as  customizable styling, scroll spying, and dynamic section
+    /// registration. The TOC can be positioned on the left or right side of the viewport  and includes options for
+    /// rendering additional content above or below the section links.</remarks>
     public partial class MudXOutline : MudComponentBase, IAsyncDisposable, IOutlineContainer
     {
         private readonly string _id = $"mudx-toc-{Guid.NewGuid()}";
@@ -24,6 +31,11 @@ namespace MudX
         private OutlineScrollSpy? _scrollSpy;
         internal Dictionary<string, int> _idCounts = new(StringComparer.OrdinalIgnoreCase);
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MudXOutline"/> class.
+        /// </summary>
+        /// <remarks>This constructor sets up the internal state and registers parameters required for
+        /// managing the content drawer's open state.</remarks>
         public MudXOutline()
         {
             using var registerScope = CreateRegisterScope();
@@ -32,6 +44,12 @@ namespace MudX
                 .WithChangeHandler(HandleContentDrawerOpenChanged);
         }
 
+        /// <summary>
+        /// Generates the CSS class string for a navigation link based on the specified section's state and level.
+        /// </summary>
+        /// <param name="section">The section for which the navigation link class is being generated.  Must not be <see langword="null"/>.</param>
+        /// <returns>A CSS class string that represents the styling of the navigation link,  including active state, underline
+        /// styling, and level-based navigation hierarchy.</returns>
         protected string GetNavLinkClass(MudXOutlineSection section) =>
             new CssBuilder("mudx-toc-nav-navlink")
                 .AddClass("active", section.Active)
@@ -39,19 +57,35 @@ namespace MudX
                 .AddClass($"navigation-level-{Math.Min(5, section.Level - 1)}", section.Level > 1)
                 .Build();
 
+        /// <summary>
+        /// Gets the CSS class string for navigation links, including style variants.
+        /// </summary>
         protected string GetNavLinksClass => new CssBuilder("mudx-toc-nav-links")
             .AddClass($"mudx-style-{StyleVariant.ToDescription()}", StyleVariant != OutlineStyleVariant.None)
             .Build();
 
+        /// <summary>
+        /// Gets the CSS class names for the popover element, including position and fixed state overrides.
+        /// </summary>
         protected string PopoverClassname => new CssBuilder("")
             .AddClass("mud-popover-position-override") // not fixed we hard code the position
             .AddClass("fixed", IsFixed)
             .Build();
 
+        /// <summary>
+        /// Gets the CSS class name for the card element, including theme-specific styling based on the configured
+        /// color.
+        /// </summary>
         protected string CardClassname => new CssBuilder("mudx-toc-nav-popovers")
             .AddClass($"mud-theme-{Color.ToDescriptionString()}")
             .Build();
 
+        /// <summary>
+        /// Gets the computed CSS style string for the popover element based on its current state and configuration.
+        /// </summary>
+        /// <remarks>The styles are conditionally applied depending on the state of the popover, such as
+        /// whether it is open, fixed, or if JavaScript runtime is available. This property is primarily used to
+        /// dynamically generate inline styles for rendering the popover element.</remarks>
         protected string PopoverStyleName => new StyleBuilder()
             .AddStyle("width", $"{Width}px", _contentDrawerOpenState.Value)
             .AddStyle("max-width", $"{Width}px", _contentDrawerOpenState.Value)
@@ -60,6 +94,9 @@ namespace MudX
             .AddStyle("left", _position.X.ToPx(), IsFixed && !IsJSRuntimeAvailable) // fixed position MudPopover will handle resize
             .Build();
 
+        /// <summary>
+        /// Gets the computed CSS style string for the navigation drawer based on its current state and configuration.
+        /// </summary>
         protected string NavDrawerStyle => new StyleBuilder()
             .AddStyle("margin-right", $"{Width}px", _contentDrawerOpenState.Value && _anchor == Anchor.Right)
             .AddStyle("margin-left", $"{Width}px", _contentDrawerOpenState.Value && _anchor == Anchor.Left)
@@ -188,6 +225,9 @@ namespace MudX
 
         private Origin PopoverTransform => _anchor == Anchor.Left ? Origin.TopRight : Origin.TopLeft;
 
+        /// <summary>
+        /// Gets the current level of the object.
+        /// </summary>
         public int Level { get; } = 0;
 
         // If the user toggles the content drawer, update the drawer open variable
@@ -196,6 +236,9 @@ namespace MudX
             StateHasChanged();
         }
 
+        /// <summary>
+        /// OnParameterSet override
+        /// </summary>
         protected override void OnParametersSet()
         {
             base.OnParametersSet();
@@ -216,15 +259,17 @@ namespace MudX
             _shouldRepositionPopover = true;
         }
 
-        // After IJsRuntime is available, start the scrollspy on elments with the specified classes
+        /// <summary>
+        /// OnAfterRenderAsync override
+        /// After IJsRuntime is available, start the scrollspy on elments with the specified classes
+        /// </summary>
+        /// <param name="firstRender"></param>
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
             {
                 // make sure each level is put in the correct order regardless if nested
                 BuildLevelStructure();
-                // Set the Level structure so hierarchial sections can be rendered correctly in the Table of Contents
-                RegisterUniqueIds(_sections);
                 if (Js is null) throw new Exception("JSRuntime is not available");
                 _scrollSpy = new OutlineScrollSpy(Js);
                 if (_scrollSpy is not null)
@@ -281,25 +326,23 @@ namespace MudX
             await Task.CompletedTask;
         }
 
-        private void RegisterUniqueIds(List<MudXOutlineSection> sections)
+        internal void RegisterUniqueIds(MudXOutlineSection section)
         {
-            foreach (var section in sections)
+            var sectionId = section.GetId();
+            if (!_idCounts.TryAdd(sectionId, 0))
             {
-                var sectionId = section.GetId();
-                if (!_idCounts.TryAdd(sectionId, 0))
-                {
-                    _idCounts[sectionId] += 1;
-                    section.SectionId = $"{sectionId}-{_idCounts[sectionId]}";
-                }
-                else
-                {
-                    section.SectionId = sectionId;
-                }
-                if (section._subSections.Count > 0)
-                {
-                    RegisterUniqueIds(section._subSections);
-                }
+                _idCounts[sectionId] += 1;
+                section.SectionId = $"{sectionId}-{_idCounts[sectionId]}";
             }
+            else
+            {
+                section.SectionId = sectionId;
+            }
+        }
+
+        private async Task OnNavLinkClick(MudXOutlineSection section)
+        {
+            await OnNavLinkClick(section.SectionId);
         }
 
         private async Task OnNavLinkClick(string id)
@@ -383,7 +426,9 @@ namespace MudX
         }
 
 
-        // Dispose the scrollspy
+        /// <summary>
+        /// DisposeAsync
+        /// </summary>
         public async ValueTask DisposeAsync()
         {
             if (_scrollSpy is not null)

@@ -15,6 +15,9 @@ namespace MudX
         [Inject]
         private IJSRuntime _js { get; set; } = default!;
 
+        /// <summary>
+        /// OnAfterRenderAsync override
+        /// </summary>
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
@@ -22,7 +25,7 @@ namespace MudX
                 bool isDev = true;
                 string version = DateTime.Now.ToFileTimeUtc().ToString();
 #if !DEBUG
-    version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? version;
+    version = typeof(MudX._Imports).Assembly.GetName().Version?.ToString() ?? version;
     isDev = false;
 #endif
                 _jsModule = await _js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxProvider.js");
@@ -34,6 +37,10 @@ namespace MudX
             }
         }
 
+        /// <summary>
+        /// DisposeAsync
+        /// </summary>
+        /// <returns></returns>
         public async ValueTask DisposeAsync()
         {
             if (_jsModule != null)

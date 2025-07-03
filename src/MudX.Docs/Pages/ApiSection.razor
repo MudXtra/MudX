@@ -1,0 +1,83 @@
+﻿@using MudX.Docs.Data
+@using System.Net.Http.Json
+@inject NavigationManager Navigation
+@inject HttpClient HttpClient
+@namespace MudX.Docs
+
+            @if (DocumentedType is null)
+            {
+                <MudText Color="Color.Secondary">Loading API documentation...</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.h6" Color="Color.Primary">- &lt;@_apiName&gt;</MudText>
+                @if (DocumentedType is { Parameters.Count: > 0 })
+                {
+                    <DocsPageSection Title="Parameters">
+                        <ApiSectionContent Mode="@DocumentedType.Parameters" Title="Parameters" />
+                    </DocsPageSection>
+                }
+
+                @if (DocumentedType is { Properties.Count: > 0 })
+                {
+                    <DocsPageSection Title="Properties">
+                        <ApiSectionContent Mode="@DocumentedType.Properties" Title="Properties" />
+                    </DocsPageSection>
+                }
+
+                @if (DocumentedType is { Methods.Count: > 0 })
+                {
+                    <DocsPageSection Title="Methods">
+                        <ApiSectionContent Mode="@DocumentedType.Methods" Title="Methods" />
+                    </DocsPageSection>
+                }
+
+                @if (DocumentedType is { Fields.Count: > 0 })
+                {
+                    <DocsPageSection Title="Fields">
+                        <ApiSectionContent Mode="@DocumentedType.Fields" Title="Fields" />
+                    </DocsPageSection>
+                }
+
+                @if (DocumentedType is { Events.Count: > 0 })
+                {
+                    <DocsPageSection Title="Events">
+                        <ApiSectionContent Mode="@DocumentedType.Events" Title="Events" />
+                    </DocsPageSection>
+                }
+            }
+
+@code {
+    protected DocumentedTypeModel? DocumentedType { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string ApiJson { get; set; }
+
+    private string _apiName { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _apiName = ApiJson.EndsWith(".api.json") ? ApiJson[..^9] : ApiJson;
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (DocumentedType is null && !string.IsNullOrWhiteSpace(ApiJson))
+            {
+                try
+                {
+                    var baseUri = Navigation.BaseUri;
+                    var url = $"{baseUri}_content/MudX.Docs/api/{ApiJson}";
+                    DocumentedType = await HttpClient.GetFromJsonAsync<DocumentedTypeModel>(url);
+                    StateHasChanged();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠️ Failed to load API JSON: {ex.Message}");
+                }
+            }
+    }
+}

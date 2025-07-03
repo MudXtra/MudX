@@ -4,12 +4,25 @@ using MudX.Components.MudXOutline;
 
 namespace MudX
 {
+    /// <summary>
+    /// Represents a section within an outline or table of contents, providing hierarchical structure and navigation
+    /// capabilities.
+    /// </summary>
+    /// <remarks>This class is used to define sections in a document outline, supporting features such as
+    /// hierarchical levels, scrolling behavior, and active state tracking. Sections can be nested within parent
+    /// containers, and their properties such as <see cref="Title"/> and <see cref="Id"/> are used for display and
+    /// navigation.</remarks>
     public partial class MudXOutlineSection : MudComponentBase, IOutlineContainer
     {
         internal string _id = Guid.NewGuid().ToString();
         internal readonly List<MudXOutlineSection> _subSections = [];
 
+        /// <summary>
+        /// Gets the hierarchical level of the current item within its parent container.
+        /// </summary>
         public int Level => ParentContainer?.Level + 1 ?? 0;
+
+        private MudXOutline? _outline;
 
         internal int LevelSortingValue { get; private set; }
 
@@ -35,6 +48,9 @@ namespace MudX
         [Parameter]
         public RenderFragment? ChildContent { get; set; }
 
+        /// <summary>
+        /// The SectionID used for this section
+        /// </summary>
         public string SectionId { get; internal set; } = string.Empty;
 
         /// <summary>
@@ -42,12 +58,38 @@ namespace MudX
         /// </summary>
         public bool Active { get; private set; }
 
+        /// <summary>
+        /// OnInitializedAsync override
+        /// </summary>
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
             if (ParentContainer != null)
             {
+                SetParentOutline(ParentContainer);
+                _outline?.RegisterUniqueIds(this);
                 await ParentContainer.RegisterSectionAsync(this);
+            }
+        }
+
+        private void SetParentOutline(IOutlineContainer? outlineContainer)
+        {
+            var current = outlineContainer;
+            while (current != null)
+            {
+                if (current is MudXOutline outline)
+                {
+                    _outline = outline;
+                    return;
+                }
+                if (current is MudXOutlineSection section)
+                {
+                    current = section.ParentContainer;
+                }
+                else
+                {
+                    break;
+                }
             }
         }
 
@@ -77,8 +119,14 @@ namespace MudX
             return id;
         }
 
+        /// <summary>
+        /// Activates the current section by setting its state to active.
+        /// </summary>
         protected internal void Activate() => Active = true;
 
+        /// <summary>
+        /// Deactivates the current section, setting its active state to false.
+        /// </summary>
         protected internal void Deactivate() => Active = false;
 
         internal void SetLevelStructure(int counter = 0, int diff = 1000)

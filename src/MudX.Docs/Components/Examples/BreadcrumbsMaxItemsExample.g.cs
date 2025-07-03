@@ -25,7 +25,7 @@ namespace MudX.Docs.Examples
     </div>
     <div>
         
-        <MudSlider T=""int"" ValueLabel=""true"" @bind-Value=""_maxItems"" Min=""1"" Max=""5""
+        <MudSlider T=""int"" ValueLabel=""true"" @bind-Value=""_maxItems"" Min=""2"" Max=""5""
                    TickMarks=""true"" TickMarkLabels=""@_labels"">
             <MudText Typo=""Typo.caption"">Max Items</MudText>
         </MudSlider>       
@@ -34,7 +34,7 @@ namespace MudX.Docs.Examples
 
 @code {
     private int _maxItems = 2;
-    private string[] _labels = [ ""1"", ""2"", ""3"", ""4"", ""5"" ];
+    private string[] _labels = [ ""2"", ""3"", ""4"", ""5"" ];
     private string _icon = Icons.Material.Filled.SettingsEthernet;
 }",
                 Language: CodeLanguage.Razor

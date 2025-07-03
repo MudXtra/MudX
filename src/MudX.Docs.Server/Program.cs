@@ -9,6 +9,7 @@ builder.Services.AddRazorComponents()
     .AddCircuitOptions(options => { options.DetailedErrors = true; });
 
 builder.Services.AddMudServices();
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 

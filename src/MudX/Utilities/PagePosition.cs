@@ -3,6 +3,13 @@ using MudBlazor.Interop;
 
 namespace MudX.Utilities
 {
+    /// <summary>
+    /// Provides utility methods for calculating page positions based on an element's bounding rectangle and anchor
+    /// origin.
+    /// </summary>
+    /// <remarks>This class is designed to assist in determining the position of an element on a page relative
+    /// to a specified anchor origin. The calculated position can be used for positioning overlays, popovers, or other
+    /// UI elements.</remarks>
     public static class PagePosition
     {
         /// <summary>

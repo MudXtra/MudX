@@ -1,127 +1,88 @@
-window.mudxGeneral = {
-    copyToClipboard: async function (copyText) {
-        try {
-            // Focus workaround - ensures document has focus
-            if (!document.hasFocus()) {
-                window.focus();
-            }
-            if (!window.hasFocus) {
-                const textarea = document.createElement('textarea');
-                textarea.value = copyText;
-                textarea.style.position = 'fixed';  // Prevent scrolling
-                textarea.style.opacity = '0';       // Hide from view
-                document.body.appendChild(textarea);
-                textarea.focus();
-            }
-            await navigator.clipboard.writeText(copyText);
-            return "success";
-        } catch (error) {
-            console.error('Clipboard copy failed:', error);
-
-            // Fallback method for problematic browsers
-            try {
-                const textarea = document.createElement('textarea');
-                textarea.value = copyText;
-                textarea.style.position = 'fixed';  // Prevent scrolling
-                textarea.style.opacity = '0';       // Hide from view
-                document.body.appendChild(textarea);
-                textarea.select();
-
-                const successful = document.execCommand('copy');
-                document.body.removeChild(textarea);
-
-                return successful ? "success" : "Fallback Failed";
-            } catch (fallbackError) {
-                console.error('Fallback copy failed:', fallbackError);
-                return `Copy and Fallback failed: ${fallbackError}`;
-            }
-        }
-    },
-};
+﻿// updates from MudBlazor
 
 window.mudpopoverHelper.calculatePopoverPosition =
     function (list, boundingRect, selfRect) {
-    let top = boundingRect.top;     // default for mud-popover-anchor-top-left
-    let left = boundingRect.left;   // default for mud-popover-anchor-top-left
+        let top = boundingRect.top;     // default for mud-popover-anchor-top-left
+        let left = boundingRect.left;   // default for mud-popover-anchor-top-left
 
-    const isPositionOverride = list.indexOf('mud-popover-position-override') >= 0;
+        const isPositionOverride = list.indexOf('mud-popover-position-override') >= 0;
 
-    let offsetX = 0;
-    let offsetY = 0;
-    // transform origin
+        let offsetX = 0;
+        let offsetY = 0;
+        // transform origin
 
-    if (list.indexOf('mud-popover-top-left') >= 0) {
-        offsetX = 0;
-        offsetY = 0;
-    } else if (list.indexOf('mud-popover-top-center') >= 0) {
-        offsetX = -selfRect.width / 2;
-        offsetY = 0;
-    } else if (list.indexOf('mud-popover-top-right') >= 0) {
-        offsetX = -selfRect.width;
-        offsetY = 0;
-    }
-
-    else if (list.indexOf('mud-popover-center-left') >= 0) {
-        offsetX = 0;
-        offsetY = -selfRect.height / 2;
-    } else if (list.indexOf('mud-popover-center-center') >= 0) {
-        offsetX = -selfRect.width / 2;
-        offsetY = -selfRect.height / 2;
-    } else if (list.indexOf('mud-popover-center-right') >= 0) {
-        offsetX = -selfRect.width;
-        offsetY = -selfRect.height / 2;
-    }
-
-    else if (list.indexOf('mud-popover-bottom-left') >= 0) {
-        offsetX = 0;
-        offsetY = -selfRect.height;
-    } else if (list.indexOf('mud-popover-bottom-center') >= 0) {
-        offsetX = -selfRect.width / 2;
-        offsetY = -selfRect.height;
-    } else if (list.indexOf('mud-popover-bottom-right') >= 0) {
-        offsetX = -selfRect.width;
-        offsetY = -selfRect.height;
-    }
-
-    if (!isPositionOverride) {
-        // anchor origin, don't flip anchors on position override
-        if (list.indexOf('mud-popover-anchor-top-left') >= 0) {
-            left = boundingRect.left;
-            top = boundingRect.top;
-        } else if (list.indexOf('mud-popover-anchor-top-center') >= 0) {
-            left = boundingRect.left + boundingRect.width / 2;
-            top = boundingRect.top;
-        } else if (list.indexOf('mud-popover-anchor-top-right') >= 0) {
-            left = boundingRect.left + boundingRect.width;
-            top = boundingRect.top;
-
-        } else if (list.indexOf('mud-popover-anchor-center-left') >= 0) {
-            left = boundingRect.left;
-            top = boundingRect.top + boundingRect.height / 2;
-        } else if (list.indexOf('mud-popover-anchor-center-center') >= 0) {
-            left = boundingRect.left + boundingRect.width / 2;
-            top = boundingRect.top + boundingRect.height / 2;
-        } else if (list.indexOf('mud-popover-anchor-center-right') >= 0) {
-            left = boundingRect.left + boundingRect.width;
-            top = boundingRect.top + boundingRect.height / 2;
-
-        } else if (list.indexOf('mud-popover-anchor-bottom-left') >= 0) {
-            left = boundingRect.left;
-            top = boundingRect.top + boundingRect.height;
-        } else if (list.indexOf('mud-popover-anchor-bottom-center') >= 0) {
-            left = boundingRect.left + boundingRect.width / 2;
-            top = boundingRect.top + boundingRect.height;
-        } else if (list.indexOf('mud-popover-anchor-bottom-right') >= 0) {
-            left = boundingRect.left + boundingRect.width;
-            top = boundingRect.top + boundingRect.height;
+        if (list.indexOf('mud-popover-top-left') >= 0) {
+            offsetX = 0;
+            offsetY = 0;
+        } else if (list.indexOf('mud-popover-top-center') >= 0) {
+            offsetX = -selfRect.width / 2;
+            offsetY = 0;
+        } else if (list.indexOf('mud-popover-top-right') >= 0) {
+            offsetX = -selfRect.width;
+            offsetY = 0;
         }
-    }
-    return {
-        top: top, left: left, offsetX: offsetX, offsetY: offsetY, anchorY: top, anchorX: left
-    };
-};
 
-    // primary positioning method
+        else if (list.indexOf('mud-popover-center-left') >= 0) {
+            offsetX = 0;
+            offsetY = -selfRect.height / 2;
+        } else if (list.indexOf('mud-popover-center-center') >= 0) {
+            offsetX = -selfRect.width / 2;
+            offsetY = -selfRect.height / 2;
+        } else if (list.indexOf('mud-popover-center-right') >= 0) {
+            offsetX = -selfRect.width;
+            offsetY = -selfRect.height / 2;
+        }
+
+        else if (list.indexOf('mud-popover-bottom-left') >= 0) {
+            offsetX = 0;
+            offsetY = -selfRect.height;
+        } else if (list.indexOf('mud-popover-bottom-center') >= 0) {
+            offsetX = -selfRect.width / 2;
+            offsetY = -selfRect.height;
+        } else if (list.indexOf('mud-popover-bottom-right') >= 0) {
+            offsetX = -selfRect.width;
+            offsetY = -selfRect.height;
+        }
+
+        if (!isPositionOverride) {
+            // anchor origin, don't flip anchors on position override
+            if (list.indexOf('mud-popover-anchor-top-left') >= 0) {
+                left = boundingRect.left;
+                top = boundingRect.top;
+            } else if (list.indexOf('mud-popover-anchor-top-center') >= 0) {
+                left = boundingRect.left + boundingRect.width / 2;
+                top = boundingRect.top;
+            } else if (list.indexOf('mud-popover-anchor-top-right') >= 0) {
+                left = boundingRect.left + boundingRect.width;
+                top = boundingRect.top;
+
+            } else if (list.indexOf('mud-popover-anchor-center-left') >= 0) {
+                left = boundingRect.left;
+                top = boundingRect.top + boundingRect.height / 2;
+            } else if (list.indexOf('mud-popover-anchor-center-center') >= 0) {
+                left = boundingRect.left + boundingRect.width / 2;
+                top = boundingRect.top + boundingRect.height / 2;
+            } else if (list.indexOf('mud-popover-anchor-center-right') >= 0) {
+                left = boundingRect.left + boundingRect.width;
+                top = boundingRect.top + boundingRect.height / 2;
+
+            } else if (list.indexOf('mud-popover-anchor-bottom-left') >= 0) {
+                left = boundingRect.left;
+                top = boundingRect.top + boundingRect.height;
+            } else if (list.indexOf('mud-popover-anchor-bottom-center') >= 0) {
+                left = boundingRect.left + boundingRect.width / 2;
+                top = boundingRect.top + boundingRect.height;
+            } else if (list.indexOf('mud-popover-anchor-bottom-right') >= 0) {
+                left = boundingRect.left + boundingRect.width;
+                top = boundingRect.top + boundingRect.height;
+            }
+        }
+        return {
+            top: top, left: left, offsetX: offsetX, offsetY: offsetY, anchorY: top, anchorX: left
+        };
+    };
+
+// primary positioning method
 window.mudpopoverHelper.placePopover =
     function (popoverNode, classSelector) {
         // parentNode is the calling element, mudmenu/tooltip/etc not the parent popover if it's a child popover

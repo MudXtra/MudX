@@ -6,6 +6,15 @@
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+
+        <!-- https://github.com/dotnet/runtime/issues/95134 -->
+        <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    </PropertyGroup>    
+    
     <!-- Define paths -->
     <PropertyGroup>
         <ProjectRoot>$(MSBuildProjectDirectory)</ProjectRoot>
@@ -20,6 +29,10 @@
         <ScriptFiles Include="$(ScriptsDirectory)\**\*.js;$(MudXOutputPath)\mudx.js;$(MudXOutputPath)\mudx.css" />
         <StampsFile Include="$(StampsFilePath)" />
         <OutputFiles Include="$(MudXOutputPath)modules\**\*.js" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="Scripts\mudx.css" />
+      <Content Include="Scripts\mudx.js" />
     </ItemGroup>
     <ItemGroup>
       <None Include="wwwroot\prism\prism.js" />

@@ -4,16 +4,26 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
-
-  <ItemGroup>
+  <ItemGroup>    
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.5" />
-    <PackageReference Include="MudBlazor" Version="8.7.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.6" />
+    <PackageReference Include="MudBlazor" Version="8.9.0" />
   </ItemGroup>
+
+    <Target Name="CopyMudBlazorXml" AfterTargets="ResolveReferences">
+        <ItemGroup>
+            <!-- Find the reference to MudBlazor.dll -->
+            <MudBlazorReference Include="@(ReferencePath)" Condition=" '%(FileName)' == 'MudBlazor' and '%(Extension)' == '.dll' " />
+        </ItemGroup>
+
+        <Copy SourceFiles="%(MudBlazorReference.Identity)" DestinationFiles="%(MudBlazorReference.Identity).xml" SkipUnchangedFiles="true" Condition="Exists('%(MudBlazorReference.Identity).xml')" />
+    </Target>
+
 
 </Project>

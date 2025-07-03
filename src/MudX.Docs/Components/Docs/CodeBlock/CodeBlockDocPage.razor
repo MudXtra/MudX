@@ -5,110 +5,115 @@
 <PageTitle>Code Syntax Display</PageTitle>
 
 <DocsPage>
-    <DocsPageHeader>
-        <Description>
-            A new componenet <CodeInline>MudXCodeBlock</CodeInline> will display code blocks using Prism.js syntax highlighter. A number of
-            themes are included to choose from as well as languages, multiple codefiles, line numbers, matching braces, invisibles, and copy to clipboard.
-            <MudGrid>
-                <MudItem xs="12" md="6">
-                    <MudStack Spacing="2">
-                        <MudButton Color="Color.Primary" OnClick="@((e) => _expanded = !_expanded)" Class="mt-3">
-                            @(_expanded ? "Collapse Languages" : "Expand Languages")
-                        </MudButton>
-                        <MudCollapse Expanded="_expanded">
-                            <MudDivider Class="pb-4 mb-2" />
-                            <MudGrid>
-                                @foreach (var language in _languageNames)
-                                {
-                                    <MudItem xs="12" sm="6" md="4" lg="3" Class="pt-1">
-                                        <CodeInline Tag="false"><MudText Typo="Typo.caption">@language</MudText></CodeInline>
-                                    </MudItem>
-                                }
-                            </MudGrid>
-                        </MudCollapse>
-                    </MudStack>
-                </MudItem>
-                <MudItem xs="12" md="6">
-                    <MudStack Spacing="2">
-                        <MudButton Color="Color.Primary" OnClick="@((e) => _expanded = !_expanded)" Class="mt-3">
-                            @(_expanded ? "Collapse Themes" : "Expand Themes")
-                        </MudButton>
-                        <MudCollapse Expanded="_expanded">
-                            <MudDivider Class="pb-4 mb-2" />
-                            <MudGrid>
-                                @foreach (var theme in _themes)
-                                {
-                                    <MudItem xs="12" sm="6" md="4" lg="3" Class="pt-1">
-                                        <CodeInline Tag="false"><MudText Typo="Typo.caption">@theme</MudText></CodeInline>
-                                    </MudItem>
-                                }
-                            </MudGrid>
-                        </MudCollapse>
-                    </MudStack>
-                </MudItem>
-            </MudGrid>
-        </Description>
-    </DocsPageHeader>
+    <ChildContent>
+        <DocsPageHeader>
+            <Description>
+                A new componenet <CodeInline>MudXCodeBlock</CodeInline> will display code blocks using Prism.js syntax highlighter. A number of
+                themes are included to choose from as well as languages, multiple codefiles, line numbers, matching braces, invisibles, and copy to clipboard.
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudStack Spacing="2">
+                            <MudButton Color="Color.Primary" OnClick="@((e) => _expanded = !_expanded)" Class="mt-3">
+                                @(_expanded ? "Collapse Languages" : "Expand Languages")
+                            </MudButton>
+                            <MudCollapse Expanded="_expanded">
+                                <MudDivider Class="pb-4 mb-2" />
+                                <MudGrid>
+                                    @foreach (var language in _languageNames)
+                                    {
+                                        <MudItem xs="12" sm="6" md="4" lg="3" Class="pt-1">
+                                            <CodeInline Tag="false"><MudText Typo="Typo.caption">@language</MudText></CodeInline>
+                                        </MudItem>
+                                    }
+                                </MudGrid>
+                            </MudCollapse>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudStack Spacing="2">
+                            <MudButton Color="Color.Primary" OnClick="@((e) => _expanded = !_expanded)" Class="mt-3">
+                                @(_expanded ? "Collapse Themes" : "Expand Themes")
+                            </MudButton>
+                            <MudCollapse Expanded="_expanded">
+                                <MudDivider Class="pb-4 mb-2" />
+                                <MudGrid>
+                                    @foreach (var theme in _themes)
+                                    {
+                                        <MudItem xs="12" sm="6" md="4" lg="3" Class="pt-1">
+                                            <CodeInline Tag="false"><MudText Typo="Typo.caption">@theme</MudText></CodeInline>
+                                        </MudItem>
+                                    }
+                                </MudGrid>
+                            </MudCollapse>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </Description>
+        </DocsPageHeader>
 
-    <DocsPageSection Title="Basic Usage">
-        <Description>
-            You can display a code block using the <CodeInline>MudXCodeBlock</CodeInline> component. The minimum required
-            parameter is an <CodeInline Tag="false">IEnumerable&lt;CodeFile&gt;</CodeInline>. Each <CodeInline Tag="false">
-            CodeFile</CodeInline> has a <CodeInline Tag="false">Title</CodeInline>, <CodeInline Tag="false">Language</CodeInline>
-            and <CodeInline Tag="false">Code</CodeInline> parameter. The title is used as a Tab if you supply multiple code files.
-        </Description>
-        <ChildContent>
-            <SectionContent Codes="@CodeBlockBasicExampleCode.Files">
-                <CodeBlockBasicExample />
-            </SectionContent>
-        </ChildContent>
-    </DocsPageSection>
+        <DocsPageSection Title="Basic Usage">
+            <Description>
+                You can display a code block using the <CodeInline>MudXCodeBlock</CodeInline> component. The minimum required
+                parameter is an <CodeInline Tag="false">IEnumerable&lt;CodeFile&gt;</CodeInline>. Each <CodeInline Tag="false">
+                    CodeFile
+                </CodeInline> has a <CodeInline Tag="false">Title</CodeInline>, <CodeInline Tag="false">Language</CodeInline>
+                and <CodeInline Tag="false">Code</CodeInline> parameter. The title is used as a Tab if you supply multiple code files.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@CodeBlockBasicExampleCode.Files">
+                    <CodeBlockBasicExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
 
-    <DocsPageSection Title="Customized">
-        <Description>
-            There are a few options to help you customize your experience. Note that these options do not affect copy/paste
-            functionality at all and are for display purposes only.
-            <ul class="ml-10">
-                <li><strong>Invisibles</strong>: Show invisible characters such as space, tab, return, newline. Defaults to <CodeInline Tag="false">false</CodeInline>.</li>
-                <li><strong>Match Braces</strong>: Allows you to mouse over one brace and it highlights the matching braces. Defaults to <CodeInline Tag="false">true</CodeInline>.</li>
-                <li><strong>Line Numbers</strong>: Places line numbers to the left of the code. Defaults to <CodeInline Tag="false">false</CodeInline>.</li>
-            </ul>
-        </Description>
-        <ChildContent>
-            <SectionContent Codes="@CodeBlockCustomizedExampleCode.Files">
-                <CodeBlockCustomizedExample />
-            </SectionContent>
-        </ChildContent>
-    </DocsPageSection>
+        <DocsPageSection Title="Customized">
+            <Description>
+                There are a few options to help you customize your experience. Note that these options do not affect copy/paste
+                functionality at all and are for display purposes only.
+                <ul class="ml-10">
+                    <li><strong>Invisibles</strong>: Show invisible characters such as space, tab, return, newline. Defaults to <CodeInline Tag="false">false</CodeInline>.</li>
+                    <li><strong>Match Braces</strong>: Allows you to mouse over one brace and it highlights the matching braces. Defaults to <CodeInline Tag="false">true</CodeInline>.</li>
+                    <li><strong>Line Numbers</strong>: Places line numbers to the left of the code. Defaults to <CodeInline Tag="false">false</CodeInline>.</li>
+                </ul>
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@CodeBlockCustomizedExampleCode.Files">
+                    <CodeBlockCustomizedExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
 
-    <DocsPageSection Title="Themes">
-        <Description>
-            You can change the theme of the code block using the <CodeInline Tag="false">Theme</CodeInline> parameter and
-            one of the included themes in the <CodeInline Tag="false">CodeTheme</CodeInline> enum. Themes are global so any change in Theme will
-            apply to all code blocks on the page. The last loaded Theme will be the one used.
-        </Description>
-        <ChildContent>
-            <SectionContent Codes="@CodeBlockThemeLanguageExampleCode.Files">
-                <CodeBlockThemeLanguageExample />
-            </SectionContent>
-        </ChildContent>
-    </DocsPageSection>
+        <DocsPageSection Title="Themes">
+            <Description>
+                You can change the theme of the code block using the <CodeInline Tag="false">Theme</CodeInline> parameter and
+                one of the included themes in the <CodeInline Tag="false">CodeTheme</CodeInline> enum. Themes are global so any change in Theme will
+                apply to all code blocks on the page. The last loaded Theme will be the one used.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@CodeBlockThemeLanguageExampleCode.Files">
+                    <CodeBlockThemeLanguageExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
 
-    <DocsPageSection Title="Copy to Clipboard">
-        <Description>
-            You can customize both the origin point and icon of the copy button. To disable the copy button entirely, set 
-            <CodeInline Tag="false">CopyOrigin</CodeInline> to <CodeInline Tag="false">null</CodeInline>. The button always copies the current page or tab 
-            to the clipboard. After copying, a <CodeInline>MudAlert</CodeInline> is shown next to the icon button to indicate success or failure. 
-            By default, the icon has an opacity of 0.1 until you enter the code area, but you can override this using the 
-            <CodeInline Tag="false">CopyButtonClassname</CodeInline> CSS property.
-        </Description>
-        <ChildContent>
-            <SectionContent Codes="@CodeBlockCopyExampleCode.Files">
-                <CodeBlockCopyExample />
-            </SectionContent>
-        </ChildContent>
-    </DocsPageSection>
-
+        <DocsPageSection Title="Copy to Clipboard">
+            <Description>
+                You can customize both the origin point and icon of the copy button. To disable the copy button entirely, set
+                <CodeInline Tag="false">CopyOrigin</CodeInline> to <CodeInline Tag="false">null</CodeInline>. The button always copies the current page or tab
+                to the clipboard. After copying, a <CodeInline>MudAlert</CodeInline> is shown next to the icon button to indicate success or failure.
+                By default, the icon has an opacity of 0.1 until you enter the code area, but you can override this using the
+                <CodeInline Tag="false">CopyButtonClassname</CodeInline> CSS property.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@CodeBlockCopyExampleCode.Files">
+                    <CodeBlockCopyExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+    </ChildContent>
+    <ApiContent>
+        <ApiSection ApiJson="MudXCodeBlock.api.json" />
+    </ApiContent>
 </DocsPage>
 
 @code {

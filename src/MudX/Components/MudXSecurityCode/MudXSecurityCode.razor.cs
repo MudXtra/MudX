@@ -7,6 +7,9 @@ using MudBlazor.Utilities;
 
 namespace MudX
 {
+    /// <summary>
+    /// Represents a security code input component that allows users to enter a code based on a specified pattern.
+    /// </summary>
     public partial class MudXSecurityCode : MudComponentBase, IAsyncDisposable
     {
         private ElementReference? _elementRef;
@@ -17,6 +20,9 @@ namespace MudX
         private bool _isInternalChange = false;
         private MudForm? _form = null!;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MudXSecurityCode"/> class.
+        /// </summary>
         public MudXSecurityCode()
         {
             using var registerScope = CreateRegisterScope();
@@ -31,8 +37,14 @@ namespace MudX
 
         private IJSObjectReference? _module;
 
+        /// <summary>
+        /// The List of CodeITems
+        /// </summary>
         protected List<CodeItem> CodeItems = [];
 
+        /// <summary>
+        /// Gets the CSS class name for a code item based on its configuration.
+        /// </summary>
         protected string CodeClassname => new CssBuilder("mudx-code-item")
             .AddClass("dense", Margin == Margin.Dense)
             .AddClass("vertical", !Horizontal)
@@ -97,7 +109,7 @@ namespace MudX
         /// <summary>
         /// The current value of the security code.
         /// </summary>
-        /// <remarks>Defaults to <langword="null" /></remarks>
+        /// <remarks>Defaults to <c>null</c>.</remarks>
         [Parameter]
         public string? Code { get; set; }
 
@@ -110,7 +122,7 @@ namespace MudX
         /// <summary>
         /// If true, each input will be masked as a password.
         /// </summary>
-        /// <remarks>Defaults to <langword="false" /></remarks>
+        /// <remarks>Defaults to <c>false</c>.</remarks>
         [Parameter]
         public bool Password { get; set; } = false;
 
@@ -124,7 +136,7 @@ namespace MudX
         /// <summary>
         /// Whether to display items horizontally, if true will display items horizontally, false will display items vertically
         /// </summary>
-        /// <remarks>Defaults to <langword="true" /></remarks>
+        /// <remarks>Defaults to <c>true</c>.</remarks>
         [Parameter]
         public bool Horizontal { get; set; } = true;
 
@@ -145,12 +157,12 @@ namespace MudX
         /// <summary>
         /// If true, the underline will be visible.
         /// </summary>
-        /// <remarks>Defaults to <langword="true" /></remarks>
+        /// <remarks>Defaults to <c>true</c>.</remarks>
         [Parameter]
         public bool Underline { get; set; } = true;
 
         /// <summary>
-        /// The margin of the component. Can not be overridden by nested <see cref="MudX.MudXCodeItem"/>
+        /// The margin of the component.
         /// </summary>
         /// <remarks>Defaults to <see cref="Margin.Normal" /></remarks>
         [Parameter]
@@ -161,6 +173,9 @@ namespace MudX
         /// </summary>
         public bool IsValid => _form?.IsValid ?? false;
 
+        /// <summary>
+        /// OnParameterSet override
+        /// </summary>
         protected override void OnParametersSet()
         {
             base.OnParametersSet();
@@ -173,6 +188,9 @@ namespace MudX
             StateHasChanged();
         }
 
+        /// <summary>
+        /// OnInitialized override
+        /// </summary>
         protected override void OnInitialized()
         {
             base.OnInitialized();
@@ -182,6 +200,9 @@ namespace MudX
             GenerateFromPattern(Pattern);
         }
 
+        /// <summary>
+        /// OnAfterRenderAsync override
+        /// </summary>
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             await base.OnAfterRenderAsync(firstRender);
@@ -312,6 +333,17 @@ namespace MudX
             return false;
         }
 
+        /// <summary>
+        /// Handles the clipboard paste event triggered in javascript by processing the pasted text and updating the corresponding code items.
+        /// </summary>
+        /// <remarks>This method processes the pasted text by matching it against the editable and fixed
+        /// characters in the code items. Editable code items are updated with valid characters from the pasted text,
+        /// while fixed code items are set to their predefined values. After processing, the method updates the code
+        /// value, moves focus to the next focusable item, and validates the form if applicable.</remarks>
+        /// <param name="fullid">The full identifier string, which must be at least 10 characters long. The substring after the first 10
+        /// characters is used to determine the starting index for processing.</param>
+        /// <param name="text">The text pasted from the clipboard. Cannot be null, empty, or consist only of whitespace.</param>
+        /// <returns></returns>
         [JSInvokable]
         public async Task ClipboardPasteEvent(string fullid, string text)
         {
@@ -460,6 +492,9 @@ namespace MudX
             }
         }
 
+        /// <summary>
+        /// DisposeAsync
+        /// </summary>
         public async ValueTask DisposeAsync()
         {
             if (IsJSRuntimeAvailable)

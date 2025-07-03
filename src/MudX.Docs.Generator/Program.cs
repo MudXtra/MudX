@@ -43,8 +43,15 @@ try
     }
     Console.WriteLine("MudX.Docs.Generator: Examples written to {" + outputDirectory + "/Examples}");
     Console.WriteLine();
+    var apiResult = ApiSource.GenerateApiDocs(rootDirectory);
+    if (!apiResult)
+    {
+        return 1;
+    }
+    Console.WriteLine();
     Console.WriteLine("******");
     return 0;
+
 }
 catch (Exception ex)
 {

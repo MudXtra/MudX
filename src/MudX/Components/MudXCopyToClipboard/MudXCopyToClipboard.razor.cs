@@ -4,10 +4,16 @@ using MudBlazor;
 
 namespace MudX
 {
+    /// <summary>
+    /// Provides functionality to copy text to the clipboard and optionally display a snackbar notification.
+    /// </summary>
+    /// <remarks>This component uses JavaScript interop to perform clipboard operations. It does not generate
+    /// anything in the DOM but provides a public method to copy something to clipboard. It ensures JSInterop
+    /// is available before the copy and advises if not. </remarks>
     public partial class MudXCopyToClipboard : ComponentBase
     {
         [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-        [Inject] ISnackbar SnackbarService { get; set; } = default!;
+        [Inject] private ISnackbar SnackbarService { get; set; } = default!;
 
         /// <summary>
         /// Indicates if the snackbar should be shown as a result of a copy operation. A success will be Severity.Success
@@ -16,6 +22,10 @@ namespace MudX
         /// <remarks>Default is false</remarks>
         [Parameter] public bool Snackbar { get; set; }
 
+        /// <summary>
+        /// OnAfterRender override
+        /// </summary>
+        /// <param name="firstRender"></param>
         protected override void OnAfterRender(bool firstRender)
         {
             base.OnAfterRender(firstRender);

@@ -13,6 +13,13 @@ namespace MudX.Components
     public class MudXBreadcrumbsBase : MudBreadcrumbs, IDisposable
     {
         private ParameterState<string> _homeTextState;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MudBreadcrumbs"/> class in MudX.
+        /// </summary>
+        /// <remarks>This constructor sets up the internal state for managing the <c>HomeText</c>
+        /// parameter, including registering its change handler and event callback. It additionally 
+        /// injects NavigationManager to track movements.</remarks>
         public MudXBreadcrumbsBase()
         {
             using var registerScope = CreateRegisterScope();
@@ -21,6 +28,7 @@ namespace MudX.Components
                 .WithEventCallback(() => HomeTextChanged)
                 .WithChangeHandler(HomeTextHandleChanged);
         }
+
         [Inject] private NavigationManager NavManager { get; set; } = default!;
 
         /// <summary>
@@ -43,6 +51,9 @@ namespace MudX.Components
         /// </summary>
         public new IReadOnlyList<BreadcrumbItem>? Items => base.Items;
 
+        /// <summary>
+        /// OnInitialized override
+        /// </summary>
         protected override void OnInitialized()
         {
             base.Items = [new BreadcrumbItem(HomeText, "/", true)];
@@ -50,6 +61,10 @@ namespace MudX.Components
             base.OnInitialized();
         }
 
+        /// <summary>
+        /// OnAfterRender override
+        /// </summary>
+        /// <param name="firstRender"></param>
         protected override void OnAfterRender(bool firstRender)
         {
             if (firstRender)
@@ -93,6 +108,9 @@ namespace MudX.Components
                 .ToTitleCase(segment.Replace("-", " ").Replace("_", " "));
         }
 
+        /// <summary>
+        /// Dispose
+        /// </summary>
         public void Dispose()
         {
             NavManager.LocationChanged -= OnLocationChanged;
