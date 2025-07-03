@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX", "MudX\MudX.csproj", "{5500F3F4-24D0-432B-A74F-C41F20815DF8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		..\.gitignore = ..\.gitignore
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.UnitTests", "..\tests\MudX.UnitTests\MudX.UnitTests.csproj", "{AA9717B7-5B94-43B4-A43B-2FF9776D74B4}"
 EndProject
@@ -34,9 +37,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "markdownfiles", "markdownfi
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution Files", "{6773598C-5258-4E7D-ACA9-AC1DEE88A1D5}"
-	ProjectSection(SolutionItems) = preProject
-		..\.gitignore = ..\.gitignore
-	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.UnitTests.Viewer", "..\tests\MudX.UnitTests.Viewer\MudX.UnitTests.Viewer.csproj", "{77F5B7DB-262B-4548-B87C-B1AADB7BAF55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -72,12 +74,17 @@ Global
 		{FB925D31-5565-0AE5-A03B-9773B0537EDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB925D31-5565-0AE5-A03B-9773B0537EDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB925D31-5565-0AE5-A03B-9773B0537EDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77F5B7DB-262B-4548-B87C-B1AADB7BAF55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77F5B7DB-262B-4548-B87C-B1AADB7BAF55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77F5B7DB-262B-4548-B87C-B1AADB7BAF55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77F5B7DB-262B-4548-B87C-B1AADB7BAF55}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{AA9717B7-5B94-43B4-A43B-2FF9776D74B4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{77F5B7DB-262B-4548-B87C-B1AADB7BAF55} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BB550C29-5235-4C19-AEA3-E6323F31E958}

@@ -32,7 +32,7 @@ namespace MudX
         private bool _copySuccess = true;
         private bool _showMessage = false;
 
-        private string PrismCSSPath =>
+        internal string PrismCSSPath =>
             new($"./_content/MudX/prism/prism-{Theme.ToDescription()}.css");
 
         private static Placement GetPlacement(Origin origin) => origin switch

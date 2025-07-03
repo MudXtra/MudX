@@ -1,0 +1,46 @@
+
+<MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceEvenly" Breakpoint="Breakpoint.Md">
+    <div class="docs-stack-col">
+        <MudSelect T="Anchor" Label="TOC Anchor" @bind-Value="@_outlineAnchor">
+            <MudSelectItem Value="Anchor.Left">Left</MudSelectItem>
+            <MudSelectItem Value="Anchor.Right">Right</MudSelectItem>
+        </MudSelect>
+    </div>
+    <div>
+        <MudSwitch Label="TOC Show" @bind-Value="@_showOutline" />
+    </div>
+    <div>
+        <MudNumericField Label="TOC Width" @bind-Value="@_width" Min="100" Step="10" Max="400" />
+    </div>
+</MudStack>
+
+<MudXOutline ScrollContainerSelector="@($"#{ContentId}")" Anchor="@_outlineAnchor" ContentDrawerOpen="@_showOutline" Width="@_width"
+             StyleVariant="OutlineStyleVariant.Bullet">
+    <MudXOutlineSection Title="Item 4">
+        <MudText Typo="Typo.h6">Item 4</MudText>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        <br /><br /><br /><br /><br />
+    </MudXOutlineSection>
+    <MudXOutlineSection Title="Item 5">
+        <MudText Typo="Typo.h6">Item 5</MudText>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        <br /><br /><br /><br /><br />
+    </MudXOutlineSection>
+    <MudXOutlineSection Title="Item 6">
+        <MudText Typo="Typo.h6">Item 6</MudText>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        <br /><br /><br /><br /><br />
+    </MudXOutlineSection>
+</MudXOutline>
+
+@code {
+    /// <summary>
+    /// The id of the scrollable container
+    /// </summary>
+    [CascadingParameter(Name = "ContentId")]
+    public string ContentId { get; set; } = default!;
+
+    private Anchor _outlineAnchor = Anchor.Right;
+    private bool _showOutline = true;
+    private int _width = 200;
+}
