@@ -16,6 +16,8 @@ export class MudXScrollSpy {
     spying(containerSelector, sectionClassSelector, dotNetReference) {
         this.lastKnownElement = null;
         this.pendingAnimation = null;
+        if (!containerSelector || containerSelector == "#")
+            containerSelector = "html"
         this.containerSelector = containerSelector;
         this.sectionClassSelector = sectionClassSelector;
         this.dotNetReference = dotNetReference;

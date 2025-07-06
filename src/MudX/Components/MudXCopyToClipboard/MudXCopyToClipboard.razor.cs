@@ -12,8 +12,8 @@ namespace MudX
     /// is available before the copy and advises if not. </remarks>
     public partial class MudXCopyToClipboard : ComponentBase
     {
-        [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-        [Inject] private ISnackbar SnackbarService { get; set; } = default!;
+        [Inject] internal IJSRuntime JSRuntime { get; set; } = default!;
+        [Inject] internal ISnackbar SnackbarService { get; set; } = default!;
 
         /// <summary>
         /// Indicates if the snackbar should be shown as a result of a copy operation. A success will be Severity.Success
@@ -47,7 +47,7 @@ namespace MudX
             }
             if (IsJSRuntimeAvailable)
             {
-                result.Message = await JSRuntime.InvokeAsync<string>("mudxGeneral.copyToClipboard", text);
+                result.Message = await JSRuntime.CopyToClipboard(text);
                 if (result.Message == "success")
                 {
                     result.Success = true;

@@ -38,9 +38,9 @@ namespace MudX
         private IJSObjectReference? _module;
 
         /// <summary>
-        /// The List of CodeITems
+        /// The List of CodeItems
         /// </summary>
-        protected List<CodeItem> CodeItems = [];
+        internal List<CodeItem> CodeItems = [];
 
         /// <summary>
         /// Gets the CSS class name for a code item based on its configuration.
@@ -240,7 +240,7 @@ namespace MudX
             }
         }
 
-        private async Task OnAfterChange(int index)
+        internal async Task OnAfterChange(int index)
         {
             var input = CodeItems[index].Value;
             if (string.IsNullOrEmpty(input))
