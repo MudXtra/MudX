@@ -10,25 +10,28 @@
     <MudPopover @ref="@_popoverRef" AnchorOrigin="@(PopoverAnchor)" TransformOrigin="@(PopoverTransform)" Elevation="0" Paper="false"
                 Class="@PopoverClassname" UserAttributes="@PositionAttributes"
                 Style="@(PopoverStyleName)" Open="@_contentDrawerOpenState.Value" OverflowBehavior="@OverflowBehavior.FlipNever">
-        @if (HeaderIndexContent != null)
+        @if (_shouldRenderTOC)
         {
-            @HeaderIndexContent
-        }
-        <MudCard Elevation="0" Class="@CardClassname" Style="@PopoverStyleName">
-            <MudCardHeader>
-                <MudText Typo="Typo.subtitle1" Class="mudx-toc-title" GutterBottom="true">
-                    @Headline
-                </MudText>
-            </MudCardHeader>
-            <MudCardContent Class="py-0">
-                <div class="@GetNavLinksClass">
-                    @LevelContent(_sections)
-                </div>
-            </MudCardContent>
-        </MudCard>
-        @if (FooterIndexContent != null)
-        {
-            @FooterIndexContent
+            @if (HeaderIndexContent != null)
+            {
+                @HeaderIndexContent
+            }
+            <MudCard Elevation="0" Class="@CardClassname" Style="@PopoverStyleName">
+                <MudCardHeader>
+                    <MudText Typo="Typo.subtitle1" Class="mudx-toc-title" GutterBottom="true">
+                        @Headline
+                    </MudText>
+                </MudCardHeader>
+                <MudCardContent Class="py-0">
+                    <div class="@GetNavLinksClass">
+                        @LevelContent(_sections)
+                    </div>
+                </MudCardContent>
+            </MudCard>
+            @if (FooterIndexContent != null)
+            {
+                @FooterIndexContent
+            }
         }
     </MudPopover>
 

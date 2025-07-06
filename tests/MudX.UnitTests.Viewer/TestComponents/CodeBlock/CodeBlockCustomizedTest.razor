@@ -4,13 +4,13 @@
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddCode">Add CodeFile</MudButton>
     </MudItem>
     <MudItem xs="12" sm="9" md="6" lg="3" xl="2">
-        <MudSwitch @bind-Value="@_invisibles" Color="Color.Primary">Invisibles</MudSwitch>
+        <MudSwitch Class="invisible-switch" @bind-Value="@_invisibles" Color="Color.Primary">Invisibles</MudSwitch>
     </MudItem>
     <MudItem xs="12" sm="9" md="6" lg="3" xl="2">
-        <MudSwitch @bind-Value="@_matchcase" Color="Color.Primary">Match Braces</MudSwitch>
+        <MudSwitch Class="case-switch" @bind-Value="@_matchcase" Color="Color.Primary">Match Braces</MudSwitch>
     </MudItem>
     <MudItem xs="12" sm="9" md="6" lg="3" xl="2">
-        <MudSwitch @bind-Value="@_lineNumbers" Color="Color.Primary">Line Numbers</MudSwitch>
+        <MudSwitch Class="line-switch" @bind-Value="@_lineNumbers" Color="Color.Primary">Line Numbers</MudSwitch>
     </MudItem>
 </MudGrid>
 

@@ -37,6 +37,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "markdownfiles", "markdownfi
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution Files", "{6773598C-5258-4E7D-ACA9-AC1DEE88A1D5}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.md = ..\README.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.UnitTests.Viewer", "..\tests\MudX.UnitTests.Viewer\MudX.UnitTests.Viewer.csproj", "{77F5B7DB-262B-4548-B87C-B1AADB7BAF55}"
 EndProject

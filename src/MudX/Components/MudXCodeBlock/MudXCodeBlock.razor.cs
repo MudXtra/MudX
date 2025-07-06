@@ -46,6 +46,7 @@ namespace MudX
         private string GetInvisiblesStyle() => Invisibles
             ? string.Empty
             : $$"""
+              <style class="invisible-hide">
               #{{_elementId}} .token.space,
               #{{_elementId}} .token.crlf,
               #{{_elementId}} .token.tab,
@@ -53,6 +54,7 @@ namespace MudX
               #{{_elementId}} .token.lf {
                   opacity: 0 !important;
               }
+              </style>
              """;
 
         /// <summary>
@@ -202,7 +204,8 @@ namespace MudX
             else if (_theme != Theme && _module != null)
             {
                 _theme = Theme;
-                await _module.InvokeVoidAsync("injectCssFromFile", PrismCSSPath);
+                if (IsJSRuntimeAvailable)
+                    await _module.InvokeVoidAsync("injectCssFromFile", PrismCSSPath);
             }
             if (_codeFileCount != Codes.Count())
             {
@@ -239,7 +242,8 @@ namespace MudX
             if (CopyOrigin.HasValue)
             {
                 var boundingRect = await _elementRef.MudGetBoundingClientRectAsync();
-                _position = PagePosition.GetPagePositionFromOrigin(boundingRect, CopyOrigin.Value);
+                if (boundingRect != null)
+                    _position = PagePosition.GetPagePositionFromOrigin(boundingRect, CopyOrigin.Value);
             }
             StateHasChanged();
         }

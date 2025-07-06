@@ -21,7 +21,6 @@ namespace MudX
     {
         private readonly string _id = $"mudx-toc-{Guid.NewGuid()}";
         private (double X, double Y) _position = (0, 0);
-        private bool _shouldRepositionPopover = true;
         private string _scrollContainerSelector = "html";
         private ElementReference _anchorRef;
         private MudPopover? _popoverRef;
@@ -30,6 +29,7 @@ namespace MudX
         internal List<MudXOutlineSection> _sections = [];
         private OutlineScrollSpy? _scrollSpy;
         internal Dictionary<string, int> _idCounts = new(StringComparer.OrdinalIgnoreCase);
+        private bool _shouldRenderTOC = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MudXOutline"/> class.
@@ -67,7 +67,7 @@ namespace MudX
         /// <summary>
         /// Gets the CSS class names for the popover element, including position and fixed state overrides.
         /// </summary>
-        protected string PopoverClassname => new CssBuilder("")
+        protected string PopoverClassname => new CssBuilder("mudx-outline-popover")
             .AddClass("mud-popover-position-override") // not fixed we hard code the position
             .AddClass("fixed", IsFixed)
             .Build();
@@ -239,9 +239,9 @@ namespace MudX
         /// <summary>
         /// OnParameterSet override
         /// </summary>
-        protected override void OnParametersSet()
+        protected override async Task OnParametersSetAsync()
         {
-            base.OnParametersSet();
+            await base.OnParametersSetAsync();
             _anchor = Anchor switch
             {
                 Anchor.Top or Anchor.Start => Anchor.Left,
@@ -256,7 +256,7 @@ namespace MudX
             {
                 _scrollContainerSelector = ScrollContainerSelector;
             }
-            _shouldRepositionPopover = true;
+            await PositionIndex();
         }
 
         /// <summary>
@@ -287,10 +287,6 @@ namespace MudX
                 }
                 await PositionIndex();
             }
-            if (_shouldRepositionPopover)
-            {
-                await PositionIndex();
-            }
         }
 
         /// <summary>
@@ -301,8 +297,11 @@ namespace MudX
             if (IsJSRuntimeAvailable)
             {
                 var rect = await _anchorRef.MudGetBoundingClientRectAsync();
-                _position = PagePosition.GetPagePositionFromOrigin(rect, PopoverAnchor);
-                _shouldRepositionPopover = false;
+                if (rect != null)
+                {
+                    _position = PagePosition.GetPagePositionFromOrigin(rect, PopoverAnchor);
+                }
+                _shouldRenderTOC = true;
                 StateHasChanged();
             }
         }
@@ -340,7 +339,7 @@ namespace MudX
             }
         }
 
-        private async Task OnNavLinkClick(MudXOutlineSection section)
+        internal async Task OnNavLinkClick(MudXOutlineSection section)
         {
             await OnNavLinkClick(section.SectionId);
         }
@@ -371,7 +370,7 @@ namespace MudX
 
             DeactivateSections(_sections);
             activeLink.Activate();
-
+            _ = _scrollSpy?.SetSectionAsActive(activeLink.SectionId);
             InvokeAsync(StateHasChanged);
         }
 

@@ -14,7 +14,7 @@
     </div>
 </MudStack>
 
-<MudXOutline ScrollContainerSelector="@($"#{ContentId}")" Anchor="@_outlineAnchor" ContentDrawerOpen="@_showOutline" Width="@_width"
+<MudXOutline Anchor="@_outlineAnchor" ContentDrawerOpen="@_showOutline" Width="@_width"
              StyleVariant="OutlineStyleVariant.Bullet">
     <MudXOutlineSection Title="Item 4">
         <MudText Typo="Typo.h6">Item 4</MudText>
@@ -34,11 +34,6 @@
 </MudXOutline>
 
 @code {
-    /// <summary>
-    /// The id of the scrollable container
-    /// </summary>
-    [CascadingParameter(Name = "ContentId")]
-    public string ContentId { get; set; } = default!;
 
     private Anchor _outlineAnchor = Anchor.Right;
     private bool _showOutline = true;

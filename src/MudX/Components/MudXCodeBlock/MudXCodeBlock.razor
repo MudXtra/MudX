@@ -2,9 +2,8 @@
 @using MudX.Extensions;
 @inherits MudComponentBase
 
-<style>
-    @GetInvisiblesStyle()
-</style>
+
+@((MarkupString)GetInvisiblesStyle())
 
 <div @ref="@_elementRef" id="@_elementId" class="@Classname" style="@Stylename" @onmouseenter="@(() => _showCopy = true)" @onmouseleave="@(() => _showCopy = false)" @attributes="@UserAttributes">
     @if (Codes?.Count() == 1)

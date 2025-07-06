@@ -29,6 +29,18 @@
                 </SectionContent>
             </ChildContent>
         </DocsPageSection>
+
+        <DocsPageSection Title="Even Easier Usage">
+            <Description>
+                If you do not need the Snackbar or CopyResult returned from the component <CodeInline>IJSRuntime</CodeInline> contains an extension
+                method so long as you have MudX in your <CodeInline Tag=false>using</CodeInline> or <CodeInline Tag=false>_Imports</CodeInline>.
+                So inject IJsRuntime as you normally would like <CodeInline Tag=false>@@inject IJSRuntime _jsRuntime</CodeInline> and
+                then after the first render you can execute <CodeInline Tag=false>_jsRuntime.CopyToClipboard(text_to_copy);</CodeInline>
+                that will return a string indicating <CodeInline Tag=false>success</CodeInline> or the error message received.
+            </Description>
+            <ChildContent></ChildContent>
+        </DocsPageSection>
+
     </ChildContent>
     <ApiContent>
         <ApiSection ApiJson="MudXCopyToClipboard.api.json" />

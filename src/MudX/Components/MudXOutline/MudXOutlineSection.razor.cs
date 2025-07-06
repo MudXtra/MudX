@@ -143,7 +143,7 @@ namespace MudX
         }
 
         /// <summary>
-        /// Adds a section to the Table of Contents
+        /// Adds a section to the current Parent (Outline or OutlineSection) and Table of Contents
         /// </summary>
         public async Task RegisterSectionAsync(MudXOutlineSection section)
         {
