@@ -53,7 +53,7 @@
     [Parameter, EditorRequired]
     public required string ApiJson { get; set; }
 
-    private string _apiName { get; set; }
+    private string _apiName { get; set; } = default!;
 
     protected override void OnInitialized()
     {

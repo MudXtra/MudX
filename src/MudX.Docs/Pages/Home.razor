@@ -15,7 +15,7 @@
     <MudText Class="mt-1" Typo="Typo.subtitle1">
         <MudLink OnClick="@(() => _versionsShow = !_versionsShow)">
             Library Versions Supported
-            <MudPopover @bind-Open="_versionsShow" AnchorOrigin="Origin.CenterRight" Class="ml-3" TransformOrigin="Origin.CenterLeft">
+            <MudPopover Open="_versionsShow" AnchorOrigin="Origin.CenterRight" Class="ml-3" TransformOrigin="Origin.CenterLeft">
                 <MudList T="string">
                     @foreach (var version in versionList.Versions)
                     {
