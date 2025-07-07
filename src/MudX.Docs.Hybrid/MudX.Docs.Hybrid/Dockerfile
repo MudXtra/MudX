@@ -28,8 +28,8 @@ FROM build AS publish
 RUN dotnet publish "./MudX.Docs.Hybrid.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Copy generated static assets to final publish folder
-RUN cp -r /src/MudX/wwwroot /app/publish/MudX/wwwroot && \
-    cp -r /src/MudX.Docs/wwwroot /app/publish/MudX.Docs/wwwroot
+#RUN cp -r /src/MudX/wwwroot /app/publish/MudX/wwwroot && \
+#    cp -r /src/MudX.Docs/wwwroot /app/publish/MudX.Docs/wwwroot
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
