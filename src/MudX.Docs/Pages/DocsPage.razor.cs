@@ -5,6 +5,9 @@ namespace MudX.Docs
     public partial class DocsPage
     {
         [Parameter, EditorRequired]
+        public required string Headline { get; set; }
+
+        [Parameter, EditorRequired]
         public required RenderFragment ChildContent { get; set; }
 
         [Parameter, EditorRequired]

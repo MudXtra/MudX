@@ -22,7 +22,7 @@
                               UserAttributes="@_attributes"
                               InputType="@(item.IsEditable && Password ? InputType.Password : InputType.Text)"
                               InputMode="@(item.PatternChar == PlaceholderNumeric ? InputMode.numeric : InputMode.text)"
-                              Variant="@(!item.IsEditable ? Variant.Text : Variant)"
+                              Variant="@(!item.IsEditable ? ReadOnlyVariant : Variant)"
                               Margin="@Margin"
                               Underline="@(item.IsEditable ? Underline : false)"
                               OnKeyDown="@(e => OnKeyDown(item.Index, e))"

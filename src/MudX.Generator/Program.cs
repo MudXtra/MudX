@@ -61,6 +61,7 @@ try
     var jsMainOutFile = Path.Combine(modulesDirectory, "../", "mudx.min.js");
     var maincontents = JavaScriptCompressor.Compress(File.ReadAllText(jsMainFile));
     // write contents to file
+    File.Delete(jsDevOutFile); // Ensure the file is deleted before copying
     File.Copy(jsMainFile, jsDevOutFile);
     File.WriteAllText(jsMainOutFile, maincontents);
 
@@ -81,6 +82,7 @@ try
         return 1;
     }
     // write contents to file
+    File.Delete(cssDevOutFile); // Ensure the file is deleted before copying
     File.Copy(cssMainFile, cssDevOutFile);
     File.WriteAllText(cssMainOutFile, csscontents.Code);
 

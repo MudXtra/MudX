@@ -233,6 +233,7 @@ namespace MudX
                 CodeItems.Add(new CodeItem
                 {
                     Index = index++,
+                    MasterId = Id[13..], // Extract the unique part of the ID
                     Value = !isEditable ? ch.ToString() : string.Empty,
                     PatternChar = ch,
                     IsEditable = isEditable
