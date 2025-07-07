@@ -25,8 +25,8 @@ RUN dotnet build "./MudX.Docs.Hybrid.csproj" -c $BUILD_CONFIGURATION -o /app/bui
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./MudX.Docs.Hybrid.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet clean "./MudX.Docs.Hybrid.csproj" -c $BUILD_CONFIGURATION
+RUN dotnet build "./MudX.Docs.Hybrid.csproj" -c $BUILD_CONFIGURATION -o /app/build /p:BuildInParallel=false
 
 # Copy generated static assets to final publish folder
 RUN cp -r /src/MudX/wwwroot /app/publish/MudX/wwwroot && \
