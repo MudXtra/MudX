@@ -20,6 +20,7 @@ COPY ["MudX.DependsOn/MudX.DependsOn.csproj", "MudX.DependsOn/"]
 RUN dotnet restore "./MudX.Docs.Hybrid/MudX.Docs.Hybrid/MudX.Docs.Hybrid.csproj"
 COPY . .
 WORKDIR "/src/MudX.Docs.Hybrid/MudX.Docs.Hybrid"
+ENV DOTNET_BUILD_PARALLEL=false
 RUN dotnet build "./MudX.Docs.Hybrid.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
