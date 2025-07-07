@@ -51,7 +51,6 @@ export async function initialize(cssPath) {
 
 export function highlightElementById(elementId) {
     if (!window.Prism) {
-        console.error("Prism is not loaded.");
         return;
     }
 
