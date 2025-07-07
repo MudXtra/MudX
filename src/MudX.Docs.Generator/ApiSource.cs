@@ -28,25 +28,36 @@ namespace MudX.Docs.Generator
                 Console.WriteLine($"⚠️ MudX XML documentation file not found: {xmlPath}");
             }
 
-            // Load XML documentation file for the MudBlazor assembly since we inherit from MudBlazor types
             Assembly mudAssembly = typeof(MudBlazor._Imports).Assembly;
             xmlPath = Path.ChangeExtension(mudAssembly.Location, ".xml");
+
             if (!File.Exists(xmlPath))
             {
-                // Try to find the XML in the NuGet global packages folder
                 var mudBlazorAssemblyName = mudAssembly.GetName().Name;
                 var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
                 var nugetPath = Path.Combine(userProfile, ".nuget", "packages", mudBlazorAssemblyName!.ToLower());
+
+                var fallbackPath = Path.Combine(rootDirectory, "..", "wwwroot", "api", "Mudblazor.xml");
+
                 if (Directory.Exists(nugetPath))
                 {
-                    // Try to find the XML file in any target framework folder
                     var xmlFiles = Directory.GetFiles(nugetPath, "MudBlazor.xml", SearchOption.AllDirectories);
                     if (xmlFiles.Length > 0)
                     {
                         xmlPath = xmlFiles[0];
+                        File.Copy(xmlPath, fallbackPath, true);
+                    }
+                    else
+                    {
+                        xmlPath = fallbackPath;
                     }
                 }
+                else
+                {
+                    xmlPath = fallbackPath;
+                }
             }
+
 
             if (File.Exists(xmlPath))
             {
