@@ -28,15 +28,24 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />    
     <link href=@Assets["_content/MudBlazor/MudBlazor.min.css"] rel="stylesheet" />    
     <link href=@Assets["_content/MudX.Docs/docs.css"] rel="stylesheet" />
-    <ImportMap />
     <link rel="icon" href="_content/MudX.Docs/images/MudX_Transparent_Logo.ico" />
-    <HeadOutlet @rendermode="InteractiveServer" />
+
+    <ImportMap />
+    <HeadOutlet @rendermode="InteractiveAuto" />
 </head>
 
 <body>
-    <Routes @rendermode="InteractiveServer" />
+    <Routes @rendermode="InteractiveAuto" />
     <script src="_framework/blazor.web.js"></script>
     <script src=@Assets["_content/MudBlazor/MudBlazor.min.js"] type="text/javascript"></script>
 </body>
 
 </html>
+
+    @code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    private IComponentRenderMode? PageRenderMode =>
+        HttpContext.AcceptsInteractiveRouting() ? InteractiveAuto : null;
+}

@@ -20,7 +20,7 @@ namespace MudX.UnitTests.Components
             Assert.That(item.Value, Is.EqualTo(string.Empty));
             Assert.That(item.PatternChar, Is.EqualTo('\0'));
             Assert.That(item.IsEditable, Is.False);
-            Assert.That(item.InputId, Is.EqualTo("mudX-code-0"));
+            Assert.That(item.InputId, Is.EqualTo("mudX-code-0-"));
             Assert.That(item.TextFieldRef, Is.Null);
         }
 
@@ -35,7 +35,8 @@ namespace MudX.UnitTests.Components
                 Value = "X",
                 PatternChar = '9',
                 IsEditable = true,
-                TextFieldRef = textField
+                TextFieldRef = textField,
+                MasterId = "unique-guid"
             };
 
             // Act & Assert
@@ -43,7 +44,7 @@ namespace MudX.UnitTests.Components
             Assert.That(item.Value, Is.EqualTo("X"));
             Assert.That(item.PatternChar, Is.EqualTo('9'));
             Assert.That(item.IsEditable, Is.True);
-            Assert.That(item.InputId, Is.EqualTo("mudX-code-3"));
+            Assert.That(item.InputId, Is.EqualTo("mudX-code-3-unique-guid"));
             Assert.That(item.TextFieldRef, Is.EqualTo(textField));
         }
 
@@ -101,6 +102,20 @@ namespace MudX.UnitTests.Components
             // dispose the component
             await codeComp.Instance.DisposeAsync();
             comp.WaitForAssertion(() => moduleMock.VerifyInvoke("cleanup"));
+        }
+
+        [Test]
+        public void SecurityCode_ShouldR()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<SecurityCodeBasicTest>();
+            var codeComp = comp.FindComponent<MudXSecurityCode>();
+
+            // Assert
+            codeComp.Should().NotBeNull();
+            codeComp.Instance.CodeItems.Count.Should().Be(4);
+            codeComp.Instance.CodeItems.All(item => item.Value == string.Empty).Should().BeTrue();
+            codeComp.Instance.CodeItems.All(item => item.IsEditable).Should().BeTrue();
         }
     }
 }

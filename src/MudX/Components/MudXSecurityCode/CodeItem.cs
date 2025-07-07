@@ -14,6 +14,10 @@ namespace MudX
         [Key]
         public int Index { get; set; }
         /// <summary>
+        /// The Security Code Guid that this item belongs to
+        /// </summary>
+        public string MasterId { get; set; } = default!;
+        /// <summary>
         /// The current Value of the code item
         /// </summary>
         public string Value { get; set; } = string.Empty;
@@ -28,7 +32,7 @@ namespace MudX
         /// <summary>
         /// Gets the unique identifier for the input element.
         /// </summary>
-        public string InputId => $"mudX-code-{Index}";
+        public string InputId => $"mudX-code-{Index}-{MasterId}";
         /// <summary>
         /// The <c>@ref</c> value for the underlying MudTextField
         /// </summary>
