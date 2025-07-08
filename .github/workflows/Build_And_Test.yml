@@ -34,7 +34,8 @@ jobs:
       run: dotnet build --no-restore --configuration Release /p:BuildInParallel=false
 
     - name: Run tests with coverage
-      run: dotnet test ./tests/MudX.UnitTests/MudX.UnitTests.csproj \
+      run: |
+        dotnet test ./tests/MudX.UnitTests/MudX.UnitTests.csproj \
         -c Release --no-build --no-restore --blame-hang --blame-hang-timeout 60s --verbosity normal \
         /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput='./TestResults/coverage.xml'
         
