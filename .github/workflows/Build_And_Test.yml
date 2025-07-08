@@ -28,13 +28,12 @@ jobs:
       run: dotnet build ./src/MudX/MudX.sln --no-restore --configuration Release
 
     - name: Run tests with coverage
-      run: dotnet test ./tests/MudX.UnitTests/MudX.UnitTests.csproj --no-build --verbosity normal --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./coverage.xml
+      run: dotnet test ./tests/MudX.UnitTests/MudX.UnitTests.csproj --no-build --verbosity normal --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=../coverage.xml
 
     - name: Upload to Coveralls
       uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        coveralls-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
         path-to-lcov: ./tests/coverage.xml
         format: cobertura
 
