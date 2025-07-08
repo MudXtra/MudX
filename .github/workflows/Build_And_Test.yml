@@ -31,7 +31,7 @@ jobs:
 
     - name: Build
       working-directory: ./src
-      run: dotnet build --no-restore --configuration Release
+      run: dotnet build --no-restore --configuration Release /p:BuildInParallel=false
 
     - name: Run tests with coverage
       run: dotnet test ./tests/MudX.UnitTests/MudX.UnitTests.csproj \
