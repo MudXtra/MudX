@@ -22,19 +22,19 @@ jobs:
         dotnet-version: 9.0.x
 
     - name: Restore dependencies
-      run: dotnet restore ./src/MudX/MudX.sln
+      run: dotnet restore
 
     - name: Build
-      run: dotnet build ./src/MudX/MudX.sln --no-restore --configuration Release
+      run: dotnet build --no-restore --configuration Release
 
     - name: Run tests with coverage
-      run: dotnet test ./tests/MudX.UnitTests/MudX.UnitTests.csproj --no-build --verbosity normal --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=../coverage.xml
+      run: dotnet test -c Release --no-build --no-restore --blame-hang --blame-hang-timeout 60s --verbosity normal --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput='./TestResults/' 
 
     - name: Upload to Coveralls
       uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: ./tests/coverage.xml
+        path-to-lcov: ./TestResults/
         format: cobertura
 
     # Optional: Upload coverage file for debugging
@@ -42,4 +42,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
-        path: ./tests/coverage.xml
+        path: ./TestResults/
