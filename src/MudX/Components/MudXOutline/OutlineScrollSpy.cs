@@ -10,11 +10,11 @@ namespace MudX.Components.MudXOutline
     public sealed class OutlineScrollSpy : IAsyncDisposable
     {
         private readonly string _spyId = Guid.NewGuid().ToString();
-        private IJSRuntime _js;
+        private readonly IJSRuntime _js;
         private IJSObjectReference? _module;
         private IJSObjectReference? _spyInstance;
         private DotNetObjectReference<OutlineScrollSpy>? _dotNetReference;
-        private bool _isDisposing;
+        internal bool _isDisposing;
 
         /// <summary>
         /// The id of the currently centered section
@@ -25,6 +25,19 @@ namespace MudX.Components.MudXOutline
         /// Event raised when a section is centered
         /// </summary>
         public event EventHandler<ScrollSectionCenteredEventArgs>? ScrollSpySectionCentered;
+
+        /// <summary>
+        /// Delegate Task return for PositionChanged
+        /// </summary>
+        /// <param name="sender">The sending object</param>
+        /// <param name="e">The breakpoint when PositionChanged is called</param>
+        /// <returns></returns>
+        public delegate Task BreakpointChangedHandler(object? sender, Breakpoint e);
+
+        /// <summary>
+        /// Event raised when a position change occurs
+        /// </summary>
+        public event BreakpointChangedHandler? PositionChanged;
 
         /// <summary>
         /// Initialize the class by supplying the IJSRuntime
@@ -71,6 +84,26 @@ namespace MudX.Components.MudXOutline
         }
 
         /// <summary>
+        /// Indicates a position change occured that should cause the TOC to change position
+        /// </summary>
+        [JSInvokable]
+        public async Task UpdatePosition(string breakpoint)
+        {
+            Breakpoint bp = breakpoint switch
+            {
+                "xs" => Breakpoint.Xs,
+                "sm" => Breakpoint.Sm,
+                "md" => Breakpoint.Md,
+                "lg" => Breakpoint.Lg,
+                "xl" => Breakpoint.Xl,
+                _ => Breakpoint.Xl // fallback if unknown
+            };
+            if (PositionChanged != null)
+                await PositionChanged.Invoke(this, bp);
+        }
+
+
+        /// <summary>
         /// Scrolls to a section based on the fragment of the uri. If there is no fragment, no scroll will occurr
         /// </summary>
         public async Task ScrollToSection(Uri uri) => await ScrollToSection(uri.Fragment);
@@ -82,8 +115,9 @@ namespace MudX.Components.MudXOutline
         public async Task ScrollToSection(string id)
         {
             if (_isDisposing || _spyInstance is null || string.IsNullOrEmpty(id)) return;
+            id = id.Trim('#');
             CenteredSection = id;
-            await _spyInstance.InvokeVoidAsync("scrollToSection", id.Trim('#'));
+            await _spyInstance.InvokeVoidAsync("scrollToSection", id);
         }
 
         /// <summary>
@@ -93,8 +127,9 @@ namespace MudX.Components.MudXOutline
         public async Task SetSectionAsActive(string id)
         {
             if (_isDisposing || _spyInstance is null || string.IsNullOrEmpty(id)) return;
+            id = id.Trim('#');
             CenteredSection = id;
-            await _spyInstance.InvokeVoidAsync("activateSection", id.Trim('#'));
+            await _spyInstance.InvokeVoidAsync("activateSection", id);
         }
 
         /// <summary>

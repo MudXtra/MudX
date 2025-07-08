@@ -11,6 +11,7 @@ export class MudXScrollSpy {
         this.container = null;
         this.parentClassSelector = 'mudx-toc-document';
         this.handleRef = this.handleScroll.bind(this);
+        this.handleRefResize = this.handleResize.bind(this);
     }
 
     spying(containerSelector, sectionClassSelector, dotNetReference) {
@@ -24,25 +25,28 @@ export class MudXScrollSpy {
         this.container = document.querySelector(this.containerSelector);
         if (!this.container) return;
 
+        window.addEventListener('resize', this.handleRefResize);
         if (this.containerSelector !== 'html') {
             this.container.addEventListener('scroll', this.handleRef);
-            this.container.addEventListener('resize', this.handleRef);
+            this.container.addEventListener('resize', this.handleRefResize);
         } else {
-            window.addEventListener('scroll', this.handleRef);
-            window.addEventListener('resize', this.handleRef);
+            window.addEventListener('scroll', this.handleRef);            
         }
+
+        // set initial Breakpoint
+        this.handleResize();
     }
 
     unspy() {
         if (this.pendingAnimation !== null) {
             cancelAnimationFrame(this.pendingAnimation);
         }
+        window.removeEventListener('resize', this.handleRefResize);
         if (this.containerSelector !== 'html') {
             this.container?.removeEventListener('scroll', this.handleRef);
-            this.container?.removeEventListener('resize', this.handleRef);
+            this.container?.removeEventListener('resize', this.handleRefResize);
         } else {
-            window.removeEventListener('scroll', this.handleRef);
-            window.removeEventListener('resize', this.handleRef);
+            window.removeEventListener('scroll', this.handleRef);            
         }
         this.lastKnownElement = null;
         this.pendingAnimation = null;
@@ -52,12 +56,37 @@ export class MudXScrollSpy {
         this.container = null;
     }
 
+    handleResize() {
+        const width = window.innerWidth;
+        let breakpoint = 'xs';
+
+        if (width >= 1920) {
+            breakpoint = 'xl';
+        } else if (width >= 1280) {
+            breakpoint = 'lg';
+        } else if (width >= 960) {
+            breakpoint = 'md';
+        } else if (width >= 600) {
+            breakpoint = 'sm';
+        }
+
+        if (this.dotNetReference) {
+            this.dotNetReference.invokeMethodAsync('UpdatePosition', breakpoint);
+        }
+
+        this.handleScroll();
+
+        return breakpoint;
+    }
+
+
     handleScroll() {
         if (this.pendingAnimation !== null) {
             cancelAnimationFrame(this.pendingAnimation);
         }        
 
-        this.pendingAnimation = requestAnimationFrame(() => {
+        this.pendingAnimation = requestAnimationFrame(() => {           
+
             this.pendingAnimation = null;
             const container = this.container;
             if (!container) return;

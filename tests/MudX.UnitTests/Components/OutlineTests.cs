@@ -1,6 +1,11 @@
-﻿using Bunit;
+﻿using System.Reflection;
+using Bunit;
 using FluentAssertions;
+using Microsoft.JSInterop;
+using Microsoft.JSInterop.Infrastructure;
+using Moq;
 using MudBlazor;
+using MudX.Components.MudXOutline;
 using MudX.UnitTests.Viewer.TestComponents.Outline;
 using NUnit.Framework;
 
@@ -119,6 +124,19 @@ namespace MudX.UnitTests.Components
         }
 
         [Test]
+        public async Task Outline_ContentDrawer_ByBreakpoint()
+        {
+            var comp = Context.RenderComponent<OutlineBasicTest>();
+            var outline = comp.FindComponent<MudXOutline>();
+            outline.Should().NotBeNull();
+            outline.Instance.TOCBreakpoint.Should().Be(Breakpoint.Md);
+            await comp.InvokeAsync(async () => await outline.Instance.PositionChanged(this, Breakpoint.Lg));
+            comp.WaitForAssertion(() => outline.Instance._contentDrawerOpenState.Value.Should().BeTrue());
+            await comp.InvokeAsync(async () => await outline.Instance.PositionChanged(this, Breakpoint.Md));
+            comp.WaitForAssertion(() => outline.Instance._contentDrawerOpenState.Value.Should().BeFalse());
+        }
+
+        [Test]
         public async Task Outline_Tests_JSModule()
         {
             // Arrange: Setup JSInterop to expect the import and initialize calls
@@ -158,5 +176,130 @@ namespace MudX.UnitTests.Components
             await outline.Instance.DisposeAsync();
             comp.WaitForAssertion(() => moduleMock.VerifyInvoke("disposeScrollSpy"));
         }
+
+        [Test]
+        public async Task OutlineScrollSpy_Tests_UsingMoq()
+        {
+            // Arrange, forced to use Moq here as the JSInterop to instantiate OutlineScrollSpy is not available in Bunit
+            var mockJsRuntime = new Mock<IJSRuntime>();
+            var mockModule = new Mock<IJSObjectReference>();
+            var mockSpyInstance = new Mock<IJSObjectReference>();
+
+            // Mock JSRuntime.import(...) → returns module
+            mockJsRuntime
+                .Setup(js => js.InvokeAsync<IJSObjectReference>(
+                    "import", It.Is<object[]>(args => args[0]!.ToString() == "./_content/MudX/modules/mudxScrollSpy.js")))
+                .ReturnsAsync(mockModule.Object);
+
+            // Mock module.createScrollSpy(...) → returns spyInstance
+            mockModule
+                .Setup(m => m.InvokeAsync<IJSObjectReference>(
+                    "createScrollSpy", It.IsAny<object[]>()))
+                .ReturnsAsync(mockSpyInstance.Object);
+
+            mockSpyInstance
+                .Setup(s => s.InvokeAsync<IJSVoidResult>("spying", It.IsAny<object[]>()))
+                .Returns(new ValueTask<IJSVoidResult>(Mock.Of<IJSVoidResult>()));
+
+            mockSpyInstance
+                .Setup(s => s.InvokeAsync<IJSVoidResult>("scrollToSection", It.IsAny<object[]>()))
+                .Returns(new ValueTask<IJSVoidResult>(Mock.Of<IJSVoidResult>()));
+
+            mockSpyInstance
+                .Setup(s => s.InvokeAsync<IJSVoidResult>("activateSection", It.IsAny<object[]>()))
+                .Returns(new ValueTask<IJSVoidResult>(Mock.Of<IJSVoidResult>()));
+
+            mockModule
+                .Setup(m => m.InvokeAsync<IJSVoidResult>("disposeScrollSpy", It.IsAny<object[]>()))
+                .Returns(new ValueTask<IJSVoidResult>(Mock.Of<IJSVoidResult>()));
+
+            // Mock dispose method
+            mockSpyInstance
+                .Setup(s => s.DisposeAsync())
+                .Returns(ValueTask.CompletedTask);
+
+            var scrollSpy = new OutlineScrollSpy(mockJsRuntime.Object);
+
+            // Track events
+            var posChanged = false;
+            var sectionCentered = false;
+
+            scrollSpy.PositionChanged += async (_, _) => { posChanged = true; await Task.CompletedTask; };
+            scrollSpy.ScrollSpySectionCentered += (_, _) => { sectionCentered = true; };
+
+            // Act
+            await scrollSpy.StartSpying("html", ".mudx-toc-section");
+
+            // Assert setup calls
+            mockJsRuntime.Verify(js =>
+                js.InvokeAsync<IJSObjectReference>(
+                    "import", It.Is<object[]>(args => args[0]!.ToString() == "./_content/MudX/modules/mudxScrollSpy.js")),
+                Times.Once);
+
+            mockModule.Verify(m =>
+                m.InvokeAsync<IJSObjectReference>(
+                    "createScrollSpy", It.IsAny<object[]>()),
+                Times.Once);
+
+            mockSpyInstance.Verify(s =>
+                s.InvokeAsync<object>("spying", It.Is<object[]>(args =>
+                    args.Length == 3 &&
+                    args[0]!.ToString() == "html" &&
+                    args[1]!.ToString() == ".mudx-toc-section"
+                )),
+                Times.Once);
+
+            // Simulate UpdatePosition
+            await scrollSpy.UpdatePosition("xs");
+            posChanged.Should().BeTrue();
+
+            // Simulate section change
+            scrollSpy.SectionChangeOccured("section-1");
+            scrollSpy.CenteredSection.Should().Be("section-1");
+            sectionCentered.Should().BeTrue();
+
+            // Scroll to section by Uri
+            var uri = new Uri("https://example.com#section-2");
+            await scrollSpy.ScrollToSection(uri);
+            scrollSpy.CenteredSection.Should().Be("section-2");
+
+            mockSpyInstance.Verify(s =>
+                s.InvokeAsync<object>("scrollToSection", It.Is<object[]>(args =>
+                    args[0]!.ToString() == "section-2")),
+                Times.Once);
+
+            // Scroll to section by ID
+            await scrollSpy.ScrollToSection("section-1");
+            scrollSpy.CenteredSection.Should().Be("section-1");
+
+            mockSpyInstance.Verify(s =>
+                s.InvokeAsync<object>("scrollToSection", It.Is<object[]>(args =>
+                    args[0]!.ToString() == "section-1")),
+                Times.Once);
+
+            // Set section active
+            await scrollSpy.SetSectionAsActive("section-3");
+            scrollSpy.CenteredSection.Should().Be("section-3");
+
+            mockSpyInstance.Verify(s =>
+                s.InvokeAsync<object>("activateSection", It.Is<object[]>(args =>
+                    args[0]!.ToString() == "section-3")),
+                Times.Once);
+
+            // Dispose
+            await scrollSpy.DisposeAsync();
+            scrollSpy._isDisposing.Should().BeTrue();
+
+            mockModule.Verify(m =>
+                m.InvokeAsync<object>("disposeScrollSpy", It.Is<object[]>(args =>
+                    args[0]!.ToString() == scrollSpy.GetType()
+                        .GetField("_spyId", BindingFlags.NonPublic | BindingFlags.Instance)!
+                        .GetValue(scrollSpy)!.ToString())),
+                Times.Once);
+
+            mockSpyInstance.Verify(s => s.DisposeAsync(), Times.Once);
+            mockModule.Verify(m => m.DisposeAsync(), Times.Once);
+        }
+
     }
 }

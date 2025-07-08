@@ -24,7 +24,7 @@ namespace MudX
         private string _scrollContainerSelector = "html";
         private ElementReference _anchorRef;
         private MudPopover? _popoverRef;
-        private readonly ParameterState<bool> _contentDrawerOpenState;
+        internal readonly ParameterState<bool> _contentDrawerOpenState;
         private Anchor _anchor = Anchor.End;
         internal List<MudXOutlineSection> _sections = [];
         private OutlineScrollSpy? _scrollSpy;
@@ -214,6 +214,13 @@ namespace MudX
         public OutlineStyleVariant StyleVariant { get; set; } = OutlineStyleVariant.Scroll;
 
         /// <summary>
+        /// The Breakpoint at which to hide the Table of Contents
+        /// </summary>
+        /// <remarks>Defaults to <see cref="Breakpoint.Md"/></remarks>
+        [Parameter]
+        public Breakpoint TOCBreakpoint { get; set; } = Breakpoint.Md;
+
+        /// <summary>
         /// The sections of the Table of Contents, this includes _subSections
         /// </summary>
         public List<MudXOutlineSection> Sections
@@ -275,6 +282,7 @@ namespace MudX
                 if (_scrollSpy is not null)
                 {
                     _scrollSpy.ScrollSpySectionCentered += ScrollSpySectionCentered;
+                    _scrollSpy.PositionChanged += PositionChanged;
 
                     if (!string.IsNullOrEmpty(SectionClassSelector))
                     {
@@ -304,6 +312,41 @@ namespace MudX
                 _shouldRenderTOC = true;
                 StateHasChanged();
             }
+        }
+
+        internal async Task PositionChanged(object? sender, Breakpoint e)
+        {
+            bool toHide = e switch
+            {
+                Breakpoint.Always => false,
+                Breakpoint.None => true,
+
+                Breakpoint.Xs => Breakpoint.Xs <= TOCBreakpoint,
+                Breakpoint.Sm => Breakpoint.Sm <= TOCBreakpoint,
+                Breakpoint.Md => Breakpoint.Md <= TOCBreakpoint,
+                Breakpoint.Lg => Breakpoint.Lg <= TOCBreakpoint,
+                Breakpoint.Xl => Breakpoint.Xl <= TOCBreakpoint,
+                Breakpoint.Xxl => Breakpoint.Xxl <= TOCBreakpoint,
+
+                Breakpoint.SmAndDown => Breakpoint.Sm <= TOCBreakpoint,
+                Breakpoint.MdAndDown => Breakpoint.Md <= TOCBreakpoint,
+                Breakpoint.LgAndDown => Breakpoint.Lg <= TOCBreakpoint,
+                Breakpoint.XlAndDown => Breakpoint.Xl <= TOCBreakpoint,
+
+                Breakpoint.SmAndUp => Breakpoint.Sm >= TOCBreakpoint,
+                Breakpoint.MdAndUp => Breakpoint.Md >= TOCBreakpoint,
+                Breakpoint.LgAndUp => Breakpoint.Lg >= TOCBreakpoint,
+                Breakpoint.XlAndUp => Breakpoint.Xl >= TOCBreakpoint,
+
+                _ => false // fallback for unrecognized values
+            };
+            if (_contentDrawerOpenState.Value != !toHide)
+            {
+                await _contentDrawerOpenState.SetValueAsync(!toHide);
+                StateHasChanged();
+            }
+            if (!toHide)
+                await PositionIndex();
         }
 
         private void BuildLevelStructure()
@@ -429,6 +472,7 @@ namespace MudX
             if (_scrollSpy is not null)
             {
                 _scrollSpy.ScrollSpySectionCentered -= ScrollSpySectionCentered;
+                _scrollSpy.PositionChanged -= PositionChanged;
                 await _scrollSpy.DisposeAsync();
                 _scrollSpy = null;
             }
