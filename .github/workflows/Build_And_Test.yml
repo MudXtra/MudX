@@ -26,6 +26,7 @@ jobs:
       run: dotnet restore
 
     - name: Build
+      working-directory: ./src
       run: dotnet build --no-restore --configuration Release
 
     - name: Run tests with coverage
