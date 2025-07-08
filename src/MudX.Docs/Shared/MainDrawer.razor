@@ -3,7 +3,7 @@
 @using MudX.Models
 @inject NavigationManager NavManager
 
-<MudTextField Class="my-2" Value="@_searchTerm" ValueChanged="@((string s) => OnSearchTextChanged(s))" 
+<MudTextField Class="my-2 background-textbox" Value="@_searchTerm" ValueChanged="@((string s) => OnSearchTextChanged(s))" 
               Placeholder="Search" Variant="Variant.Filled" Immediate="true" Clearable />
 <MudNavMenu Class="mud-height-full mt-2">
     @foreach (var nav in _filteredNavList!)
@@ -136,7 +136,6 @@
         };
     }
 
-    // TODO: Replace API with generated code
     private List<NavItem> GeneratedNavList()
     {
         var navItems = new List<NavItem> {

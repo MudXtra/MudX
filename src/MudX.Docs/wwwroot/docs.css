@@ -71,3 +71,9 @@
         color: var(--mud-palette-tertiary);
         background-color: var(--mud-palette-tertiary-hover);
     }
+
+.background-textbox .mud-input input.mud-input-root {
+    background-color: var(--mud-palette-background) !important;
+    border-radius: var(--mud-default-borderradius);
+    max-width: 350px;
+}
