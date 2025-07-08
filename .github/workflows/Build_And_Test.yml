@@ -28,7 +28,8 @@ jobs:
       run: dotnet build --no-restore --configuration Release
 
     - name: Run tests with coverage
-      run: dotnet test -c Release --no-build --no-restore --blame-hang --blame-hang-timeout 60s --verbosity normal --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput='./TestResults/' 
+      working-directory: ./tests/MudX.UnitTests
+      run: dotnet test MudX.UnitTests.csproj -c Release --no-build --no-restore --blame-hang --blame-hang-timeout 60s --verbosity normal --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput='./TestResults/' 
 
     - name: Upload to Coveralls
       uses: coverallsapp/github-action@v2
