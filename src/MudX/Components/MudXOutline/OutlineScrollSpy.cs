@@ -14,7 +14,7 @@ namespace MudX.Components.MudXOutline
         private IJSObjectReference? _module;
         private IJSObjectReference? _spyInstance;
         private DotNetObjectReference<OutlineScrollSpy>? _dotNetReference;
-        private bool _isDisposing;
+        internal bool _isDisposing;
 
         /// <summary>
         /// The id of the currently centered section
@@ -115,8 +115,9 @@ namespace MudX.Components.MudXOutline
         public async Task ScrollToSection(string id)
         {
             if (_isDisposing || _spyInstance is null || string.IsNullOrEmpty(id)) return;
+            id = id.Trim('#');
             CenteredSection = id;
-            await _spyInstance.InvokeVoidAsync("scrollToSection", id.Trim('#'));
+            await _spyInstance.InvokeVoidAsync("scrollToSection", id);
         }
 
         /// <summary>
@@ -126,8 +127,9 @@ namespace MudX.Components.MudXOutline
         public async Task SetSectionAsActive(string id)
         {
             if (_isDisposing || _spyInstance is null || string.IsNullOrEmpty(id)) return;
+            id = id.Trim('#');
             CenteredSection = id;
-            await _spyInstance.InvokeVoidAsync("activateSection", id.Trim('#'));
+            await _spyInstance.InvokeVoidAsync("activateSection", id);
         }
 
         /// <summary>
