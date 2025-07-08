@@ -25,6 +25,10 @@ jobs:
       working-directory: ./src
       run: dotnet restore
 
+    - name: Clean
+      working-directory: ./src
+      run: dotnet clean
+
     - name: Build
       working-directory: ./src
       run: dotnet build --no-restore --configuration Release
