@@ -35,13 +35,13 @@ jobs:
 
     - name: Run tests with coverage
       working-directory: ./tests/MudX.UnitTests
-      run: dotnet test MudX.UnitTests.csproj -c Release --no-build --no-restore --blame-hang --blame-hang-timeout 60s --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput='./TestResults/' 
+      run: dotnet test MudX.UnitTests.csproj -c Release --no-build --no-restore --blame-hang --blame-hang-timeout 60s --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput='./TestResults/coverage.xml' 
 
     - name: Upload to Coveralls
       uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: ./TestResults/
+        path-to-lcov: ./TestResults/coverage.xml
         format: cobertura
 
     # Optional: Upload coverage file for debugging
@@ -49,4 +49,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
-        path: ./TestResults/
+        path: ./TestResults/coverage.xml
