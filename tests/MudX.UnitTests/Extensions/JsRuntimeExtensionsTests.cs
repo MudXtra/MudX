@@ -52,7 +52,7 @@
                 IJSRuntime? jsRuntime = null;
 
                 // Act
-                var result = await JsRuntimeExtensions.CopyToClipboard(jsRuntime, "test text");
+                var result = await JsRuntimeExtensions.CopyToClipboard(jsRuntime: jsRuntime!, "test text");
 
                 // Assert
                 Assert.Equal("IJSRuntime not initialized.", result);
