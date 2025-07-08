@@ -119,6 +119,19 @@ namespace MudX.UnitTests.Components
         }
 
         [Test]
+        public async Task Outline_ContentDrawer_ByBreakpoint()
+        {
+            var comp = Context.RenderComponent<OutlineBasicTest>();
+            var outline = comp.FindComponent<MudXOutline>();
+            outline.Should().NotBeNull();
+            outline.Instance.TOCBreakpoint.Should().Be(Breakpoint.Md);
+            await comp.InvokeAsync(async () => await outline.Instance.PositionChanged(this, Breakpoint.Lg));
+            comp.WaitForAssertion(() => outline.Instance._contentDrawerOpenState.Value.Should().BeTrue());
+            await comp.InvokeAsync(async () => await outline.Instance.PositionChanged(this, Breakpoint.Md));
+            comp.WaitForAssertion(() => outline.Instance._contentDrawerOpenState.Value.Should().BeFalse());
+        }
+
+        [Test]
         public async Task Outline_Tests_JSModule()
         {
             // Arrange: Setup JSInterop to expect the import and initialize calls

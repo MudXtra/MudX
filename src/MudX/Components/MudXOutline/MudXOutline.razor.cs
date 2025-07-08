@@ -24,7 +24,7 @@ namespace MudX
         private string _scrollContainerSelector = "html";
         private ElementReference _anchorRef;
         private MudPopover? _popoverRef;
-        private readonly ParameterState<bool> _contentDrawerOpenState;
+        internal readonly ParameterState<bool> _contentDrawerOpenState;
         private Anchor _anchor = Anchor.End;
         internal List<MudXOutlineSection> _sections = [];
         private OutlineScrollSpy? _scrollSpy;
@@ -314,7 +314,7 @@ namespace MudX
             }
         }
 
-        private async Task PositionChanged(object? sender, Breakpoint e)
+        internal async Task PositionChanged(object? sender, Breakpoint e)
         {
             bool toHide = e switch
             {
