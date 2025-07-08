@@ -1,5 +1,4 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+# .github/workflows/test-coverage.yml
 
 name: Run Test Coverage
 
@@ -14,17 +13,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
+
     - name: Restore dependencies
       run: dotnet restore ./src/MudX/MudX.sln
+
     - name: Build
-      run: dotnet build --no-restore
-    - name: Test
+      run: dotnet build ./src/MudX/MudX.sln --no-restore --configuration Release
+
+    - name: Run tests with coverage
       run: dotnet test ./tests/MudX.UnitTests/MudX.UnitTests.csproj --no-build --verbosity normal --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./coverage.xml
+
     - name: Upload to Coveralls
       uses: coverallsapp/github-action@v2
       with:
@@ -32,3 +37,10 @@ jobs:
         coveralls-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
         path-to-lcov: ./tests/coverage.xml
         format: cobertura
+
+    # Optional: Upload coverage file for debugging
+    - name: Upload coverage report artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: ./tests/coverage.xml
