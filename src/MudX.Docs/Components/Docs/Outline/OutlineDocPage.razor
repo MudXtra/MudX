@@ -16,13 +16,19 @@
 
         <DocsPageSection Title="Basic Usage">
             <Description>
-                The outline is a scrollspy control for displaying an index or table of contents on either side of the text content.
-                The <CodeInline>MudXOutline</CodeInline> is a wrapper for a number of <CodeInline>MudXOutlineSection</CodeInline>'s.
-                Each <CodeInline>MudXOutlineSection</CodeInline> has a <CodeInline Tag="false">Title</CodeInline> that is used for the index
-                and whatever content is supplied inside is what is displayed in the main content area. By default the control
-                requires very minimal setup, however to nest it inside another be sure to set the <CodeInline Tag="false">ScrollContainerSelector</CodeInline>
-                to the outer element with a scrollbar as scrollspy will only work if a scrollbar is present. Remember when using the Selector to
-                preface a class with a . or an id with a #.
+                The outline is a ScrollSpy control used to display an index or table of contents alongside the main text content.
+                The <CodeInline>MudXOutline</CodeInline> component serves as a wrapper for one or more <CodeInline>MudXOutlineSection</CodeInline> components.
+                Each <CodeInline>MudXOutlineSection</CodeInline> has a <CodeInline Tag="false">Title</CodeInline>, which is used to populate the index. 
+                The content provided inside each section is rendered in the main content area.
+
+                By default, the control requires minimal setup. However, if you're nesting it inside another scrollable container, make sure to set the 
+                <CodeInline Tag="false">ScrollContainerSelector</CodeInline> property to the outer element that has a scrollbar. ScrollSpy functionality 
+                depends on the presence of a scrollbar to track scroll position correctly.
+                When using the selector, remember to prefix a class with . and an ID with #.
+
+                The <CodeInline Tag="false">TOCBreakpoint</CodeInline> property determines the <CodeInline Tag="false">Breakpoint</CodeInline> at which the 
+                table of contents is automatically hidden. By default, this is set to <CodeInline Tag="false">Breakpoint.Md</CodeInline>, but you can change 
+                it to any valid MudBlazor <CodeInline Tag="false">Breakpoint</CodeInline> enum value.
             </Description>
             <ChildContent>
                 <SectionContent Codes="@OutlineBasicExampleCode.Files">
