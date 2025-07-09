@@ -37,7 +37,13 @@
         <!-- https://github.com/dotnet/runtime/issues/95134 -->
         <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     </PropertyGroup>    
-    
+
+    <ItemGroup>
+        <None Include="..\..\LICENSE" Pack="true" Visible="false" PackagePath="LICENSE" />
+        <None Include="..\..\README.md" Pack="true" Visible="false" PackagePath="README.md" />
+        <None Include="..\..\images\Nuget.png" Pack="true" Visible="false" PackagePath="Nuget.png" />
+    </ItemGroup>
+
     <!-- Define paths -->
     <PropertyGroup>
         <ProjectRoot>$(MSBuildProjectDirectory)</ProjectRoot>
@@ -93,12 +99,6 @@
     
     <ItemGroup>
         <ProjectReference Include="..\MudX.DependsOn\MudX.DependsOn.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <None Include="..\..\LICENSE" Pack="true" Visible="false" PackagePath="LICENSE" />
-        <None Include="..\..\README.md" Pack="true" Visible="false" PackagePath="README.md" />
-        <None Include="..\..\images\Nuget.png" Pack="true" Visible="false" PackagePath="Nuget.png" />
     </ItemGroup>
     
 </Project>
