@@ -1,10 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <Version>8.0.0</Version>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageIconUrl>Nuget.png</PackageIconUrl>
+        <Company>MudX</Company>
+        <Authors>Versile and Contributors</Authors>
+        <Copyright>Copyright 2025 MudX</Copyright>
+        <PackageTags>Blazor, MudBlazor, Material, Material Design, Components, Blazor Components, Blazor Library, Extension</PackageTags>
+        <Description>MudX is a Blazor Component Library that extens MudBlazor added to and extending MudBlazor components.</Description>
+        <PackageProjectUrl>https://mudx.org</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <RepositoryUrl>https://github.com/MudXtra/MudX</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -49,7 +70,7 @@
             <FileInfo>%(Identity)|%(ModifiedTime)</FileInfo>
         </ScriptFilesWithTimestamps>
     </ItemGroup>
-   
+
     <!-- This takes a list of ScriptFiles and compares it to the StampsFile timestamp. If any are newer it triggers a build -->
     <Target Name="GeneratorBeforeBuild" BeforeTargets="Build" Inputs="@(ScriptFiles)" Outputs="@(StampsFile)">
         <Message Importance="high" Text="======================================" />
@@ -59,8 +80,8 @@
         <Exec Command="dotnet run --project &quot;$(GeneratorPath)&quot; --configuration Release -- &quot;$(MudXOutputPath)&quot; &quot;$(ScriptsDirectory)&quot;" ConsoleToMSBuild="true" ContinueOnError="false" />
 
         <!--  Write timestamps to file -->
-        <WriteLinesToFile File="$(StampsFilePath)" Lines="@(ScriptFilesWithTimestamps->'%(FileInfo)')" Overwrite="true" />  
-        
+        <WriteLinesToFile File="$(StampsFilePath)" Lines="@(ScriptFilesWithTimestamps->'%(FileInfo)')" Overwrite="true" />
+
         <Message Importance="high" Text="MudX.Generator: Finished MudX generation..." />
         <Message Importance="high" Text="======================================" />
     </Target>
@@ -68,7 +89,7 @@
     <ItemGroup>
         <SupportedPlatform Include="browser" />
     </ItemGroup>
-
+    
     <ItemGroup>
         <ProjectReference Include="..\MudX.DependsOn\MudX.DependsOn.csproj" />
     </ItemGroup>

@@ -11,6 +11,10 @@
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
+    <Target Name="CleanLockedFiles" BeforeTargets="Build">
+        <Delete Files="obj\Debug\net9.0\rpswa.dswa.cache.json" ContinueOnError="true" />
+    </Target>    
+    
     <!-- Ensure MudX Generators are run when MudX.Docs is built -->
     <Target Name="EnsureMudXGenerated" BeforeTargets="Build" Inputs="$(MSBuildThisFileDirectory)..\MudX\Scripts\**\*.js" Outputs="$(MSBuildThisFileDirectory)..\MudX\wwwroot\modules\__stamp__.txt">
         <MSBuild Projects="..\MudX\MudX.csproj" Targets="GeneratorBeforeBuild" />
