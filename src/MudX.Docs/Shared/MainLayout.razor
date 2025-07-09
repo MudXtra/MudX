@@ -11,7 +11,7 @@
         <MudIconButton Color="Color.Inherit" Icon="@Icons.Material.Outlined.Menu" Edge="Edge.Start" aria-label="Toggle Drawer" OnClick="@(() => _drawer = !_drawer)" />
         <div class="d-flex d-md-none">
             <MudPopover Open="@true" Paper="@false" Class="d-flex d-md-none">
-                <MudXTextFieldSearch @bind-Open="_searchOpen" Style="width: 350px;margin-top: 32px;" Class="background-textbox" />
+                <MudXTextFieldSearch @bind-Open="_searchOpen" Style="max-width: 350px;margin-top: 32px;" Class="background-textbox" />
             </MudPopover>
         </div>
         <MudButton Class="ml-2" Href="/" Variant="Variant.Text">
