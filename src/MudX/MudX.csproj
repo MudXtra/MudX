@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
+        <PackageId>MudBlazor.MudX.Extensions</PackageId>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageIconUrl>Nuget.png</PackageIconUrl>
         <Company>MudX</Company>
