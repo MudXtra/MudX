@@ -18,14 +18,14 @@
             <MudImage Src="/_content/MudX.Docs/images/MudX_Transparent_Logo.png" Alt="An image of the MudX logo!"
                       Style="width: 48px; height: 48px;" Class="mr-5 ml-n2 d-none d-md-flex" />
             <MudText Typo="Typo.h3" Class="mudx-outlined-text mr-5">MudX</MudText>
-            <MudText Typo="Typo.h4" Class="mb-n1 d-none d-md-flex"> for MudBlazor</MudText>
+            <MudText Typo="Typo.h4" Class="mb-n1 d-none d-lg-flex"> for MudBlazor</MudText>
         </MudButton>
         <MudSpacer />
         <div class="d-none d-md-flex">
             <MudXTextFieldSearch @bind-Open="_searchOpen" Style="width: 350px;" Class="background-textbox mr-8" />
         </div>
         <MudTooltip Text="Search the Documentation">
-            <MudIconButton Color="Color.Inherit" Target="_blank" Icon="@Icons.Material.Outlined.Search" aria-label="Search" OnClick="@(() => _searchOpen = !_searchOpen)" />
+            <MudIconButton Color="Color.Inherit" Icon="@Icons.Material.Outlined.Search" aria-label="Search" OnClick="@(() => _searchOpen = !_searchOpen)" />
         </MudTooltip>
         <MudDivider Vertical="true" />
         <MudTooltip Text="Try MudX Online">
