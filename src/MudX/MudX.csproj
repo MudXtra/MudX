@@ -17,7 +17,6 @@
         <PackageTags>Blazor, MudBlazor, Material, Material Design, Components, Blazor Components, Blazor Library, Extension</PackageTags>
         <Description>MudX extends MudBlazor and provides additional enhancements to its components.</Description>
         <PackageProjectUrl>https://mudx.org</PackageProjectUrl>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/MudXtra/MudX</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
     </PropertyGroup>
