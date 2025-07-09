@@ -10,45 +10,65 @@
 8. **Step 8:** Optionally update/change your MudBlazor theme at [MudBlazor Theme Creator](https://themes.Mudx.org).
 
 ## Table of Contents
-- [MudXSecurityCode](#mudxsecuritycode)
-- [MudXOutline](#mudxoutline)
-- [MudXCodeBlock](#mudxcodeblock)
-- [MudXCopyToClipboard](#mudxcopytoclipboard)
-- [MudXBreadcrumbs](#mudxbreadcrumbs)
+- [MudXSecurityCode](#mudxsecuritycode-status)
+- [MudXOutline](#mudxoutline-status)
+- [MudXCodeBlock](#mudxcodeblock-status)
+- [MudXCopyToClipboard](#mudxcopytoclipboard-status)
+- [MudXBreadcrumbs](#mudxbreadcrumbs-status)
 
 ---
 
 ## Components
 
-### MudXSecurityCode ![status](https://img.shields.io/badge/status-new-red)
+<h3 id="mudxsecuritycode-status" style="display: flex; align-items: center; gap: 16px;">
+  MudXSecurityCode
+  <img src="https://img.shields.io/badge/status-new-red" alt="status">
+</h3>
+
 #### A component for entering security codes, such as SMS or email verification codes.
-![MudXSecurityCode](images/MudXSecurityCode.png)  
+![MudXSecurityCode Image](images/MudXSecurityCode.png)  
 [Back to top](#table-of-contents)
 
 ---
 
-### MudXOutline ![status](https://img.shields.io/badge/status-new-red)
+<h3 id="mudxoutline-status" style="display: flex; align-items: center; gap: 16px;">
+  MudXOutline
+  <img src="https://img.shields.io/badge/status-new-red" alt="status">
+</h3>
+
 #### A scrollspy component that highlights the current section in a sidebar as you scroll through the page.
-![MudXOutline](images/MudXOutline.png)  
+![MudXOutline Image](images/MudXOutline.png)  
 [Back to top](#table-of-contents)
 
 ---
 
-### MudXCodeBlock ![status](https://img.shields.io/badge/status-new-red)
+<h3 id="mudxcodeblock-status" style="display: flex; align-items: center; gap: 16px;">
+  MudXCodeBlock
+  <img src="https://img.shields.io/badge/status-new-red" alt="status">
+</h3>
+
 #### A component for displaying code snippets with Prism syntax highlighting and customizable themes.
-![MudXCodeBlock](images/MudXCodeBlock.png)  
+![MudXCodeBlock Image](images/MudXCodeBlock.png)  
 [Back to top](#table-of-contents)
 
 ---
 
-### MudXCopyToClipboard ![status](https://img.shields.io/badge/status-new-red)
+<h3 id="mudxcopytoclipboard-status" style="display: flex; align-items: center; gap: 16px;">
+  MudXCopyToClipboard
+  <img src="https://img.shields.io/badge/status-new-red" alt="status">
+</h3>
+
 #### A component that allows users to copy text to the clipboard with access to an extension method.
-![MudXCopyToClipboard](images/MudXCopyToClipboard.png)  
+![MudXCopyToClipboard Image](images/MudXCopyToClipboard.png)  
 [Back to top](#table-of-contents)
 
 ---
 
-### MudXBreadcrumbs ![status](https://img.shields.io/badge/status-extended-blue)
+<h3 id="mudxbreadcrumbs-status" style="display: flex; align-items: center; gap: 16px;">
+  MudXBreadcrumbs
+  <img src="https://img.shields.io/badge/status-extended-blue" alt="status">
+</h3>
+
 #### A self-navigating breadcrumb navigation component that supports custom separators and icons.
-![MudXBreadcrumbs](images/MudXBreadcrumbs.png)  
+![MudXBreadcrumbs Image](images/MudXBreadcrumbs.png)  
 [Back to top](#table-of-contents)
