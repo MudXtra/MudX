@@ -14,7 +14,7 @@
         <Authors>Versile and Contributors</Authors>
         <Copyright>Copyright 2025 MudX</Copyright>
         <PackageTags>Blazor, MudBlazor, Material, Material Design, Components, Blazor Components, Blazor Library, Extension</PackageTags>
-        <Description>MudX is a Blazor Component Library that extens MudBlazor added to and extending MudBlazor components.</Description>
+        <Description>MudX extends MudBlazor and provides additional enhancements to its components.</Description>
         <PackageProjectUrl>https://mudx.org</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/MudXtra/MudX</RepositoryUrl>
