@@ -57,8 +57,21 @@ jobs:
         run: |
           sed -i 's|\(<Version>\)[^<]*\(</Version>\)|\1${{ env.VERSION }}\2|' ./src/MudX/MudX.csproj
 
+      - name: Commit and push updated version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ./src/MudX/MudX.csproj
+          git commit -m "Update version to $VERSION"
+          git push origin HEAD:dev
+
+      - name: Copy README.md
+        run: cp ../../README.md ./README.md
+        working-directory: ./src/MudX
+
       - name: Pack NuGet package
-        run: dotnet pack ./src/MudX/MudX.csproj -c Release --output ./src/MudX/nupkgs /p:Version=${{ env.VERSION }}
+        run: dotnet pack -c Release --output nupkgs /p:Version=${{ env.VERSION }}
+        working-directory: ./src/MudX
 
       - name: Check package contains css
         shell: pwsh
