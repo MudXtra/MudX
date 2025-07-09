@@ -42,6 +42,10 @@ jobs:
             echo "Tag $TAG already exists"
           fi
 
+      - name: Update <Version> in csproj
+        run: |
+          sed -i 's|\(<Version>\)[^<]*\(</Version>\)|\1${{ env.VERSION }}\2|' ./src/MudX/MudX.csproj
+
       - name: Checkout tag
         uses: actions/checkout@v4
         with:
@@ -53,15 +57,7 @@ jobs:
           dotnet-version: |
             8.0.x
             9.0.x
-
-      - name: Update <Version> in csproj
-        run: |
-          sed -i 's|\(<Version>\)[^<]*\(</Version>\)|\1${{ env.VERSION }}\2|' ./src/MudX/MudX.csproj
           
-      - name: Copy README.md
-        run: cp ../../README.md ./README.md
-        working-directory: ./src/MudX
-
       - name: Pack NuGet package
         run: dotnet pack -c Release --output nupkgs /p:Version=${{ env.VERSION }}
         working-directory: ./src/MudX
