@@ -1,0 +1,16 @@
+@inherits MudComponentBase
+
+@if (_openState.Value)
+{
+    <MudAutocomplete @ref="_autoComplete" @bind-Value="@_searchItem" ResetValueOnEmptyText="true"
+                     @bind-Value:after="@(() => SelectSearchResult())" MaxHeight="480" ToStringFunc="@(e => string.Empty)"
+                     T="NavItem" SearchFunc="Search" AdornmentIcon="@string.Empty"
+                     Variant="Variant.Outlined" Placeholder="Search..." Style="@Style"
+                     Clearable="true" Modal="true" Class="@Class"
+                     UserAttributes="@(new Dictionary<string, object> { { "autocomplete", $"mudx-disabled-{Guid.NewGuid()}" } })" >
+        <ItemTemplate Context="e">
+            <MudText Color="Color.Primary">@e.Title</MudText>
+        </ItemTemplate>
+    </MudAutocomplete>
+}
+

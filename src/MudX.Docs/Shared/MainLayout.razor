@@ -9,18 +9,26 @@
 <MudLayout>
     <MudAppBar Elevation="4" Fixed=true>
         <MudIconButton Color="Color.Inherit" Icon="@Icons.Material.Outlined.Menu" Edge="Edge.Start" aria-label="Toggle Drawer" OnClick="@(() => _drawer = !_drawer)" />
+        <div class="d-flex d-md-none">
+            <MudPopover Open="@true" Paper="@false" Class="d-flex d-md-none">
+                <MudXTextFieldSearch @bind-Open="_searchOpen" Style="width: 350px;margin-top: 32px;" Class="background-textbox" />
+            </MudPopover>
+        </div>
         <MudButton Class="ml-2" Href="/" Variant="Variant.Text">
             <MudImage Src="/_content/MudX.Docs/images/MudX_Transparent_Logo.png" Alt="An image of the MudX logo!"
-                      Style="width: 48px; height: 48px;" Class="mr-5 ml-n2" />
+                      Style="width: 48px; height: 48px;" Class="mr-5 ml-n2 d-none d-md-flex" />
             <MudText Typo="Typo.h3" Class="mudx-outlined-text mr-5">MudX</MudText>
-            <MudText Typo="Typo.h4" Class="mb-n1"> for MudBlazor</MudText>
-        </MudButton>    
+            <MudText Typo="Typo.h4" Class="mb-n1 d-none d-lg-flex"> for MudBlazor</MudText>
+        </MudButton>
         <MudSpacer />
+        <div class="d-none d-md-flex">
+            <MudXTextFieldSearch @bind-Open="_searchOpen" Style="width: 350px;" Class="background-textbox mr-8" />
+        </div>
         <MudTooltip Text="Search the Documentation">
-            <MudIconButton Color="Color.Inherit" Target="_blank" Icon="@Icons.Material.Outlined.Search" aria-label="Search" OnClick="@(() => _searchOpen = true)" />
+            <MudIconButton Color="Color.Inherit" Icon="@Icons.Material.Outlined.Search" aria-label="Search" OnClick="@(() => _searchOpen = !_searchOpen)" />
         </MudTooltip>
         <MudDivider Vertical="true" />
-            <MudTooltip Text="Try MudX Online">
+        <MudTooltip Text="Try MudX Online">
             <MudIconButton Color="Color.Inherit" Target="_blank" Icon="@Icons.Material.Outlined.PlayCircleOutline" aria-label="Run MudX Code Snippets" Href="https://try.arctechonline.tech" />
         </MudTooltip>
         <MudDivider Vertical="true" />
@@ -37,9 +45,9 @@
                            OnClick="@(() => _isDarkMode = !_isDarkMode)" />
         </MudTooltip>
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawer" ClipMode="DrawerClipMode.Docked" Variant="DrawerVariant.Persistent" Class="pt-4 pa-2">
+    <MudDrawer @bind-Open="_drawer" ClipMode="DrawerClipMode.Docked" Variant="DrawerVariant.Responsive" Class="pt-4 pa-2">
         <MainDrawer />
-    </MudDrawer>    
+    </MudDrawer>
     <MudMainContent Class="pt-15 pa-4">
         <ErrorBoundary>
             <ChildContent>
@@ -50,10 +58,6 @@
     </MudMainContent>
 </MudLayout>
 
-<MudOverlay Visible="@_searchOpen" Absolute ZIndex="1600" Style="position: fixed; top: 64px; right: 50%;">
-    <MudTextField hidden="@(!_searchOpen)" Variant="Variant.Outlined" Style="width: 350px" Placeholder="Search..." ValueChanged="@((string query) => Search(query))" />
-</MudOverlay>
-
 <CascadingValue Name="IsDarkTheme" Value="@_isDarkMode" IsFixed="false">
 
 </CascadingValue>
@@ -63,7 +67,7 @@
     private bool _drawer = true;
     private bool _searchOpen = false;
 
-    private void Search(string query) 
+    private void Search(string query)
     {
         Console.WriteLine(query);
     }
