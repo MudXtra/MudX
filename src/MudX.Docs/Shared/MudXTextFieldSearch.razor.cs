@@ -15,6 +15,8 @@ namespace MudX.Docs.Shared
         private readonly ParameterState<bool> _openState;
         private List<NavItem> _navList = [];
         private List<NavItem> _searchResults = [];
+        private NavItem? _searchItem;
+        private MudAutocomplete<NavItem>? _autoComplete;
 
         /// <summary>
         /// Constructor for TextSearch component.
@@ -62,14 +64,32 @@ namespace MudX.Docs.Shared
 
         private bool PopoverOpen => _navList.Count > 0 && Open;
 
-        private void Search(string searchText)
+        private async Task<IEnumerable<NavItem>> Search(string searchText, CancellationToken token)
         {
-            _searchResults = _navList
-                .Where(nav => nav.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-                              (nav.Action != null && nav.Action.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
-                              (nav.Application != null && nav.Application.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
-                              (nav.Controller != null && nav.Controller.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
+            if (searchText is null)
+                searchText = string.Empty;
+            _searchResults = [.. _navList
+                    .Where(nav => nav.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                                  (nav.Action != null && nav.Action.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
+                                  (nav.Application != null && nav.Application.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
+                                  (nav.Controller != null && nav.Controller.Contains(searchText, StringComparison.OrdinalIgnoreCase)))];
+            await Task.CompletedTask;
+            return _searchResults;
+        }
+
+        private async Task SelectSearchResult()
+        {
+            if (_searchItem == null)
+                return;
+            await SelectSearchResult(_searchItem);
+        }
+
+        private async Task SelectSearchResult(NavItem result)
+        {
+            _searchItem = default;
+            NavManager.NavigateTo(result.Route);
+            if (_autoComplete != null)
+                await _autoComplete.CloseMenuAsync();
             StateHasChanged();
         }
 
@@ -77,8 +97,8 @@ namespace MudX.Docs.Shared
         {
             var navItems = new List<NavItem> {
             // Parent Levels (Static)
-            new NavItem() { NavItemId=90, Title="Home", Action="", OrderById=0, IsActive=true },
-            new NavItem() { NavItemId=91, Title="Install", Action="installation", OrderById=1, IsActive=true },
+            new() { NavItemId=90, Title="Home", Action="", OrderById=0, IsActive=true },
+            new() { NavItemId=91, Title="Install", Action="installation", OrderById=1, IsActive=true },
             //new NavItem() { NavItemId=99, Title="About", Action="about", OrderById=99, IsActive=true },
         };
 
@@ -91,16 +111,10 @@ namespace MudX.Docs.Shared
             var navStructure = JsonSerializer.Deserialize<List<NavItem>>(json) ?? [];
             navItems.AddRange(navStructure);
 
-            return navItems
+            return [.. navItems
                 .OrderBy(m => m.NavItemId)
                 .ThenBy(m => !m.ParentId.HasValue ? int.MaxValue : m.ParentId) // Handle null ParentId which will ensure parent's are sorted by orderbyId
-                .ThenBy(m => m.OrderById) // sort children by orderbyID
-                .ToList();
-        }
-
-        private void SelectSearchResult(NavItem result)
-        {
-            NavManager.NavigateTo(result.Route);
+                .ThenBy(m => m.OrderById)];
         }
     }
 }

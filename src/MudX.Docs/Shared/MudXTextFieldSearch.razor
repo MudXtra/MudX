@@ -1,21 +1,15 @@
 @inherits MudComponentBase
 
-<MudStack>
-    <MudTextField hidden="@(!_openState.Value)" 
-                  Class="@Classname" 
-                  Style="@Style"
-                  Variant="Variant.Outlined" 
-                  Placeholder="Search..." 
-                  ValueChanged="@((string query) => Search(query))" />
-    <MudPopover Open="PopoverOpen" AnchorOrigin="Origin.BottomLeft" RelativeWidth="DropdownWidth.Relative" MaxHeight="480">
-        <MudList T="string">
-            @foreach (var item in _searchResults)
-            {
-                <MudListItem OnClick="@(() => SelectSearchResult(item))">
-                    <MudText Color="Color.Primary">@item</MudText>
-                </MudListItem>
-            }
-        </MudList>
-    </MudPopover>
-</MudStack>
+@if (_openState.Value)
+{
+    <MudAutocomplete @ref="_autoComplete" @bind-Value="@_searchItem" ResetValueOnEmptyText="true"
+                     @bind-Value:after="@(() => SelectSearchResult())" MaxHeight="480" 
+                     T="NavItem" SearchFunc="Search" AdornmentIcon="@string.Empty"
+                     Variant="Variant.Outlined" Placeholder="Search..." Style="@Style"
+                     Clearable="true" Modal="true" Class="@Class">
+        <ItemTemplate Context="e">
+            <MudText Color="Color.Primary">@e.Title</MudText>
+        </ItemTemplate>
+    </MudAutocomplete>
+}
 

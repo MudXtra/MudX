@@ -75,5 +75,7 @@
 .background-textbox .mud-input input.mud-input-root {
     background-color: var(--mud-palette-background) !important;
     border-radius: var(--mud-default-borderradius);
-    max-width: 350px;
+}
+.background-textbox .mud-input {
+    background-color: var(--mud-palette-background) !important;
 }
