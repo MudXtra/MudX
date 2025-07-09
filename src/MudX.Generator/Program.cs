@@ -20,6 +20,8 @@ try
 {
     var outputFolder = args[0];
     var jsFiles = args[1];
+    Console.WriteLine($"MudX.Generator: Outputfolder: {outputFolder}");
+    Console.WriteLine($"MudX.Generator: JS Files Directory: {jsFiles}");
     var outputDirectory = Path.GetFullPath(Path.Combine("..", "MudX", outputFolder));
     if (!Directory.Exists(outputDirectory))
     {
@@ -41,13 +43,14 @@ try
     // get a List<filenames> of all js files in jsDirectory including subdirectories
     var jsFilesList = Directory.GetFiles(jsDirectory, "*.js", SearchOption.AllDirectories).ToList();
 
-    foreach (var jsFile in jsFilesList)
+    foreach (var jsFile in jsFilesList.Where(x => !x.Contains("mudx.js")))
     {
         var jsFileName = Path.GetFileName(jsFile);
         var jsOutFile = Path.Combine(modulesDirectory, jsFileName);
         var contents = JavaScriptCompressor.Compress(File.ReadAllText(jsFile));
         // write contents to file
         File.WriteAllText(jsOutFile, contents);
+        Console.WriteLine($"MudX.Generator: Processed JS file: {jsFileName} -> {jsOutFile}");
     }
 
     var jsMainFile = Directory.GetFiles(Path.Combine("..", jsDirectory), "mudx.js", SearchOption.AllDirectories).FirstOrDefault();
@@ -63,6 +66,7 @@ try
     // write contents to file
     File.Copy(jsMainFile, jsDevOutFile, overwrite: true);
     File.WriteAllText(jsMainOutFile, maincontents);
+    Console.WriteLine($"MudX.Generator: Processed Main JS file: {Path.GetFileName(jsMainFile)} -> {jsMainOutFile}");
 
     var cssMainFile = Directory.GetFiles(Path.Combine("..", jsDirectory), "mudx.css", SearchOption.AllDirectories).FirstOrDefault();
 
@@ -83,6 +87,10 @@ try
     // write contents to file
     File.Copy(cssMainFile, cssDevOutFile, overwrite: true);
     File.WriteAllText(cssMainOutFile, csscontents.Code);
+    Console.WriteLine($"MudX.Generator: Processed Main CSS file: {Path.GetFileName(cssMainFile)} -> {cssMainOutFile}");
+
+
+    Console.WriteLine("MudX.Generator: Process completed successfully.");
 
     return 0;
 }
