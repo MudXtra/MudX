@@ -22,6 +22,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v4
         with:
+          ref: dev
           fetch-depth: 0  # Ensure tags and full history are available
 
       - name: Extract version number
@@ -56,15 +57,7 @@ jobs:
       - name: Update <Version> in csproj
         run: |
           sed -i 's|\(<Version>\)[^<]*\(</Version>\)|\1${{ env.VERSION }}\2|' ./src/MudX/MudX.csproj
-
-      - name: Commit and push updated version
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add ./src/MudX/MudX.csproj
-          git commit -m "Update version to $VERSION"
-          git push origin HEAD:dev
-
+          
       - name: Copy README.md
         run: cp ../../README.md ./README.md
         working-directory: ./src/MudX
@@ -88,6 +81,14 @@ jobs:
       - name: Push symbol package
         run: dotnet nuget push nupkgs/*.snupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
         working-directory: ./src/MudX
+
+      - name: Commit and push updated version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ./src/MudX/MudX.csproj
+          git commit -m "Update version to $VERSION"
+          git push origin dev
 
       - name: Show updated csproj version
         run: grep '<Version>' ./src/MudX/MudX.csproj
