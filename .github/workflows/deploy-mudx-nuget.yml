@@ -58,7 +58,7 @@ jobs:
           sed -i 's|\(<Version>\)[^<]*\(</Version>\)|\1${{ env.VERSION }}\2|' ./src/MudX/MudX.csproj
 
       - name: Pack NuGet package
-        run: dotnet pack -c Release --output nupkgs /p:Version=${{ env.VERSION }}
+        run: dotnet pack -c Release --output nupkgs /p:Version=${{ env.VERSION }} -p:PackageId=MudBlazor.MudX.Extensions
         working-directory: ./src/MudX
 
       - name: Check package contains css
