@@ -39,7 +39,6 @@
 
 <ItemGroup>
         <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
-        <None Include=".\README.md" Pack="true" PackagePath="" />
         <None Include="..\..\images\Nuget.png" Pack="true" PackagePath="" />
     </ItemGroup>
 
