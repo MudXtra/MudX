@@ -66,7 +66,8 @@ jobs:
         shell: pwsh
         run: |
           $files = @("mudx.min.css", "mudx.min.js", "prism.js")
-          ./tools/CheckStaticAssets.ps1 ./src/MudX/nupkgs $files
+          $nupkg = Get-ChildItem ./src/MudX/nupkgs/*.nupkg | Where-Object { $_.Name -notlike "*.symbols.nupkg" } | Select-Object -First 1
+          ./tools/CheckStaticAssets.ps1 $nupkg.FullName $files
 
       - name: Publish NuGet package
         run: dotnet nuget push nupkgs/*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
