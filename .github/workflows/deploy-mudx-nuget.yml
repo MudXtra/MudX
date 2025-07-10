@@ -73,17 +73,15 @@ jobs:
           $files = @("mudx.min.css", "mudx.min.js", "prism.js", "mudxProvider.js")
           $nupkg = Get-ChildItem ./src/MudX/nupkgs/*.nupkg | Where-Object { $_.Name -notlike "*.symbols.nupkg" } | Select-Object -First 1
           ./tools/CheckStaticAssets.ps1 $nupkg.FullName $files
+          
+      - name: Publish NuGet package
+        run: dotnet nuget push nupkgs/*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
+        working-directory: ./src/MudX
 
-      - name: Push NuGet package and symbols
+      - name: Push Symbol package
         run: |
-          pushed=$(dotnet nuget push nupkgs/*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate)
-          echo "$pushed"
-          if [[ "$pushed" != *"already exists"* ]]; then
-            echo "Main package uploaded, pushing symbols..."
-            dotnet nuget push nupkgs/*.snupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
-          else
-            echo "Skipping symbols — main package already exists."
-          fi
+          dotnet nuget push nupkgs/*.snupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate || echo "Symbol package upload failed, but continuing."
+        working-directory: ./src/MudX
 
       - name: Commit and push updated MudX.csproj Version info
         run: |
