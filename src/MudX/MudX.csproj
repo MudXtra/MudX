@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
+        <PackageId>MudX.MudBlazor.Extensions</PackageId>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageIcon>Nuget.png</PackageIcon>
         <Company>MudX</Company>
@@ -44,7 +45,6 @@
         <MudXOutputPath>$(ProjectRoot)\wwwroot</MudXOutputPath>
         <StampsFilePath>$(MudXOutputPath)\modules\__stamp__.txt</StampsFilePath>
         <ScriptsDirectory>$(ProjectRoot)\Scripts</ScriptsDirectory>
-        <PackageId>MudBlazor.Extensions.MudX</PackageId>
     </PropertyGroup>
 
     <ItemGroup>

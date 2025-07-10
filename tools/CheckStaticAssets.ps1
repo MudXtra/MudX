@@ -21,7 +21,7 @@ $missing = @()
 
 foreach ($file in $ExpectedFiles) {
     # Check for exact match (case-insensitive)
-    $match = $allEntries | Where-Object { $_ -ieq $file }
+    $match = $allEntries | Where-Object { [System.IO.Path]::GetFileName($_) -ieq $file }
     if (-not $match) {
         Write-Host "❌ Missing: $file"
         $missing += $file
