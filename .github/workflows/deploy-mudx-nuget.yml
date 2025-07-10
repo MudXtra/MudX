@@ -29,6 +29,10 @@ jobs:
         run: |
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
+      - name: Update <Version> in csproj
+        run: |
+          sed -i 's|\(<Version>\)[^<]*\(</Version>\)|\1${{ env.VERSION }}\2|' ./src/MudX/MudX.csproj
+
       - name: Ensure tag exists (create if missing)
         run: |
           git fetch --tags
@@ -41,10 +45,6 @@ jobs:
           else
             echo "Tag $TAG already exists"
           fi
-
-      - name: Update <Version> in csproj
-        run: |
-          sed -i 's|\(<Version>\)[^<]*\(</Version>\)|\1${{ env.VERSION }}\2|' ./src/MudX/MudX.csproj
 
       - name: Checkout tag
         uses: actions/checkout@v4
@@ -67,7 +67,7 @@ jobs:
         run: dotnet pack -c Release --output nupkgs /p:Version=${{ env.VERSION }}
         working-directory: ./src/MudX
 
-      - name: Check package contains static assets
+      - name: Check Package contains Static Assets
         shell: pwsh
         run: |
           $files = @("mudx.min.css", "mudx.min.js", "prism.js", "mudxProvider.js")
