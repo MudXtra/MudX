@@ -3,12 +3,6 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
-# MudX.Generator modules
-src/MudX/wwwroot/modules/
-
-# MudX.Generator api
-src/MudX.Docs/wwwroot/api
-
 # User-specific files
 *.rsuser
 *.suo

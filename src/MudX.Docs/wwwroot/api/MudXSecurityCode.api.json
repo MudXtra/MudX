@@ -1,0 +1,147 @@
+{
+  "Component": "MudXSecurityCode",
+  "Namespace": "MudX",
+  "Description": "Represents a security code input component that allows users to enter a code based on a specified pattern.",
+  "Parameters": [
+    {
+      "Name": "Pattern",
+      "Type": "String",
+      "Default": "####",
+      "Description": "The pattern of the security code. e.g. (\u0022##/##/19##\u0022 would represent \u0022MM/DD/YYYY\u0022 where the first two YY are filled in.). Default Placeholders (can be changed)\u003E.# is a placeholder for a numeric value.A is a placeholder for an alphabetic character.? is a placeholder for an alphabetic or numeric character.@ is a placeholder for a special symbol.* is a placeholder for any UTF-8 character.\nRemarks: Defaults to \u0022####\u0022"
+    },
+    {
+      "Name": "PlaceholderNumeric",
+      "Type": "Char",
+      "Default": "#",
+      "Description": "The placeholder character for numeric values.\nRemarks: Defaults to \u0027#\u0027, translates to char.IsDigit"
+    },
+    {
+      "Name": "PlaceholderAlpha",
+      "Type": "Char",
+      "Default": "A",
+      "Description": "The placeholder character for alphabetic characters.\nRemarks: Defaults to \u0027A\u0027, translates to char.IsLetter"
+    },
+    {
+      "Name": "PlaceholderAlphaNumeric",
+      "Type": "Char",
+      "Default": "?",
+      "Description": "The placeholder character for alphabetic or numeric characters.\nRemarks: Defaults to \u0027?\u0027, translates to char.IsLetterOrDigit"
+    },
+    {
+      "Name": "PlaceholderSpecial",
+      "Type": "Char",
+      "Default": "@",
+      "Description": "The placeholder character for special characters, typically symbols.\nRemarks: Defaults to \u0027@\u0027, translates to char.IsSymbol or char.IsPunctuation"
+    },
+    {
+      "Name": "PlaceholderAny",
+      "Type": "Char",
+      "Default": "*",
+      "Description": "The placeholder character for any UTF-8 character.\nRemarks: Defaults to \u0027*\u0027, translates to any UTF-8 char."
+    },
+    {
+      "Name": "Code",
+      "Type": "String",
+      "Default": "null",
+      "Description": "The current value of the security code.\nRemarks: Defaults to null."
+    },
+    {
+      "Name": "CodeChanged",
+      "Type": "EventCallback\u003CString\u003E",
+      "Default": "",
+      "Description": "Called when the value of the security code changes."
+    },
+    {
+      "Name": "Password",
+      "Type": "Boolean",
+      "Default": "false",
+      "Description": "If true, each input will be masked as a password.\nRemarks: Defaults to false."
+    },
+    {
+      "Name": "Spacing",
+      "Type": "Int32",
+      "Default": "2",
+      "Description": "The gap between items in increments of 4px.\nRemarks: Defaults to 3, maximum of 20 (80px)"
+    },
+    {
+      "Name": "Horizontal",
+      "Type": "Boolean",
+      "Default": "true",
+      "Description": "Whether to display items horizontally, if true will display items horizontally, false will display items vertically\nRemarks: Defaults to true."
+    },
+    {
+      "Name": "Variant",
+      "Type": "Variant",
+      "Default": "Outlined",
+      "Description": "The display variant of the component. Options are Outlined, Text, and Filled.\nRemarks: Defaults to"
+    },
+    {
+      "Name": "ReadOnlyVariant",
+      "Type": "Variant",
+      "Default": "Text",
+      "Description": "The display variant of the code when readonly. Options are Outlined, Text, and Filled.\nRemarks: Defaults to"
+    },
+    {
+      "Name": "Underline",
+      "Type": "Boolean",
+      "Default": "true",
+      "Description": "If true, the underline will be visible.\nRemarks: Defaults to true."
+    },
+    {
+      "Name": "Margin",
+      "Type": "Margin",
+      "Default": "Normal",
+      "Description": "The margin of the component.\nRemarks: Defaults to"
+    },
+    {
+      "Name": "Class",
+      "Type": "String",
+      "Default": null,
+      "Description": "User class names, separated by space."
+    },
+    {
+      "Name": "Style",
+      "Type": "String",
+      "Default": null,
+      "Description": "User styles, applied on top of the component\u0027s own classes and styles."
+    },
+    {
+      "Name": "Tag",
+      "Type": "Object",
+      "Default": null,
+      "Description": "Use Tag to attach any user data object to the component for your convenience."
+    },
+    {
+      "Name": "UserAttributes",
+      "Type": "Dictionary\u003CString, Object\u003E",
+      "Default": null,
+      "Description": "UserAttributes carries all attributes you add to the component that don\u0027t match any of its parameters. They will be splatted onto the underlying HTML tag."
+    }
+  ],
+  "Events": [],
+  "PublicProperties": [
+    {
+      "Name": "IsValid",
+      "Type": "Boolean",
+      "Description": "Whether all the code boxes have valid inputs."
+    }
+  ],
+  "PublicFields": [],
+  "Methods": [
+    {
+      "Name": "ClipboardPasteEvent",
+      "ReturnType": "Task",
+      "Parameters": [
+        {
+          "Name": "fullid",
+          "Type": "String"
+        },
+        {
+          "Name": "text",
+          "Type": "String"
+        }
+      ],
+      "Description": "Handles the clipboard paste event triggered in javascript by processing the pasted text and updating the corresponding code items.\nRemarks: This method processes the pasted text by matching it against the editable and fixed characters in the code items. Editable code items are updated with valid characters from the pasted text, while fixed code items are set to their predefined values. After processing, the method updates the code value, moves focus to the next focusable item, and validates the form if applicable."
+    }
+  ]
+}

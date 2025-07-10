@@ -1,0 +1,10 @@
+{
+  "Component": "MudXProvider",
+  "Namespace": "MudX",
+  "Description": "Ensures the CSS and JS files are loaded for MudX\nRemarks: The MudXProvider should be placed in your MainLayout underneath the MudProviders.",
+  "Parameters": [],
+  "Events": [],
+  "PublicProperties": [],
+  "PublicFields": [],
+  "Methods": []
+}

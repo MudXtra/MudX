@@ -1,0 +1,83 @@
+{
+  "Component": "MudXCodeBlock",
+  "Namespace": "MudX",
+  "Description": "Displays Code Files with Syntax Highlighting using Prism.js. Add-ons include Autolinker, Match Braces (toggleable, true by default), Line Numbers(toggleable, false by default) and Invisibles(toggleable, false by default).",
+  "Parameters": [
+    {
+      "Name": "Codes",
+      "Type": "IEnumerable\u003CCodeFile\u003E",
+      "Default": "[]",
+      "Description": "An IEnumerable of CodeFiles. Each CodeFile has an Id, title, language, and code. You can provide as many CodeFiles as you want though both this parameter and as CodeBlock child components.\nRemarks: At least one CodeFile is required, otherwise an exception is thrown."
+    },
+    {
+      "Name": "Theme",
+      "Type": "CodeTheme",
+      "Default": "Default",
+      "Description": "The Prism Theme for Syntax Highlighting\nRemarks: Defaults to Prism Default"
+    },
+    {
+      "Name": "LineNumbers",
+      "Type": "Boolean",
+      "Default": "false",
+      "Description": "Enable Line Numbers for Syntax Highlighting\nRemarks: Defaults to false"
+    },
+    {
+      "Name": "Invisibles",
+      "Type": "Boolean",
+      "Default": "false",
+      "Description": "Show Invisibles for Syntax Highlighting such as CR, LF, Tab, and Space\nRemarks: Defaults to false"
+    },
+    {
+      "Name": "MatchBraces",
+      "Type": "Boolean",
+      "Default": "true",
+      "Description": "Show Match Braces for Syntax Highlighting so when you highlight one brace it highlights the corresponding brace.\nRemarks: Defaults to true"
+    },
+    {
+      "Name": "CopyOrigin",
+      "Type": "Nullable\u003COrigin\u003E",
+      "Default": "TopRight",
+      "Description": "The Copy Button Origin, nullable field indicating where the copy button should be placed. If null no button will be rendered.\nRemarks: Defaults to"
+    },
+    {
+      "Name": "CopyIcon",
+      "Type": "String",
+      "Default": "\u003Cpath d=\u0022M0 0h24v24H0z\u0022 fill=\u0022none\u0022/\u003E\u003Cpath d=\u0022M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z\u0022/\u003E",
+      "Description": "The Copy Button Icon\nRemarks: Defaults to"
+    },
+    {
+      "Name": "CopyButtonClassname",
+      "Type": "String",
+      "Default": "",
+      "Description": "The Copy Button Classname to add to the copy button\nRemarks: Defaults to null"
+    },
+    {
+      "Name": "Class",
+      "Type": "String",
+      "Default": null,
+      "Description": "User class names, separated by space."
+    },
+    {
+      "Name": "Style",
+      "Type": "String",
+      "Default": null,
+      "Description": "User styles, applied on top of the component\u0027s own classes and styles."
+    },
+    {
+      "Name": "Tag",
+      "Type": "Object",
+      "Default": null,
+      "Description": "Use Tag to attach any user data object to the component for your convenience."
+    },
+    {
+      "Name": "UserAttributes",
+      "Type": "Dictionary\u003CString, Object\u003E",
+      "Default": null,
+      "Description": "UserAttributes carries all attributes you add to the component that don\u0027t match any of its parameters. They will be splatted onto the underlying HTML tag."
+    }
+  ],
+  "Events": [],
+  "PublicProperties": [],
+  "PublicFields": [],
+  "Methods": []
+}

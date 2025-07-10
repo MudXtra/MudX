@@ -12,8 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.UnitTests", "..\tests\MudX.UnitTests\MudX.UnitTests.csproj", "{AA9717B7-5B94-43B4-A43B-2FF9776D74B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.DependsOn", "MudX.DependsOn\MudX.DependsOn.csproj", "{7F456A16-15E7-4F4F-942F-020835F74A7E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.Docs", "MudX.Docs\MudX.Docs.csproj", "{D297B770-0306-4EB9-8D6D-82AADAE0C58C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.Docs.Server", "MudX.Docs.Server\MudX.Docs.Server.csproj", "{E22D8B3B-8869-4C3D-907E-BF2328924361}"
@@ -49,6 +47,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudX.Docs.Hybrid.Client", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
+		..\.gitignore = ..\.gitignore
 		..\images\MudXBreadcrumbs.png = ..\images\MudXBreadcrumbs.png
 		..\images\MudXCodeBlock.png = ..\images\MudXCodeBlock.png
 		..\images\MudXCopyToClipboard.png = ..\images\MudXCopyToClipboard.png
@@ -71,10 +70,6 @@ Global
 		{AA9717B7-5B94-43B4-A43B-2FF9776D74B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA9717B7-5B94-43B4-A43B-2FF9776D74B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA9717B7-5B94-43B4-A43B-2FF9776D74B4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7F456A16-15E7-4F4F-942F-020835F74A7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7F456A16-15E7-4F4F-942F-020835F74A7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7F456A16-15E7-4F4F-942F-020835F74A7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7F456A16-15E7-4F4F-942F-020835F74A7E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D297B770-0306-4EB9-8D6D-82AADAE0C58C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D297B770-0306-4EB9-8D6D-82AADAE0C58C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D297B770-0306-4EB9-8D6D-82AADAE0C58C}.Release|Any CPU.ActiveCfg = Release|Any CPU

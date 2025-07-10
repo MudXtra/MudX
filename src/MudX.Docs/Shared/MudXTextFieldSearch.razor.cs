@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using MudBlazor.State;
 using MudBlazor.Utilities;
-using MudX.Models;
+using MudX.Docs.Data;
 
 namespace MudX.Docs.Shared
 {
@@ -66,8 +66,7 @@ namespace MudX.Docs.Shared
 
         private async Task<IEnumerable<NavItem>> Search(string searchText, CancellationToken token)
         {
-            if (searchText is null)
-                searchText = string.Empty;
+            searchText ??= string.Empty;
             _searchResults = [.. _navList
                     .Where(nav => nav.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
                                   (nav.Action != null && nav.Action.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||

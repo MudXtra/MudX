@@ -29,7 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\MudX.DependsOn\MudX.DependsOn.csproj" />
     <ProjectReference Include="..\..\src\MudX\MudX.csproj" />
     <ProjectReference Include="..\MudX.UnitTests.Viewer\MudX.UnitTests.Viewer.csproj" />
   </ItemGroup>

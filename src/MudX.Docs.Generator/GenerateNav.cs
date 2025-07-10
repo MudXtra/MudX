@@ -1,7 +1,6 @@
 ﻿using System.Text.RegularExpressions;
-using MudX.Models;
 
-namespace MudX.Docs.NavGenerator
+namespace MudX.Docs.Generator
 {
     internal static class GenerateNav
     {
