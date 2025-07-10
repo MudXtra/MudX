@@ -12,33 +12,6 @@ permissions:
   contents: write
 
 jobs:
-  update-version:
-    name: Update Version
-    runs-on: ubuntu-latest
-    env:
-      TAG: ${{ github.event.inputs.version }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0    
-      - name: Checkout Dev
-        run: |
-          git fetch origin dev
-          git checkout dev
-      - name: Extract version number
-        run: |
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
-      - name: Update <Version> in csproj
-        run: |
-          sed -i 's|\(<Version>\)[^<]*\(</Version>\)|\1${{ env.VERSION }}\2|' ./src/MudX/MudX.csproj          
-      - name: Commit and push updated MudX.csproj Version info
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add ./src/MudX/MudX.csproj
-          git commit -m "Update version to $VERSION"
-          git push origin dev    
   deploy-nuget:
     name: Deploy MudX NuGet to nuget.org
     runs-on: ubuntu-latest
@@ -110,11 +83,6 @@ jobs:
          
       - name: Publish NuGet package
         run: dotnet nuget push **/*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
-        working-directory: ./src/MudX
-
-      - name: Push Symbol package
-        run: |
-          dotnet nuget push nupkgs/*.snupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate || echo "Symbol package upload failed, but continuing."
         working-directory: ./src/MudX
 
       - name: Show updated csproj version
