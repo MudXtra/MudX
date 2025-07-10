@@ -62,17 +62,11 @@ jobs:
         run: dotnet pack -c Release --output nupkgs /p:Version=${{ env.VERSION }}
         working-directory: ./src/MudX
 
-      - name: Check package contains css
+      - name: Check package contains static assets
         shell: pwsh
-        run: ./tools/CheckPackageContainsStaticAssets.ps1 ./src/MudX/nupkgs mudx.min.css
-
-      - name: Check package contains js
-        shell: pwsh
-        run: ./tools/CheckPackageContainsStaticAssets.ps1 ./src/MudX/nupkgs mudx.min.js
-
-      - name: Check package contains js
-        shell: pwsh
-        run: ./tools/CheckPackageContainsStaticAssets.ps1 ./src/MudX/nupkgs prism.js
+        run: |
+          $files = @("mudx.min.css", "mudx.min.js", "prism.js")
+          ./tools/CheckPackageContainsStaticAssets.ps1 ./src/MudX/nupkgs $files
 
       - name: Publish NuGet package
         run: dotnet nuget push nupkgs/*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
