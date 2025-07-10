@@ -84,5 +84,16 @@ jobs:
           git commit -m "Update version to $VERSION"
           git push origin dev
 
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ env.TAG }}" \
+            --repo "${{ github.repository }}" \
+            --title "MudX ${TAG#v}" \
+            --generate-notes \
+            ./src/MudX/nupkgs/*.nupkg \
+            ./src/MudX/nupkgs/*.snupkg
+
       - name: Show updated csproj version
         run: grep '<Version>' ./src/MudX/MudX.csproj
