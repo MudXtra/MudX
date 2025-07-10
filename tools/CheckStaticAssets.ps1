@@ -1,19 +1,28 @@
 param (
-    [string]$PackageDirectory,
+    [string]$PackageFile,
     [string[]]$ExpectedFiles
 )
 
-# Show all files in the package directory for debugging
+# Load ZIP handling library
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+# Open the nupkg file as a zip archive
+$zip = [System.IO.Compression.ZipFile]::OpenRead($PackageFile)
+
+# Display all files in the archive
 Write-Host "📦 Package contents:"
-Get-ChildItem -Recurse -Path $PackageDirectory | ForEach-Object {
+$allEntries = $zip.Entries | ForEach-Object {
     Write-Host "• $($_.FullName)"
+    $_.FullName
 }
 
+# Track missing files
 $missing = @()
 
 foreach ($file in $ExpectedFiles) {
-    $found = Get-ChildItem -Recurse -Path $PackageDirectory -Filter $file
-    if (-not $found) {
+    # Check for exact match (case-insensitive)
+    $match = $allEntries | Where-Object { $_ -ieq $file }
+    if (-not $match) {
         Write-Host "❌ Missing: $file"
         $missing += $file
     } else {
@@ -21,6 +30,10 @@ foreach ($file in $ExpectedFiles) {
     }
 }
 
+# Close ZIP archive
+$zip.Dispose()
+
+# Fail the script if any assets are missing
 if ($missing.Count -gt 0) {
     Write-Error "Missing static assets: $($missing -join ', ')"
     exit 1
