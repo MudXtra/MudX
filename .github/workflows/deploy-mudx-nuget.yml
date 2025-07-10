@@ -60,6 +60,7 @@ jobs:
 
       - name: Run Generator explicitly
         run: |
+          dotnet build ./src/MudX.Generator --configuration Release --framework net8.0 --verbosity normal
           dotnet run --project ./src/MudX.Generator --configuration Release --framework net8.0 -- ./src/MudX/wwwroot ./src/MudX/Scripts
         
       - name: Pack NuGet package
