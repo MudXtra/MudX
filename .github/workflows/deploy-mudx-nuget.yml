@@ -58,9 +58,10 @@ jobs:
             8.0.x
             9.0.x
 
-      - name: Run Generator explicitly
+      - name: Run Generator for StaticAssets
         run: |
           dotnet build ./src/MudX.Generator --configuration Release --framework net8.0 --verbosity normal
+          dotnet run --project ./src/MudX.Generator --configuration Release --framework net8.0 -- ./src/MudX/wwwroot ./src/MudX/Scripts
         
       - name: Pack NuGet package
         run: dotnet pack -c Release --output nupkgs /p:Version=${{ env.VERSION }}
