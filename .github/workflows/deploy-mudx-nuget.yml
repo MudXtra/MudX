@@ -57,9 +57,6 @@ jobs:
           dotnet-version: |
             8.0.x
             9.0.x
-      - name: Clean Project
-        run: dotnet clean
-        working-directory: ./src/MudX
         
       - name: Pack NuGet package
         run: dotnet pack -c Release --output nupkgs /p:Version=${{ env.VERSION }}
@@ -72,6 +69,10 @@ jobs:
       - name: Check package contains js
         shell: pwsh
         run: ./tools/CheckPackageContainsStaticAssets.ps1 ./src/MudX/nupkgs mudx.min.js
+
+      - name: Check package contains js
+        shell: pwsh
+        run: ./tools/CheckPackageContainsStaticAssets.ps1 ./src/MudX/nupkgs prism.js
 
       - name: Publish NuGet package
         run: dotnet nuget push nupkgs/*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
