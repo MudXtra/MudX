@@ -56,7 +56,7 @@ jobs:
 
       - name: Run Generator for StaticAssets
         run: |
-          dotnet build ./src/MudX.Generator --configuration Release --framework net8.0 --verbosity normal
+          dotnet build ./src/MudX.Generator --configuration Release --framework net8.0
           dotnet run --project ./src/MudX.Generator --configuration Release --framework net8.0 -- ./src/MudX/wwwroot ./src/MudX/Scripts
         
       - name: Pack NuGet package
@@ -84,6 +84,3 @@ jobs:
       - name: Publish NuGet package
         run: dotnet nuget push **/*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
         working-directory: ./src/MudX
-
-      - name: Show updated csproj version
-        run: grep '<Version>' ./src/MudX/MudX.csproj
