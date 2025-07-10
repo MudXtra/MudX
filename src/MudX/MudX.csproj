@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
         <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
@@ -8,15 +8,15 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <PackageId>MudBlazor.MudX.Extensions</PackageId>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageIconUrl>Nuget.png</PackageIconUrl>
+        <PackageIcon>Nuget.png</PackageIcon>
         <Company>MudX</Company>
         <Authors>Versile and Contributors</Authors>
         <Copyright>Copyright 2025 MudX</Copyright>
         <PackageTags>Blazor, MudBlazor, Material, Material Design, Components, Blazor Components, Blazor Library, Extension</PackageTags>
-        <Description>MudX extends MudBlazor and provides additional enhancements to its components.</Description>
+        <Description>MudX extends MudBlazor and provides additional enhancements and new components.</Description>
         <PackageProjectUrl>https://mudx.org</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/MudXtra/MudX</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
     </PropertyGroup>
@@ -36,12 +36,7 @@
         <!-- https://github.com/dotnet/runtime/issues/95134 -->
         <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     </PropertyGroup>    
-
-<ItemGroup>
-        <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
-        <None Include="..\..\images\Nuget.png" Pack="true" PackagePath="" />
-    </ItemGroup>
-
+    
     <!-- Define paths -->
     <PropertyGroup>
         <ProjectRoot>$(MSBuildProjectDirectory)</ProjectRoot>
@@ -49,10 +44,11 @@
         <MudXOutputPath>$(ProjectRoot)\wwwroot</MudXOutputPath>
         <StampsFilePath>$(MudXOutputPath)\modules\__stamp__.txt</StampsFilePath>
         <ScriptsDirectory>$(ProjectRoot)\Scripts</ScriptsDirectory>
+        <PackageId>MudBlazor.Extensions.MudX</PackageId>
     </PropertyGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="MudX.UnitTests"/>
+        <InternalsVisibleTo Include="MudX.UnitTests" />
     </ItemGroup>
     
     <!-- Collect all .js files in Scripts directory with timestamps -->
@@ -66,6 +62,10 @@
       <Content Include="Scripts\mudx.js" />
     </ItemGroup>
     <ItemGroup>
+      <None Include="..\..\README.md">
+        <Pack>True</Pack>
+        <PackagePath>\</PackagePath>
+      </None>
       <None Include="wwwroot\prism\prism.js" />
     </ItemGroup>
    
@@ -98,5 +98,5 @@
     <ItemGroup>
         <ProjectReference Include="..\MudX.DependsOn\MudX.DependsOn.csproj" />
     </ItemGroup>
-    
+
 </Project>
