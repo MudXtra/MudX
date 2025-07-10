@@ -57,7 +57,10 @@ jobs:
           dotnet-version: |
             8.0.x
             9.0.x
-          
+      - name: Clean Project
+        run: dotnet clean
+        working-directory: ./src/MudX
+        
       - name: Pack NuGet package
         run: dotnet pack -c Release --output nupkgs /p:Version=${{ env.VERSION }}
         working-directory: ./src/MudX
