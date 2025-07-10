@@ -86,7 +86,7 @@
         <Message Importance="high" Text="MudX.Generator: Starting MudX generation..." />
 
         <!-- Build and run in one command -->
-        <Exec Command="dotnet run --project &quot;$(GeneratorPath)&quot; --configuration Release -- &quot;$(MudXOutputPath)&quot; &quot;$(ScriptsDirectory)&quot;" ConsoleToMSBuild="true" ContinueOnError="false" />
+        <Exec Command="dotnet run --project &quot;$(GeneratorPath)&quot; --configuration Release --framework net8.0 -- &quot;$(MudXOutputPath)&quot; &quot;$(ScriptsDirectory)&quot;" ConsoleToMSBuild="true" ContinueOnError="false" />
 
         <!--  Write timestamps to file -->
         <WriteLinesToFile File="$(StampsFilePath)" Lines="@(ScriptFilesWithTimestamps->'%(FileInfo)')" Overwrite="true" />
