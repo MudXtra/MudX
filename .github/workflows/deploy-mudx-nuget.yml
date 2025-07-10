@@ -12,26 +12,49 @@ permissions:
   contents: write
 
 jobs:
+  update-version:
+    name: Update Version
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.inputs.version }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    
+      - name: Checkout Dev
+        run: |
+          git fetch origin dev
+          git checkout dev
+      - name: Extract version number
+        run: |
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+      - name: Update <Version> in csproj
+        run: |
+          sed -i 's|\(<Version>\)[^<]*\(</Version>\)|\1${{ env.VERSION }}\2|' ./src/MudX/MudX.csproj          
+      - name: Commit and push updated MudX.csproj Version info
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ./src/MudX/MudX.csproj
+          git commit -m "Update version to $VERSION"
+          git push origin dev    
   deploy-nuget:
     name: Deploy MudX NuGet to nuget.org
     runs-on: ubuntu-latest
     env:
       TAG: ${{ github.event.inputs.version }}
-      VERSION: ${{ github.event.inputs.version }}
+      VERSION: ${{ github.event.inputs.version }}      
     steps:
       - name: Checkout default branch
         uses: actions/checkout@v4
         with:
           ref: dev
           fetch-depth: 0  # Ensure tags and full history are available
-
+          
       - name: Extract version number
         run: |
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
-
-      - name: Update <Version> in csproj
-        run: |
-          sed -i 's|\(<Version>\)[^<]*\(</Version>\)|\1${{ env.VERSION }}\2|' ./src/MudX/MudX.csproj
 
       - name: Ensure tag exists (create if missing)
         run: |
@@ -73,23 +96,6 @@ jobs:
           $files = @("mudx.min.css", "mudx.min.js", "prism.js", "mudxProvider.js")
           $nupkg = Get-ChildItem ./src/MudX/nupkgs/*.nupkg | Where-Object { $_.Name -notlike "*.symbols.nupkg" } | Select-Object -First 1
           ./tools/CheckStaticAssets.ps1 $nupkg.FullName $files
-          
-      - name: Publish NuGet package
-        run: dotnet nuget push nupkgs/*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
-        working-directory: ./src/MudX
-
-      - name: Push Symbol package
-        run: |
-          dotnet nuget push nupkgs/*.snupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate || echo "Symbol package upload failed, but continuing."
-        working-directory: ./src/MudX
-
-      - name: Commit and push updated MudX.csproj Version info
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add ./src/MudX/MudX.csproj
-          git commit -m "Update version to $VERSION"
-          git push origin dev
 
       - name: Create GitHub release
         env:
@@ -101,6 +107,15 @@ jobs:
             --generate-notes \
             ./src/MudX/nupkgs/*.nupkg \
             ./src/MudX/nupkgs/*.snupkg
+         
+      - name: Publish NuGet package
+        run: dotnet nuget push **/*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
+        working-directory: ./src/MudX
+
+      - name: Push Symbol package
+        run: |
+          dotnet nuget push nupkgs/*.snupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate || echo "Symbol package upload failed, but continuing."
+        working-directory: ./src/MudX
 
       - name: Show updated csproj version
         run: grep '<Version>' ./src/MudX/MudX.csproj
