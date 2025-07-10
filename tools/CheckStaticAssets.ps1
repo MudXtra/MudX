@@ -3,6 +3,12 @@ param (
     [string[]]$ExpectedFiles
 )
 
+# Show all files in the package directory for debugging
+Write-Host "📦 Package contents:"
+Get-ChildItem -Recurse -Path $PackageDirectory | ForEach-Object {
+    Write-Host "• $($_.FullName)"
+}
+
 $missing = @()
 
 foreach ($file in $ExpectedFiles) {
