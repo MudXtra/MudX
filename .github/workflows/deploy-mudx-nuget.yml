@@ -18,7 +18,11 @@ jobs:
     env:
       TAG: ${{ github.event.inputs.version }}
     steps:
-      - name: Checkout dev branch after tag
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    
+      - name: Checkout Dev
         run: |
           git fetch origin dev
           git checkout dev
