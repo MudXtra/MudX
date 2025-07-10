@@ -77,9 +77,14 @@ jobs:
         run: dotnet nuget push nupkgs/*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
         working-directory: ./src/MudX
 
-      - name: Push symbol package
-        run: dotnet nuget push nupkgs/*.snupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
-        working-directory: ./src/MudX
+      - name: Push symbol package (skip if not found)
+        run: |
+          if compgen -G "nupkgs/*.snupkg" > /dev/null; then
+            echo "Found .snupkg, attempting upload..."
+            dotnet nuget push nupkgs/*.snupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate || echo "⚠️ Failed to upload .snupkg, possibly already exists or main package not yet available."
+          else
+            echo "No .snupkg file found."
+          fi
 
       - name: Commit and push updated version
         run: |
