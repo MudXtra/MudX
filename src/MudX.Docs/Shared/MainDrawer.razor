@@ -1,6 +1,6 @@
 @using Microsoft.AspNetCore.Components.Routing
 @using System.Text.Json;
-@using MudX.Models
+@using MudX.Docs.Data
 @inject NavigationManager NavManager
 
 <MudTextField Class="my-2 background-textbox" Value="@_searchTerm" ValueChanged="@((string s) => OnSearchTextChanged(s))" 

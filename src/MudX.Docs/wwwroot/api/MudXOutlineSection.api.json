@@ -1,0 +1,81 @@
+{
+  "Component": "MudXOutlineSection",
+  "Namespace": "MudX",
+  "Description": "Represents a section within an outline or table of contents, providing hierarchical structure and navigation capabilities.\nRemarks: This class is used to define sections in a document outline, supporting features such as hierarchical levels, scrolling behavior, and active state tracking. Sections can be nested within parent containers, and their properties such as and are used for display and navigation.",
+  "Parameters": [
+    {
+      "Name": "Title",
+      "Type": "String",
+      "Default": "null",
+      "Description": "The title of the section in the Table of Contents."
+    },
+    {
+      "Name": "Id",
+      "Type": "String",
+      "Default": "null",
+      "Description": "The id of the section, used for scrolling. This will be what is appended to the current url, if the section becomes active.\nRemarks: (optional) Defaults to the title"
+    },
+    {
+      "Name": "ChildContent",
+      "Type": "RenderFragment",
+      "Default": "null",
+      "Description": "The content of the Document Sections"
+    },
+    {
+      "Name": "Class",
+      "Type": "String",
+      "Default": null,
+      "Description": "User class names, separated by space."
+    },
+    {
+      "Name": "Style",
+      "Type": "String",
+      "Default": null,
+      "Description": "User styles, applied on top of the component\u0027s own classes and styles."
+    },
+    {
+      "Name": "Tag",
+      "Type": "Object",
+      "Default": null,
+      "Description": "Use Tag to attach any user data object to the component for your convenience."
+    },
+    {
+      "Name": "UserAttributes",
+      "Type": "Dictionary\u003CString, Object\u003E",
+      "Default": null,
+      "Description": "UserAttributes carries all attributes you add to the component that don\u0027t match any of its parameters. They will be splatted onto the underlying HTML tag."
+    }
+  ],
+  "Events": [],
+  "PublicProperties": [
+    {
+      "Name": "Level",
+      "Type": "Int32",
+      "Description": "Gets the hierarchical level of the current item within its parent container."
+    },
+    {
+      "Name": "SectionId",
+      "Type": "String",
+      "Description": "The SectionID used for this section"
+    },
+    {
+      "Name": "Active",
+      "Type": "Boolean",
+      "Description": "Indicating if the section is currently in the middle of the viewport"
+    }
+  ],
+  "PublicFields": [],
+  "Methods": [
+    {
+      "Name": "RegisterSectionAsync",
+      "ReturnType": "Task",
+      "Parameters": [
+        {
+          "Name": "section",
+          "Type": "MudXOutlineSection"
+        }
+      ],
+      "Description": "Adds a section to the current Parent (Outline or OutlineSection) and Table of Contents"
+    }
+  ]
+}

@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <PackageId>MudX.MudBlazor.Extensions</PackageId>
+        <PackageId>MudX</PackageId>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageIcon>Nuget.png</PackageIcon>
         <Company>MudX</Company>
@@ -44,6 +44,7 @@
         <MudXOutputPath>$(ProjectRoot)\wwwroot</MudXOutputPath>
         <StampsFilePath>$(MudXOutputPath)\modules\__stamp__.txt</StampsFilePath>
         <ScriptsDirectory>$(ProjectRoot)\Scripts</ScriptsDirectory>
+        <Title>MudX Extensions for MudBlazor</Title>
     </PropertyGroup>
 
     <ItemGroup>
@@ -56,10 +57,7 @@
         <StampsFile Include="$(StampsFilePath)" />
         <OutputFiles Include="$(MudXOutputPath)modules\**\*.js" />
     </ItemGroup>
-    <ItemGroup>
-      <Content Include="Scripts\mudx.css" />
-      <Content Include="Scripts\mudx.js" />
-    </ItemGroup>
+
     <ItemGroup>
       <None Include="..\..\README.md">
         <Pack>True</Pack>
@@ -70,6 +68,9 @@
         <PackagePath>\</PackagePath>
       </None>
       <None Include="wwwroot\prism\prism.js" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="MudBlazor" Version="8.9.0" />
     </ItemGroup>
    
     <!-- Create item with filename and timestamp metadata -->
@@ -93,13 +94,9 @@
         <Message Importance="high" Text="MudX.Generator: Finished MudX generation..." />
         <Message Importance="high" Text="======================================" />
     </Target>
-
+  
     <ItemGroup>
         <SupportedPlatform Include="browser" />
-    </ItemGroup>
-    
-    <ItemGroup>
-        <ProjectReference Include="..\MudX.DependsOn\MudX.DependsOn.csproj" />
     </ItemGroup>
 
 </Project>

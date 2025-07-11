@@ -13,10 +13,10 @@ namespace MudX
     public partial class MudXSecurityCode : MudComponentBase, IAsyncDisposable
     {
         private ElementReference? _elementRef;
-        private string Id = $"mudx-code-id-{Guid.NewGuid()}";
+        private readonly string Id = $"mudx-code-id-{Guid.NewGuid()}";
         private DotNetObjectReference<MudXSecurityCode>? _dotNetRef;
-        private Dictionary<string, object?> _attributes = [];
-        private ParameterState<string?> _codeState;
+        private readonly Dictionary<string, object?> _attributes = [];
+        internal ParameterState<string?> _codeState;
         private bool _isInternalChange = false;
         private MudForm? _form = null!;
 
@@ -173,6 +173,8 @@ namespace MudX
         /// </summary>
         public bool IsValid => _form?.IsValid ?? false;
 
+        //public string FullCode => 
+
         /// <summary>
         /// OnParameterSet override
         /// </summary>
@@ -225,7 +227,7 @@ namespace MudX
         private void GenerateFromPattern(string pattern)
         {
             var index = 0;
-            char[] patternList = { PlaceholderAlpha, PlaceholderNumeric, PlaceholderAlphaNumeric, PlaceholderSpecial, PlaceholderAny };
+            char[] patternList = [PlaceholderAlpha, PlaceholderNumeric, PlaceholderAlphaNumeric, PlaceholderSpecial, PlaceholderAny];
             CodeItems.Clear();
             foreach (var ch in pattern)
             {
@@ -351,7 +353,10 @@ namespace MudX
             if (string.IsNullOrWhiteSpace(text) || fullid.Length <= 10)
                 return;
 
+            // Extract the substring starting at index 10 and ending before the next dash.
             var id = fullid[10..];
+            var parts = id.Split("-");
+            id = parts[0];
 
             if (!int.TryParse(id, out int index))
                 return;
@@ -424,48 +429,38 @@ namespace MudX
         private async Task UpdateCodeValue()
         {
             string result = string.Empty;
-            int editableFilledCount = 0;
-            int editableSeenCount = 0;
 
-            // First, count how many editable inputs have been filled
-            foreach (var item in CodeItems)
+            // Find the index of the last filled editable item
+            int lastFilledEditableIndex = CodeItems
+                .Select((item, index) => new { item, index })
+                .Where(x => x.item.IsEditable && !string.IsNullOrEmpty(x.item.Value))
+                .Select(x => x.index)
+                .DefaultIfEmpty(-1)
+                .Max();
+
+            for (int i = 0; i < CodeItems.Count; i++)
             {
+                var item = CodeItems[i];
+
                 if (item.IsEditable)
                 {
-                    editableSeenCount++;
-                    if (!string.IsNullOrEmpty(item.Value))
-                        editableFilledCount++;
-                }
-            }
-
-            int filledSoFar = 0;
-
-            foreach (var item in CodeItems)
-            {
-                if (item.IsEditable)
-                {
-                    // Always show editable values as-is
                     result += item.Value;
-                    if (!string.IsNullOrEmpty(item.Value))
-                        filledSoFar++;
                 }
-                else
+                // Show fixed characters only if they appear before or at the last filled editable,
+                // or if they are the first fixed character immediately after the last filled editable
+                else if (i <= lastFilledEditableIndex ||
+                         (i > lastFilledEditableIndex &&
+                          lastFilledEditableIndex >= 0 &&
+                          CodeItems[i - 1].IsEditable &&
+                          i == lastFilledEditableIndex + 1))
                 {
-                    // Only show static (non-editable) characters if we've filled enough inputs to reach this point
-                    int editableBefore = CodeItems
-                        .TakeWhile(ci => ci != item)
-                        .Count(ci => ci.IsEditable);
-
-                    if (filledSoFar >= editableBefore)
-                        result += item.PatternChar;
-                    else
-                        result += ""; // Don't show it yet
+                    result += item.PatternChar;
                 }
             }
 
             _isInternalChange = true;
             await _codeState.SetValueAsync(result);
-            await CodeChanged.InvokeAsync(Code);
+            await CodeChanged.InvokeAsync(_codeState.Value);
             _isInternalChange = false;
             StateHasChanged();
         }
@@ -509,6 +504,7 @@ namespace MudX
                 _dotNetRef?.Dispose();
                 _dotNetRef = null;
             }
+            GC.SuppressFinalize(this);
         }
     }
 }

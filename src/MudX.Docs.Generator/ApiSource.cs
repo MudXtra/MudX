@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Components;
@@ -45,7 +46,7 @@ namespace MudX.Docs.Generator
                     if (xmlFiles.Length > 0)
                     {
                         xmlPath = xmlFiles[0];
-                        File.Copy(xmlPath, fallbackPath, true);
+                        CopyIfDifferent(xmlPath, fallbackPath);
                     }
                     else
                     {
@@ -153,6 +154,28 @@ namespace MudX.Docs.Generator
             }
 
             return true;
+        }
+
+        private static void CopyIfDifferent(string sourcePath, string destinationPath)
+        {
+            bool shouldCopy = true;
+
+            if (File.Exists(destinationPath))
+            {
+                using var sourceStream = File.OpenRead(sourcePath);
+                using var destinationStream = File.OpenRead(destinationPath);
+                using var sha256 = SHA256.Create();
+
+                var sourceHash = sha256.ComputeHash(sourceStream);
+                var destinationHash = sha256.ComputeHash(destinationStream);
+
+                shouldCopy = !sourceHash.SequenceEqual(destinationHash);
+            }
+
+            if (shouldCopy)
+            {
+                File.Copy(sourcePath, destinationPath, true);
+            }
         }
 
         private static Dictionary<string, string> LoadXmlDocumentation(string xmlPath)

@@ -13,7 +13,7 @@ namespace MudX
         private IJSObjectReference? _jsModule;
 
         [Inject]
-        private IJSRuntime _js { get; set; } = default!;
+        private IJSRuntime JSRuntime { get; set; } = default!;
 
         /// <summary>
         /// OnAfterRenderAsync override
@@ -28,7 +28,7 @@ namespace MudX
     version = typeof(MudX._Imports).Assembly.GetName().Version?.ToString() ?? version;
     isDev = false;
 #endif
-                _jsModule = await _js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxProvider.js");
+                _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxProvider.js");
                 var result = await _jsModule.InvokeAsync<bool>("initialize", version, isDev);
                 if (!result)
                 {
@@ -48,6 +48,7 @@ namespace MudX
                 await _jsModule.DisposeAsync();
                 _jsModule = null;
             }
+            GC.SuppressFinalize(this);
         }
     }
 }

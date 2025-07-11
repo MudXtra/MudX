@@ -1,0 +1,36 @@
+{
+  "Component": "MudXCopyToClipboard",
+  "Namespace": "MudX",
+  "Description": "Provides functionality to copy text to the clipboard and optionally display a snackbar notification.\nRemarks: This component uses JavaScript interop to perform clipboard operations. It does not generate anything in the DOM but provides a public method to copy something to clipboard. It ensures JSInterop is available before the copy and advises if not.",
+  "Parameters": [
+    {
+      "Name": "Snackbar",
+      "Type": "Boolean",
+      "Default": "false",
+      "Description": "Indicates if the snackbar should be shown as a result of a copy operation. A success will be Severity.Success and an error will be Severity.Error.\nRemarks: Default is false"
+    }
+  ],
+  "Events": [],
+  "PublicProperties": [],
+  "PublicFields": [
+    {
+      "Name": "IsJSRuntimeAvailable",
+      "Type": "Boolean",
+      "Default": "False",
+      "Description": "Indicates if the JSRuntime is available and the CopyToClipboardAsync method can be called"
+    }
+  ],
+  "Methods": [
+    {
+      "Name": "CopyToClipboardAsync",
+      "ReturnType": "Task\u00601",
+      "Parameters": [
+        {
+          "Name": "text",
+          "Type": "String"
+        }
+      ],
+      "Description": "Copies the Text parameter to the clipboard"
+    }
+  ]
+}

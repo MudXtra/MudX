@@ -60,7 +60,7 @@ jobs:
           dotnet run --project ./src/MudX.Generator --configuration Release --framework net8.0 -- ./src/MudX/wwwroot ./src/MudX/Scripts
         
       - name: Pack NuGet package
-        run: dotnet pack -c Release --output nupkgs /p:Version=${{ env.VERSION }}
+        run: dotnet pack -c Release --output nupkgs /p:Version=${{ env.VERSION }} /p:PackageId=MudX.MudBlazor.Extension
         working-directory: ./src/MudX
 
       - name: Check Package contains Static Assets

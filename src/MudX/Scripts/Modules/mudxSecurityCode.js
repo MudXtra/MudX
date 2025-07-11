@@ -37,9 +37,12 @@ function handlePaste(event, input, dotNetObjRef) {
 export function focusBlock(container, inputId) {
     if (!container || !inputId) return;
     const input = container.querySelector("#" + inputId);
-    if (input) {
-        input.focus();
-        input.select();
+    if (input) {        
+        try {
+            input.focus();
+            input.select(); // Select the input content if applicable
+        }
+        catch { }
     }
 }
 

@@ -1,7 +1,6 @@
 ﻿
 using System.Text.Json;
 using MudX.Docs.Generator;
-using MudX.Docs.NavGenerator;
 
 if (args.Length < 2)
 {

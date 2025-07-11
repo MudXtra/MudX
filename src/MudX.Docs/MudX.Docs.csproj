@@ -30,7 +30,7 @@
   </ItemGroup>
 
     <Target Name="GenerateNavJsonBeforeBuild" BeforeTargets="PreBuildEvent">
-        <Message Importance="high" Text="MudX.Docs.NavGenerator: Starting navigation generation..." />
+        <Message Importance="high" Text="MudX.Docs.Generator: Starting navigation generation..." />
 
         <!-- Define paths -->
         <PropertyGroup>
@@ -42,17 +42,11 @@
         <!-- Build and run in one command - framework version independent -->
         <Exec Command="dotnet run --project &quot;$(NavGeneratorPath)&quot; --configuration Release -- &quot;$(OutputJsonPath)&quot; &quot;$(PagesDirectory)&quot;" ConsoleToMSBuild="true" ContinueOnError="false" />
 
-        <Message Importance="high" Text="MudX.Docs.NavGenerator: Finished navigation generation..." />
+        <Message Importance="high" Text="MudX.Docs.Generator: Finished navigation generation..." />
     </Target>
 
     <ItemGroup>
         <EmbeddedResource Include="wwwroot\nav-structure.json" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="8.2.0" />
-      <PackageReference Include="MudBlazor.Extensions" Version="8.6.0" />
-      <PackageReference Include="MudBlazor.Markdown" Version="8.6.0" />
     </ItemGroup>
 
 </Project>
