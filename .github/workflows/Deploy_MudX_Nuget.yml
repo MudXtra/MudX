@@ -1,0 +1,77 @@
+name: Update MudX Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Tag to publish (e.g., v8.9.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-version:
+    name: Update Version
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.inputs.version }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version number
+        run: echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
+      - name: Update <Version> in csproj
+        run: |
+          sed -i 's|\(<Version>\)[^<]*\(</Version>\)|\1${{ env.VERSION }}\2|' ./src/MudX/MudX.csproj
+
+      - name: Create version branch and commit
+        run: |
+          git checkout dev
+          git checkout -b version
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git add ./src/MudX/MudX.csproj
+          if git diff --cached --quiet; then
+            echo "✅ No changes to commit."
+          else
+            git commit -m "Update version to $VERSION"
+            git push --set-upstream origin version
+          fi
+
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: version
+          base: dev
+          title: "Update MudX.csproj version to ${{ env.VERSION }}"
+          body: |
+            Automated update of MudX.csproj <Version> tag to ${{ env.VERSION }}
+          commit-message: "Update MudX.csproj version to ${{ env.VERSION }}"
+          delete-branch: true
+
+      - name: Auto-approve PR
+        if: steps.cpr.outputs.pull-request-number != ''
+        uses: hmarr/auto-approve-action@v4
+        with:
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_BOT_TOKEN }} # Use bot PAT, not repo token
+
+      - name: Merge PR
+        if: steps.cpr.outputs.pull-request-number != ''
+        uses: peter-evans/merge-pull-request@v3
+        with:
+          pull-request: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: squash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_BOT_TOKEN }} # Use bot PAT
