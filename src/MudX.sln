@@ -25,6 +25,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{
 		..\.github\ISSUE_TEMPLATE\bug_report.yml = ..\.github\ISSUE_TEMPLATE\bug_report.yml
 		..\.github\ISSUE_TEMPLATE\feature_request.yml = ..\.github\ISSUE_TEMPLATE\feature_request.yml
 		..\.github\ISSUE_TEMPLATE\need_help.yml = ..\.github\ISSUE_TEMPLATE\need_help.yml
+		..\.github\pull_request_template.md = ..\.github\pull_request_template.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MD Files", "MD Files", "{49DA93C4-D5F6-4DE5-A724-5A82F2EFC304}"
