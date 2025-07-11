@@ -13,9 +13,9 @@ namespace MudX
     public partial class MudXSecurityCode : MudComponentBase, IAsyncDisposable
     {
         private ElementReference? _elementRef;
-        private string Id = $"mudx-code-id-{Guid.NewGuid()}";
+        private readonly string Id = $"mudx-code-id-{Guid.NewGuid()}";
         private DotNetObjectReference<MudXSecurityCode>? _dotNetRef;
-        private Dictionary<string, object?> _attributes = [];
+        private readonly Dictionary<string, object?> _attributes = [];
         internal ParameterState<string?> _codeState;
         private bool _isInternalChange = false;
         private MudForm? _form = null!;
@@ -227,7 +227,7 @@ namespace MudX
         private void GenerateFromPattern(string pattern)
         {
             var index = 0;
-            char[] patternList = { PlaceholderAlpha, PlaceholderNumeric, PlaceholderAlphaNumeric, PlaceholderSpecial, PlaceholderAny };
+            char[] patternList = [PlaceholderAlpha, PlaceholderNumeric, PlaceholderAlphaNumeric, PlaceholderSpecial, PlaceholderAny];
             CodeItems.Clear();
             foreach (var ch in pattern)
             {
@@ -504,6 +504,7 @@ namespace MudX
                 _dotNetRef?.Dispose();
                 _dotNetRef = null;
             }
+            GC.SuppressFinalize(this);
         }
     }
 }
