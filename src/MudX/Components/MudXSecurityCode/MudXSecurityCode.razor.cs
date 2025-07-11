@@ -428,7 +428,7 @@ namespace MudX
 
         private async Task UpdateCodeValue()
         {
-            string result = string.Empty;
+            var result = string.Empty;
 
             // Find the index of the last filled editable item
             int lastFilledEditableIndex = CodeItems
@@ -481,10 +481,6 @@ namespace MudX
                 foreach (var item in CodeItems)
                     item.Value = string.Empty;
                 StateHasChanged();
-            }
-            else
-            {
-                await ClipboardPasteEvent("mudx-code-0", args.Value);
             }
         }
 
