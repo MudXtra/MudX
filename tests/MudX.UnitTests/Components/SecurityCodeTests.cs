@@ -1,4 +1,5 @@
-﻿using Bunit;
+﻿using AngleSharp.Dom;
+using Bunit;
 using FluentAssertions;
 using MudBlazor;
 using MudX.UnitTests.Viewer.TestComponents.SecurityCode;
@@ -178,6 +179,32 @@ namespace MudX.UnitTests.Components
             await comp.InvokeAsync(async () => await comp.Instance.ClipboardPasteEvent("mudx-code-1-random-guid", pasteText));
             comp.WaitForAssertion(() => comp.Instance._codeState.Value.Should().Be(expectedValue2));
             comp.Instance.CodeItems[1].Value.Should().Be(expectedValue.Substring(0, 1));
+        }
+
+        [Test]
+        public void SecurityCode_ShouldUpdateCodeWhenCodeItemIsRemoved()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<SecurityCodeBasicTest>();
+            var codeComp = comp.FindComponent<MudXSecurityCode>();
+
+            // Assert
+            codeComp.Should().NotBeNull();
+            codeComp.Instance.CodeItems.Count.Should().Be(4);
+            var inputs = comp.FindAll(".mudx-code-item input");
+
+            inputs.Count.Should().Be(4);
+            inputs[0].Input("1");
+            inputs[1].Input("2");
+            inputs[2].Input("3");
+            inputs[3].Input("4");
+            comp.WaitForAssertion(() => comp.Find(".mud-info-text").GetInnerText().Should().Be("Security Code: 1234"));
+            codeComp.Instance._codeState.Value.Should().Be("1234");
+            inputs[3].Input(string.Empty); // remove last item
+            // verify the last item has an invalid state
+            comp.WaitForAssertion(() => codeComp.Instance.IsValid.Should().BeFalse());
+            comp.WaitForAssertion(() => comp.Find(".mud-info-text").GetInnerText().Should().Be("Security Code: 123"));
+            comp.Find(".mud-input-error").Should().NotBeNull(); // should have an error class
         }
     }
 }

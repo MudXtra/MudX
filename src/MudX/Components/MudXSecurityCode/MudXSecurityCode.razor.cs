@@ -460,7 +460,7 @@ namespace MudX
 
             _isInternalChange = true;
             await _codeState.SetValueAsync(result);
-            await CodeChanged.InvokeAsync(Code);
+            await CodeChanged.InvokeAsync(_codeState.Value);
             _isInternalChange = false;
             StateHasChanged();
         }

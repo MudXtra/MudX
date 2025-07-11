@@ -39,7 +39,6 @@ export function focusBlock(container, inputId) {
     const input = container.querySelector("#" + inputId);
     if (input) {
         input.focus();
-        input.select();
     }
 }
 
