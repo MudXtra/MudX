@@ -353,7 +353,7 @@ namespace MudX
             if (string.IsNullOrWhiteSpace(text) || fullid.Length <= 10)
                 return;
 
-            // I need the first sequence of characters after index 10 before the next dash, no more, no less
+            // Extract the substring starting at index 10 and ending before the next dash.
             var id = fullid[10..];
             var parts = id.Split("-");
             id = parts[0];

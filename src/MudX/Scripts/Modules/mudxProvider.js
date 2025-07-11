@@ -31,7 +31,7 @@ export async function injectJsFromFile(version, isDev) {
         script.src = jsPath;
 
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error("Failed to load mudx.min.js"));
+        script.onerror = () => reject(new Error(`Failed to load ${script.src}`));
 
         document.head.appendChild(script);
     });
