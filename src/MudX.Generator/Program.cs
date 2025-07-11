@@ -1,4 +1,5 @@
-﻿using MudX.Generator.JSCompiler;
+﻿using MudX.Generator;
+using MudX.Generator.JSCompiler;
 using NUglify;
 
 // this will compress and put all module js files into wwwroot
@@ -30,11 +31,10 @@ try
     // see if subdirectory of outputDirectory exists called modules, create it if it doesn't exist and set it to modulesDirectory
     var modulesDirectory = Path.Combine(outputDirectory, "modules");
     // At the start of the try block in MudX.Generator
-    if (Directory.Exists(modulesDirectory))
+    if (!Directory.Exists(modulesDirectory))
     {
-        Directory.Delete(modulesDirectory, true); // Delete directory and all contents
+        Directory.CreateDirectory(modulesDirectory);
     }
-    Directory.CreateDirectory(modulesDirectory); // Recreate empty directory
     var jsDirectory = Path.GetFullPath(Path.Combine("..", "MudX", jsFiles));
     if (!Directory.Exists(jsDirectory))
     {
@@ -49,8 +49,7 @@ try
         var jsOutFile = Path.Combine(modulesDirectory, jsFileName);
         var contents = JavaScriptCompressor.Compress(File.ReadAllText(jsFile));
         // write contents to file
-        File.WriteAllText(jsOutFile, contents);
-        Console.WriteLine($"MudX.Generator: Processed JS file: {jsFileName} -> {jsOutFile}");
+        StaticAssetsFileMethods.WriteIfDifferent(jsOutFile, contents);
     }
 
     var jsMainFile = Directory.GetFiles(Path.Combine("..", jsDirectory), "mudx.js", SearchOption.AllDirectories).FirstOrDefault();
@@ -64,9 +63,8 @@ try
     var jsMainOutFile = Path.Combine(modulesDirectory, "../", "mudx.min.js");
     var maincontents = JavaScriptCompressor.Compress(File.ReadAllText(jsMainFile));
     // write contents to file
-    File.Copy(jsMainFile, jsDevOutFile, overwrite: true);
-    File.WriteAllText(jsMainOutFile, maincontents);
-    Console.WriteLine($"MudX.Generator: Processed Main JS file: {Path.GetFileName(jsMainFile)} -> {jsMainOutFile}");
+    StaticAssetsFileMethods.CopyIfDifferent(jsMainFile, jsDevOutFile);
+    StaticAssetsFileMethods.WriteIfDifferent(jsMainOutFile, maincontents);
 
     var cssMainFile = Directory.GetFiles(Path.Combine("..", jsDirectory), "mudx.css", SearchOption.AllDirectories).FirstOrDefault();
 
@@ -85,10 +83,8 @@ try
         return 1;
     }
     // write contents to file
-    File.Copy(cssMainFile, cssDevOutFile, overwrite: true);
-    File.WriteAllText(cssMainOutFile, csscontents.Code);
-    Console.WriteLine($"MudX.Generator: Processed Main CSS file: {Path.GetFileName(cssMainFile)} -> {cssMainOutFile}");
-
+    StaticAssetsFileMethods.CopyIfDifferent(cssMainFile, cssDevOutFile);
+    StaticAssetsFileMethods.WriteIfDifferent(cssMainOutFile, csscontents.Code);
 
     Console.WriteLine("MudX.Generator: Process completed successfully.");
 

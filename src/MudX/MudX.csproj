@@ -3,10 +3,11 @@
     <PropertyGroup>
         <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
         <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>        
+        <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
     <PropertyGroup>
+        <PackageId>MudX</PackageId>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageIcon>Nuget.png</PackageIcon>
         <Company>MudX</Company>
@@ -43,6 +44,7 @@
         <MudXOutputPath>$(ProjectRoot)\wwwroot</MudXOutputPath>
         <StampsFilePath>$(MudXOutputPath)\modules\__stamp__.txt</StampsFilePath>
         <ScriptsDirectory>$(ProjectRoot)\Scripts</ScriptsDirectory>
+        <Title>MudX Extensions for MudBlazor</Title>
     </PropertyGroup>
 
     <ItemGroup>
