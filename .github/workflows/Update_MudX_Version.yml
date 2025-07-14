@@ -56,6 +56,14 @@ jobs:
           delete-branch: true
           labels: automerge
 
+      - name: Auto-approve PR
+        if: steps.cpr.outputs.pull-request-number != ''
+        uses: hmarr/auto-approve-action@v4
+        with:
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
+
       - id: automerge
         name: Auto-Merge
         uses: pascalgn/automerge-action@v0.16.4
