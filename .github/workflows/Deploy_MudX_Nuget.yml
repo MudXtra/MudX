@@ -49,19 +49,11 @@ jobs:
           token: ${{ secrets.GH_BOT_TOKEN }}
           branch: version
           base: dev
-          title: "Update MudX.csproj version to ${{ env.VERSION }}"
+          title: "[BOT] Update MudX Version to ${{ env.VERSION }}"
           body: |
             Automated update of MudX.csproj <Version> tag to ${{ env.VERSION }}
           commit-message: "Update MudX.csproj version to ${{ env.VERSION }}"
           delete-branch: true
-
-      - name: Auto-approve PR
-        if: steps.cpr.outputs.pull-request-number != ''
-        uses: hmarr/auto-approve-action@v4
-        with:
-          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
 
       - id: automerge
         name: Auto-Merge
