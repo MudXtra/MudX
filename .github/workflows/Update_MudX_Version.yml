@@ -46,7 +46,7 @@ jobs:
         id: cpr
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ secrets.GH_BOT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           branch: version
           base: dev
           title: "[BOT] Update MudX Version to ${{ env.VERSION }}"
