@@ -169,13 +169,6 @@ namespace MudX
         public Margin Margin { get; set; } = Margin.Normal;
 
         /// <summary>
-        /// Whether all the code boxes have valid inputs.
-        /// </summary>
-        public bool IsValid => _form?.IsValid ?? false;
-
-        //public string FullCode => 
-
-        /// <summary>
         /// OnParameterSet override
         /// </summary>
         protected override void OnParametersSet()
@@ -428,7 +421,7 @@ namespace MudX
 
         private async Task UpdateCodeValue()
         {
-            string result = string.Empty;
+            var result = string.Empty;
 
             // Find the index of the last filled editable item
             int lastFilledEditableIndex = CodeItems
@@ -465,7 +458,7 @@ namespace MudX
             StateHasChanged();
         }
 
-        private async Task OnChangeHandler(ParameterChangedEventArgs<string?> args)
+        private void OnChangeHandler(ParameterChangedEventArgs<string?> args)
         {
             // No change at all? Skip.
             if (args.Value == args.LastValue)
@@ -481,10 +474,6 @@ namespace MudX
                 foreach (var item in CodeItems)
                     item.Value = string.Empty;
                 StateHasChanged();
-            }
-            else
-            {
-                await ClipboardPasteEvent("mudx-code-0", args.Value);
             }
         }
 

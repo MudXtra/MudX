@@ -68,9 +68,14 @@ function focusNextElement() {
     const nextIndex = currentIndex + 1;
 
     // Focus next element if it exists
-    if (nextIndex < focusableElements.length) {
-        focusableElements[nextIndex].focus();
-        focusableElements[nextIndex].select();
+    if (nextIndex < focusableElements.length) {        
+        const el = focusableElements[nextIndex];
+        if (el) {
+            el.focus();
+            if (typeof el.select === 'function') {
+                el.select(); // Select the input content if applicable
+            }
+        }
     }
 }
 

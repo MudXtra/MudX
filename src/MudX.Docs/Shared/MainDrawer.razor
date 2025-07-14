@@ -25,7 +25,7 @@
             return;
         }
 
-        _navList = GeneratedNavList();
+        _navList = GeneratedNavList().OrderBy(x => x.Title).ToList();
 
         // Create a dictionary for fast lookups by NavItemId
         navItemsById = _navList.ToDictionary(x => x.NavItemId);
