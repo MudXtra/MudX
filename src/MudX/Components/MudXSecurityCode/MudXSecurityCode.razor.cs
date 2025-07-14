@@ -169,13 +169,6 @@ namespace MudX
         public Margin Margin { get; set; } = Margin.Normal;
 
         /// <summary>
-        /// Whether all the code boxes have valid inputs.
-        /// </summary>
-        public bool IsValid => _form?.IsValid ?? false;
-
-        //public string FullCode => 
-
-        /// <summary>
         /// OnParameterSet override
         /// </summary>
         protected override void OnParametersSet()

@@ -200,10 +200,11 @@ namespace MudX.UnitTests.Components
             inputs[3].Input("4");
             comp.WaitForAssertion(() => comp.Find(".mud-info-text").GetInnerText().Should().Be("Security Code: 1234"));
             codeComp.Instance._codeState.Value.Should().Be("1234");
+            inputs = comp.FindAll(".mudx-code-item input");
+            inputs[3].Change(string.Empty); // remove last item
             inputs[3].Input(string.Empty); // remove last item
-            // verify the last item has an invalid state
-            comp.WaitForAssertion(() => codeComp.Instance.IsValid.Should().BeFalse());
             comp.WaitForAssertion(() => comp.Find(".mud-info-text").GetInnerText().Should().Be("Security Code: 123"));
+            // verify the last item has an invalid state
             comp.Find(".mud-input-error").Should().NotBeNull(); // should have an error class
         }
     }
