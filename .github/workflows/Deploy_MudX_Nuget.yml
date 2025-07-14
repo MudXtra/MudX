@@ -39,14 +39,14 @@ jobs:
             echo "❌ Version not updated correctly in csproj (found: $actual, expected: $VERSION)"
             exit 1
           else
-            echo "✅ Version updated to $actual"
+            echo "Version updated to $actual"
           fi
 
       - name: Create Pull Request
         id: cpr
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_BOT_TOKEN }}
           branch: version
           base: dev
           title: "Update MudX.csproj version to ${{ env.VERSION }}"
@@ -68,3 +68,5 @@ jobs:
         uses: pascalgn/automerge-action@v0.16.4
         env:
           GITHUB_TOKEN: "${{ secrets.GH_BOT_TOKEN }}"
+          PULL_REQUEST: ${{ steps.cpr.outputs.pull-request-number }}
+          MERGE_DELETE_BRANCH: "TRUE"
