@@ -465,7 +465,7 @@ namespace MudX
             StateHasChanged();
         }
 
-        private async Task OnChangeHandler(ParameterChangedEventArgs<string?> args)
+        private void OnChangeHandler(ParameterChangedEventArgs<string?> args)
         {
             // No change at all? Skip.
             if (args.Value == args.LastValue)

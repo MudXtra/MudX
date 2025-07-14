@@ -25,7 +25,7 @@
             return;
         }
 
-        _navList = GeneratedNavList();
+        _navList = GeneratedNavList().OrderBy(x => x.Title).ToList();
 
         // Create a dictionary for fast lookups by NavItemId
         navItemsById = _navList.ToDictionary(x => x.NavItemId);
@@ -153,7 +153,7 @@
         using var reader = new StreamReader(stream!);
         var json = reader.ReadToEnd();
         var navStructure = JsonSerializer.Deserialize<List<NavItem>>(json) ?? [];
-        navItems.AddRange(navStructure.OrderBy(x => x.Title));
+        navItems.AddRange(navStructure);
 
         return navItems
             .OrderBy(m => m.NavItemId)
