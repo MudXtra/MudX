@@ -28,22 +28,18 @@ jobs:
       - name: Extract version number
         run: echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
-      - name: Update <Version> in csproj
+      - name: Update Version in csproj
         run: |
           sed -i 's|\(<Version>\)[^<]*\(</Version>\)|\1${{ env.VERSION }}\2|' ./src/MudX/MudX.csproj
 
-      - name: Create version branch and commit
+      - name: Verify csproj Version
         run: |
-          git checkout dev
-          git checkout -b version
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
-          git add ./src/MudX/MudX.csproj
-          if git diff --cached --quiet; then
-            echo "✅ No changes to commit."
+          actual=$(grep -oPm1 "(?<=<Version>)[^<]+" ./src/MudX/MudX.csproj)
+          if [ "$actual" != "${VERSION}" ]; then
+            echo "❌ Version not updated correctly in csproj (found: $actual, expected: $VERSION)"
+            exit 1
           else
-            git commit -m "Update version to $VERSION"
-            git push --set-upstream origin version
+            echo "✅ Version updated to $actual"
           fi
 
       - name: Create Pull Request
