@@ -61,8 +61,7 @@ jobs:
         uses: hmarr/auto-approve-action@v4
         with:
           pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
+          github-token: ${{ secrets.GH_BOT_TOKEN }}
 
       - id: automerge
         name: Auto-Merge
@@ -71,3 +70,4 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GH_BOT_TOKEN }}"
           PULL_REQUEST: ${{ steps.cpr.outputs.pull-request-number }}
           MERGE_DELETE_BRANCH: "TRUE"
+          review-message: "Auto approved Automated PR"
