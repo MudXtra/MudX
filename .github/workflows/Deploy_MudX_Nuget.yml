@@ -54,6 +54,7 @@ jobs:
             Automated update of MudX.csproj <Version> tag to ${{ env.VERSION }}
           commit-message: "Update MudX.csproj version to ${{ env.VERSION }}"
           delete-branch: true
+          labels: automerge
 
       - id: automerge
         name: Auto-Merge
