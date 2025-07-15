@@ -3,6 +3,12 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# MudX.Generator modules
+src/MudX/wwwroot/modules/
+
+# MudX.Generator api
+src/MudX.Docs/wwwroot/api
+
 # User-specific files
 *.rsuser
 *.suo
@@ -15,9 +21,6 @@
 
 # Mono auto generated files
 mono_crash.*
-
-# MudX modules directory
-/src/MudX/wwwroot/modules
 
 # Build results
 [Dd]ebug/
