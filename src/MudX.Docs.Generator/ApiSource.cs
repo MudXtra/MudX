@@ -149,8 +149,8 @@ namespace MudX.Docs.Generator
 
 
                 var jsonPath = Path.Combine(outputDir, $"{type.Name}.api.json");
-                var serialzied = JsonSerializer.Serialize(doc, jsonOptions);
-                WriteIfDifferent(jsonPath, serialzied);
+                var serialized = JsonSerializer.Serialize(doc, jsonOptions);
+                WriteIfDifferent(jsonPath, serialized);
             }
 
             return true;
