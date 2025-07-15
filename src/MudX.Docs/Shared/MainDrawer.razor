@@ -1,6 +1,7 @@
 @using Microsoft.AspNetCore.Components.Routing
 @using System.Text.Json;
 @using MudX.Docs.Data
+@using MudX.Utilities
 @inject NavigationManager NavManager
 
 <MudTextField Class="my-2 background-textbox" Value="@_searchTerm" ValueChanged="@((string s) => OnSearchTextChanged(s))" 
@@ -12,6 +13,8 @@
         @RenderNavItem(nav)
     }
 </MudNavMenu>
+<MudSpacer />
+<MudText class="d-flex mx-auto" Typo="Typo.subtitle2">Version: @AssemblyInfo.Version</MudText>
 @code {
     private string? _searchTerm;
     private List<NavItem> _navList = [];

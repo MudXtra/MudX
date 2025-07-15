@@ -3,6 +3,7 @@ using Bunit;
 using FluentAssertions;
 using MudBlazor;
 using MudX.UnitTests.Viewer.TestComponents.CodeBlock;
+using MudX.Utilities;
 using NUnit.Framework;
 
 namespace MudX.UnitTests.Components
@@ -89,7 +90,7 @@ namespace MudX.UnitTests.Components
             var jsInterop = Context.JSInterop;
 
             // Setup the import call to return a mock module
-            var moduleMock = jsInterop.SetupModule("./_content/MudX/modules/mudxPrismWrapper.js");
+            var moduleMock = jsInterop.SetupModule(AssemblyInfo.ModulePath("mudxPrismWrapper.js"));
             // Setup the initialize call to return true
             moduleMock.Setup<bool>("initialize", _ => true);
 
@@ -97,11 +98,11 @@ namespace MudX.UnitTests.Components
                 .Add(p => p.Codes, codeFiles)
                 .Add(p => p.Theme, CodeTheme.Dark));
 
-            comp.Instance.PrismCSSPath.Should().Be("./_content/MudX/prism/prism-dark.css");
+            comp.Instance.PrismCSSPath.Should().Be($"./_content/{AssemblyInfo.PackageId}/prism/prism-dark.css");
 
             // Assert: Verify the JS module was imported
             jsInterop.VerifyInvoke("import")
-                .Arguments[0].Should().Be("./_content/MudX/modules/mudxPrismWrapper.js");
+                .Arguments[0].Should().Be(AssemblyInfo.ModulePath("mudxPrismWrapper.js"));
 
             // Assert: Verify the initialize method was called
             moduleMock.VerifyInvoke("initialize");

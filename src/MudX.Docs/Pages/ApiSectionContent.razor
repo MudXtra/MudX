@@ -4,13 +4,10 @@
 <MudDataGrid Items="@FilteredItems" Breakpoint="Breakpoint.Sm" Elevation="0" Class="docs-api-grid"
              Hover Dense FixedHeader>
     <ToolBarContent>
-        @if (FilteredItems.Count > 4)
-        {
-            <MudSpacer />
-            <MudTextField AdornmentIcon="@Icons.Material.Outlined.Search" Adornment="Adornment.End" Placeholder="Filter Results"
-                          @bind-Value="_searchString" @bind-Value:after="@UpdateFilter"
-                          DebounceInterval="300" Variant="Variant.Outlined" Clearable />
-        }
+        <MudSpacer />
+        <MudTextField AdornmentIcon="@Icons.Material.Outlined.Search" Adornment="Adornment.End" Placeholder="Filter Results"
+                        @bind-Value="_searchString" @bind-Value:after="@UpdateFilter"
+                        DebounceInterval="300" Variant="Variant.Outlined" Clearable />
     </ToolBarContent>
     <Columns>
         <PropertyColumn Property="p => p.Name" Title="Name" />

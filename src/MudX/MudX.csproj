@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <PackageId>MudX</PackageId>
+        <PackageId>MudX.MudBlazor.Extension</PackageId>        
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageIcon>Nuget.png</PackageIcon>
         <Company>MudX</Company>
@@ -22,6 +22,10 @@
         <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
+    <ItemGroup>
+        <AssemblyMetadata Include="PackageId" Value="$(PackageId)" />        
+    </ItemGroup>    
+    
     <PropertyGroup>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -49,7 +53,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="MudX.UnitTests" />
+        <InternalsVisibleTo Include="MudX.UnitTests;MudX.Docs" />
     </ItemGroup>
     
     <!-- Collect all .js files in Scripts directory with timestamps -->

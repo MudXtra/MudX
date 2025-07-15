@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Routing;
 using MudBlazor;
 using MudBlazor.State;
 
-namespace MudX.Components
+namespace MudX
 {
     /// <summary>
     /// Extends MudBreadcrumb to automatically listen to route changes and update the breadcrumbs to a label and optional route.

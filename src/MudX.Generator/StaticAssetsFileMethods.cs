@@ -6,19 +6,27 @@ namespace MudX.Generator
     {
         public static void WriteIfDifferent(string outFile, string contents)
         {
-            if (!File.Exists(outFile))
+            try
+            {
+                if (!File.Exists(outFile))
+                {
+                    File.WriteAllText(outFile, contents);
+                    Console.WriteLine($"MudX.Generator: Created file: {outFile}");
+                }
+                else if (File.ReadAllText(outFile) != contents)
+                {
+                    File.WriteAllText(outFile, contents);
+                    Console.WriteLine($"MudX.Generator: Updated file: {outFile}");
+                }
+                else
+                {
+                    Console.WriteLine($"MudX.Generator: No changes for file: {outFile}");
+                }
+            }
+            catch
             {
                 File.WriteAllText(outFile, contents);
-                Console.WriteLine($"MudX.Generator: Created file: {outFile}");
-            }
-            else if (File.ReadAllText(outFile) != contents)
-            {
-                File.WriteAllText(outFile, contents);
-                Console.WriteLine($"MudX.Generator: Updated file: {outFile}");
-            }
-            else
-            {
-                Console.WriteLine($"MudX.Generator: No changes for file: {outFile}");
+                Console.WriteLine($"MudX.Generator: Override file: {outFile}");
             }
         }
 

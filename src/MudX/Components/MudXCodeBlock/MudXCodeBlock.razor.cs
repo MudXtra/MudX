@@ -33,7 +33,7 @@ namespace MudX
         private bool _showMessage = false;
 
         internal string PrismCSSPath =>
-            new($"./_content/MudX/prism/prism-{Theme.ToDescription()}.css");
+            new($"./_content/{AssemblyInfo.PackageId}/prism/prism-{Theme.ToDescription()}.css");
 
         private static Placement GetPlacement(Origin origin) => origin switch
         {
@@ -226,8 +226,8 @@ namespace MudX
             await base.OnAfterRenderAsync(firstRender);
             if (firstRender)
             {
-                _module = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxPrismWrapper.js");
-                await _module.InvokeAsync<bool>("initialize", PrismCSSPath);
+                _module = await JsRuntime.InvokeAsync<IJSObjectReference>("import", AssemblyInfo.ModulePath("mudxPrismWrapper.js"));
+                await _module.InvokeAsync<bool>("initialize", PrismCSSPath, AssemblyInfo.PackageId);
                 StateHasChanged();
             }
             else if (_generateCode)
