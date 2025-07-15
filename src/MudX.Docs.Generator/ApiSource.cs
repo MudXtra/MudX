@@ -149,11 +149,37 @@ namespace MudX.Docs.Generator
 
 
                 var jsonPath = Path.Combine(outputDir, $"{type.Name}.api.json");
-                File.WriteAllText(jsonPath, JsonSerializer.Serialize(doc, jsonOptions));
-                Console.WriteLine($"MudX.Docs.Generator: API doc written: {jsonPath}");
+                var serialzied = JsonSerializer.Serialize(doc, jsonOptions);
+                WriteIfDifferent(jsonPath, serialzied);
             }
 
             return true;
+        }
+
+        private static void WriteIfDifferent(string outFile, string contents)
+        {
+            try
+            {
+                if (!File.Exists(outFile))
+                {
+                    File.WriteAllText(outFile, contents);
+                    Console.WriteLine($"MudX.Docs.Generator: API Doc Created: {outFile}");
+                }
+                else if (File.ReadAllText(outFile) != contents)
+                {
+                    File.WriteAllText(outFile, contents);
+                    Console.WriteLine($"MudX.Docs.Generator: API Doc Updated: {outFile}");
+                }
+                else
+                {
+                    Console.WriteLine($"MudX.Docs.Generator: No API changes: {outFile}");
+                }
+            }
+            catch
+            {
+                File.WriteAllText(outFile, contents);
+                Console.WriteLine($"MudX.Docs.Generator: API Doc Override: {outFile}");
+            }
         }
 
         private static void CopyIfDifferent(string sourcePath, string destinationPath)

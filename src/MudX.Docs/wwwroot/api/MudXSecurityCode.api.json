@@ -119,13 +119,7 @@
     }
   ],
   "Events": [],
-  "PublicProperties": [
-    {
-      "Name": "IsValid",
-      "Type": "Boolean",
-      "Description": "Whether all the code boxes have valid inputs."
-    }
-  ],
+  "PublicProperties": [],
   "PublicFields": [],
   "Methods": [
     {

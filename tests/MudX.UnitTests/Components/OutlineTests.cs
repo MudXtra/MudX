@@ -7,6 +7,7 @@ using Moq;
 using MudBlazor;
 using MudX.Components.MudXOutline;
 using MudX.UnitTests.Viewer.TestComponents.Outline;
+using MudX.Utilities;
 using NUnit.Framework;
 
 namespace MudX.UnitTests.Components
@@ -143,7 +144,7 @@ namespace MudX.UnitTests.Components
             var jsInterop = Context.JSInterop;
 
             // Setup the import call to return a mock module
-            var moduleMock = jsInterop.SetupModule("./_content/MudX/modules/mudxScrollSpy.js");
+            var moduleMock = jsInterop.SetupModule(AssemblyInfo.ModulePath("mudxScrollSpy.js"));
             // Setup the initialize call to return true
             moduleMock.Setup<bool>("createScrollSpy", _ => true);
             moduleMock.Setup<bool>("spying", _ => true);
@@ -158,7 +159,7 @@ namespace MudX.UnitTests.Components
             sections.Count.Should().Be(3);
             // Assert: Verify the JS module was imported
             jsInterop.VerifyInvoke("import")
-                .Arguments[0].Should().Be("./_content/MudX/modules/mudxScrollSpy.js");
+                .Arguments[0].Should().Be(AssemblyInfo.ModulePath("mudxScrollSpy.js"));
 
             // Assert: Verify the initialize method was called
             moduleMock.VerifyInvoke("createScrollSpy");
@@ -188,7 +189,7 @@ namespace MudX.UnitTests.Components
             // Mock JSRuntime.import(...) → returns module
             mockJsRuntime
                 .Setup(js => js.InvokeAsync<IJSObjectReference>(
-                    "import", It.Is<object[]>(args => args[0]!.ToString() == "./_content/MudX/modules/mudxScrollSpy.js")))
+                    "import", It.Is<object[]>(args => args[0]!.ToString() == AssemblyInfo.ModulePath("mudxScrollSpy.js"))))
                 .ReturnsAsync(mockModule.Object);
 
             // Mock module.createScrollSpy(...) → returns spyInstance
@@ -233,7 +234,7 @@ namespace MudX.UnitTests.Components
             // Assert setup calls
             mockJsRuntime.Verify(js =>
                 js.InvokeAsync<IJSObjectReference>(
-                    "import", It.Is<object[]>(args => args[0]!.ToString() == "./_content/MudX/modules/mudxScrollSpy.js")),
+                    "import", It.Is<object[]>(args => args[0]!.ToString() == AssemblyInfo.ModulePath("mudxScrollSpy.js"))),
                 Times.Once);
 
             mockModule.Verify(m =>

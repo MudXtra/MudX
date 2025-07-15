@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using MudX.Utilities;
 
 namespace MudX
 {
@@ -25,11 +26,12 @@ namespace MudX
                 bool isDev = true;
                 string version = DateTime.Now.ToFileTimeUtc().ToString();
 #if !DEBUG
-    version = typeof(MudX._Imports).Assembly.GetName().Version?.ToString() ?? version;
+    version = AssemblyInfo.Version;
     isDev = false;
 #endif
-                _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxProvider.js");
-                var result = await _jsModule.InvokeAsync<bool>("initialize", version, isDev);
+                var packageId = AssemblyInfo.PackageId;
+                _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", AssemblyInfo.ModulePath("mudxProvider.js"));
+                var result = await _jsModule.InvokeAsync<bool>("initialize", version, isDev, packageId);
                 if (!result)
                 {
                     throw new InvalidOperationException("Failed to initialize MudX");

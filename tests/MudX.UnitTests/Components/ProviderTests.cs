@@ -1,5 +1,6 @@
 ﻿using Bunit;
 using FluentAssertions;
+using MudX.Utilities;
 using NUnit.Framework;
 
 namespace MudX.UnitTests.Components
@@ -15,7 +16,7 @@ namespace MudX.UnitTests.Components
             var jsInterop = Context.JSInterop;
 
             // Setup the import call to return a mock module
-            var moduleMock = jsInterop.SetupModule("./_content/MudX/modules/mudxProvider.js");
+            var moduleMock = jsInterop.SetupModule(AssemblyInfo.ModulePath("mudxProvider.js"));
 
             // Setup the initialize call to return true
             moduleMock.Setup<bool>("initialize", _ => true);
@@ -27,7 +28,7 @@ namespace MudX.UnitTests.Components
 
             // Assert: Verify the JS module was imported
             jsInterop.VerifyInvoke("import")
-                .Arguments[0].Should().Be("./_content/MudX/modules/mudxProvider.js");
+                .Arguments[0].Should().Be(AssemblyInfo.ModulePath("mudxProvider.js"));
 
             // Assert: Verify the initialize method was called
             moduleMock.VerifyInvoke("initialize");

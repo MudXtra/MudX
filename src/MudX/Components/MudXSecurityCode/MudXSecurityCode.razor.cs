@@ -4,6 +4,7 @@ using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.State;
 using MudBlazor.Utilities;
+using MudX.Utilities;
 
 namespace MudX
 {
@@ -204,7 +205,7 @@ namespace MudX
             if (firstRender)
             {
                 _dotNetRef = DotNetObjectReference.Create(this);
-                _module = await Js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxSecurityCode.js");
+                _module = await Js.InvokeAsync<IJSObjectReference>("import", AssemblyInfo.ModulePath("mudxSecurityCode.js"));
                 await _module.InvokeVoidAsync("init", _dotNetRef, _elementRef);
             }
         }

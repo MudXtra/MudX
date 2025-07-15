@@ -1,6 +1,6 @@
 {
   "Component": "MudXBreadcrumbsBase",
-  "Namespace": "MudX.Components",
+  "Namespace": "MudX",
   "Description": "Extends MudBreadcrumb to automatically listen to route changes and update the breadcrumbs to a label and optional route.\nRemarks: Should be placed in MainLayout or similar",
   "Parameters": [
     {

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.JSInterop;
 using MudBlazor;
+using MudX.Utilities;
 
 namespace MudX.Components.MudXOutline
 {
@@ -61,7 +62,7 @@ namespace MudX.Components.MudXOutline
         {
             if (_isDisposing || _js is null) return;
             // load the module
-            _module = await _js.InvokeAsync<IJSObjectReference>("import", "./_content/MudX/modules/mudxScrollSpy.js");
+            _module = await _js.InvokeAsync<IJSObjectReference>("import", AssemblyInfo.ModulePath("mudxScrollSpy.js"));
             // create the scrollspy
             _spyInstance = await _module.InvokeAsync<IJSObjectReference>("createScrollSpy", _spyId);
             // start the scrollspy/setup variables

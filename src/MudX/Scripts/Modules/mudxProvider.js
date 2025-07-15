@@ -1,8 +1,8 @@
 ﻿
-export async function injectCssFromFile(version, isDev) {
+export async function injectCssFromFile(version, isDev, packageId) {
     // Look for an existing <link> tag with data-mudx-css="true"
     let linkTag = document.querySelector('link[data-mudx-css="true"]');
-    const cssPath = `./_content/MudX/mudx.${!isDev ? 'min.' : ''}css?v=${version}`;
+    const cssPath = `./_content/${packageId}/mudx.${!isDev ? 'min.' : ''}css?v=${version}`;
     if (linkTag) {
         // If it exists, update the href
         linkTag.href = cssPath;
@@ -18,13 +18,13 @@ export async function injectCssFromFile(version, isDev) {
     }
 }
 
-export async function injectJsFromFile(version, isDev) {
+export async function injectJsFromFile(version, isDev, packageId) {
     return new Promise((resolve, reject) => {
         if (document.querySelector("script[data-mudx-js]")) {
             // Already loaded
             return resolve();
         }
-        const jsPath = `./_content/MudX/mudx.${!isDev ? 'min.' : ''}js?v=${version}`;
+        const jsPath = `./_content/${packageId}/mudx.${!isDev ? 'min.' : ''}js?v=${version}`;
         const script = document.createElement("script");
         script.setAttribute("data-mudx-js", "true");
         script.type = "text/javascript";
@@ -37,10 +37,10 @@ export async function injectJsFromFile(version, isDev) {
     });
 }
 
-export async function initialize(version, isDev) {
+export async function initialize(version, isDev, packageId) {
     try {
-        await injectCssFromFile(version, isDev);
-        await injectJsFromFile(version, isDev);
+        await injectCssFromFile(version, isDev, packageId);
+        await injectJsFromFile(version, isDev, packageId);
         return true;
     } catch (error) {
         console.error("Provider Initialization failed:", error);

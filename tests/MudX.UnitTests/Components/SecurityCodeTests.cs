@@ -3,6 +3,7 @@ using Bunit;
 using FluentAssertions;
 using MudBlazor;
 using MudX.UnitTests.Viewer.TestComponents.SecurityCode;
+using MudX.Utilities;
 using NUnit.Framework;
 using Assert = NUnit.Framework.Assert;
 
@@ -56,7 +57,7 @@ namespace MudX.UnitTests.Components
             var jsInterop = Context.JSInterop;
 
             // Setup the import call to return a mock module
-            var moduleMock = jsInterop.SetupModule("./_content/MudX/modules/mudxSecurityCode.js");
+            var moduleMock = jsInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
             // Setup the initialize call to return true
             moduleMock.Setup<bool>("init", _ => true);
             moduleMock.Setup<bool>("focusBlock", _ => true);
@@ -71,7 +72,7 @@ namespace MudX.UnitTests.Components
 
             // Assert: Verify the JS module was imported
             jsInterop.VerifyInvoke("import")
-                .Arguments[0].Should().Be("./_content/MudX/modules/mudxSecurityCode.js");
+                .Arguments[0].Should().Be(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
 
             await comp.InvokeAsync(async () =>
             {

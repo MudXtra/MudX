@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <PackageId>MudX</PackageId>
+        <PackageId>MudX.MudBlazor.Extension</PackageId>        
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageIcon>Nuget.png</PackageIcon>
         <Company>MudX</Company>
@@ -22,6 +22,10 @@
         <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
+    <ItemGroup>
+        <AssemblyMetadata Include="PackageId" Value="$(PackageId)" />        
+    </ItemGroup>    
+    
     <PropertyGroup>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>

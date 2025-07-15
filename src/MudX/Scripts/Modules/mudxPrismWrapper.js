@@ -18,7 +18,7 @@ export async function injectCssFromFile(cssPath) {
     }
 }
 
-export async function loadPrism() {
+export async function loadPrism(packageId) {
     return new Promise((resolve, reject) => {
         if (document.querySelector("script[data-prism]")) {
             // Already loaded
@@ -28,7 +28,7 @@ export async function loadPrism() {
         const script = document.createElement("script");
         script.setAttribute("data-prism", "true");
         script.type = "text/javascript";
-        script.src = "./_content/MudX/prism/prism.js";
+        script.src = `./_content/${packageId}/prism/prism.js`;
         script.onload = () => resolve();
         script.onerror = () => reject(new Error("Failed to load Prism.js"));
 
@@ -38,10 +38,10 @@ export async function loadPrism() {
     });
 }
 
-export async function initialize(cssPath) {
+export async function initialize(cssPath, packageId) {
     try {
         await injectCssFromFile(cssPath);
-        await loadPrism();
+        await loadPrism(packageId);
         return true;
     } catch (error) {
         console.error("Initialization failed:", error);
