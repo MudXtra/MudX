@@ -16,7 +16,6 @@ COPY ["MudX.Docs.Hybrid/MudX.Docs.Hybrid/MudX.Docs.Hybrid.csproj", "MudX.Docs.Hy
 COPY ["MudX.Docs.Hybrid/MudX.Docs.Hybrid.Client/MudX.Docs.Hybrid.Client.csproj", "MudX.Docs.Hybrid/MudX.Docs.Hybrid.Client/"]
 COPY ["MudX.Docs/MudX.Docs.csproj", "MudX.Docs/"]
 COPY ["MudX/MudX.csproj", "MudX/"]
-COPY ["MudX.DependsOn/MudX.DependsOn.csproj", "MudX.DependsOn/"]
 RUN dotnet restore "./MudX.Docs.Hybrid/MudX.Docs.Hybrid/MudX.Docs.Hybrid.csproj"
 COPY . .
 WORKDIR "/src/MudX.Docs.Hybrid/MudX.Docs.Hybrid"
