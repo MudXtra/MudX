@@ -53,7 +53,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="MudX.UnitTests" />
+        <InternalsVisibleTo Include="MudX.UnitTests;MudX.Docs" />
     </ItemGroup>
     
     <!-- Collect all .js files in Scripts directory with timestamps -->
