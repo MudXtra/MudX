@@ -115,7 +115,7 @@ namespace MudX.Docs.Generator
             var components = targetAssembly.GetTypes()
                 .Where(t => t.IsSubclassOf(typeof(ComponentBase)) && t.Namespace?.Contains("MudX") == true);
 
-            components.Union(
+            components = components.Union(
                 lottieAssembly.GetTypes()
                     .Where(t => t.Namespace?.Contains("Blazor.Lottie.Player") == true));
 
@@ -191,7 +191,12 @@ namespace MudX.Docs.Generator
                         })
                 };
 
-
+                if (type.Name.StartsWith("<") || type.Name.StartsWith("_") ||
+                    type.Name.StartsWith("EnumExtensi") || type.Name.StartsWith("Identif"))
+                {
+                    // Skip compiler-generated types (e.g., lambda expressions, async methods)
+                    continue;
+                }
                 var jsonPath = Path.Combine(outputDir, $"{type.Name}.api.json");
                 var serialized = JsonSerializer.Serialize(doc, jsonOptions);
                 WriteIfDifferent(jsonPath, serialized);

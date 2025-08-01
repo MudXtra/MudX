@@ -16,6 +16,7 @@ namespace MudX.Docs.Examples
 <div class=""d-flex mx-auto"" style=""width: 175px;"">
     <LottiePlayer @ref=""@_lottiePlayer""
                   Class=""my-4""
+                  CurrentFrameChanged=""@CurrentFrameChangedEvent""
                   Src=""@_lottieSrc"" />
 </div>
 
@@ -30,13 +31,13 @@ namespace MudX.Docs.Examples
         </MudSlider>
     </MudItem>
     <MudItem xs=""4"" md=""3"" Class=""d-flex justify-center align-items-center"">
-        <MudSwitch @bind-Value=""_forward"" @bind-Value:after=""@(async () => await _lottiePlayer!.SetDirectionAsync(_forward ? LottieAnimationDirection.Forward : LottieAnimationDirection.Reverse))""
+        <MudSwitch T=""bool"" Value=""_forward"" ValueChanged=""@ChangeDirectionValue""
                    LabelPlacement=""Placement.Left"" Color=""Color.Primary"">Reverse</MudSwitch>
         <MudText Class=""mud-switch mud-switch-label-medium mud-input-content-placement-end"">Forward</MudText>
     </MudItem>
     <MudItem xs=""4"" md=""3"" Class=""d-flex justify-center align-items-center"">
         <MudText>
-            Total Frames: @_lottiePlayer!.CurrentAnimationFrame.ToString(""0.0"", CultureInfo.CurrentCulture)<br/>
+            Total Frames: @_lottiePlayer!.TotalAnimationFrames.ToString(""0.0"", CultureInfo.CurrentCulture)<br/>
             Current Frame: @_lottiePlayer!.CurrentAnimationFrame.ToString(""0.0"", CultureInfo.CurrentCulture)
         </MudText>
     </MudItem>
@@ -57,6 +58,19 @@ namespace MudX.Docs.Examples
         // _lottieSrc = ""https://path.to/your/lottie.json"";
     }
 
+    private async Task ChangeDirectionValue(bool val)
+    {
+        if (val)
+        {
+            await _lottiePlayer!.SetDirectionAsync(LottieAnimationDirection.Forward);
+        }
+        else
+        {
+            await _lottiePlayer!.SetDirectionAsync(LottieAnimationDirection.Reverse);
+        }
+        _forward = val;
+    }
+
     private async Task ToggleAnimation()
     {
         if (_play)
@@ -68,6 +82,15 @@ namespace MudX.Docs.Examples
             await _lottiePlayer!.PlayAnimationAsync();
         }
         _play = !_play;
+    }
+
+    private void CurrentFrameChangedEvent(LottiePlayerEventFrameArgs args)
+    {
+        // need event to report on frames
+        if (args.CurrentTime > 999999)
+        {
+            _play = !_play;
+        }
     }
 }",
                 Language: CodeLanguage.Razor
