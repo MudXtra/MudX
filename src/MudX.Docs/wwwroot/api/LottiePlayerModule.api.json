@@ -1,0 +1,148 @@
+{
+  "Component": "LottiePlayerModule",
+  "Namespace": "Blazor.Lottie.Player",
+  "Description": "Provides functionality to control and manage a Lottie animation player in a Blazor application.\nRemarks: This class interacts with a JavaScript module to initialize, play, pause, and stop Lottie animations within a specified HTML element. It also implements asynchronous disposal to clean up resources. WARNING: This class does not load lottie javascript files, you must load those yourself or use the component.",
+  "Parameters": [],
+  "Events": [],
+  "PublicProperties": [
+    {
+      "Name": "CurrentFrame",
+      "Type": "Double",
+      "Description": null
+    },
+    {
+      "Name": "TotalFrames",
+      "Type": "Double",
+      "Description": null
+    }
+  ],
+  "PublicFields": [],
+  "Methods": [
+    {
+      "Name": "InitializeAsync",
+      "ReturnType": "Task\u00601",
+      "Parameters": [
+        {
+          "Name": "lottiePlaybackOptions",
+          "Type": "LottiePlaybackOptions"
+        }
+      ],
+      "Description": "Initializes the Lottie player with the specified playback options.\nRemarks: This method imports the required JavaScript module and invokes the initialization logic for the Lottie player. It also ensures that the instance is not disposing and that the JavaScript runtime is available before loading the module."
+    },
+    {
+      "Name": "PlayAsync",
+      "ReturnType": "ValueTask",
+      "Parameters": [],
+      "Description": "Plays the Lottie animation."
+    },
+    {
+      "Name": "PauseAsync",
+      "ReturnType": "ValueTask",
+      "Parameters": [],
+      "Description": "Pauses the currently playing Lottie animation."
+    },
+    {
+      "Name": "StopAsync",
+      "ReturnType": "ValueTask",
+      "Parameters": [],
+      "Description": "Stops the currently playing Lottie animation."
+    },
+    {
+      "Name": "GoToAndPlay",
+      "ReturnType": "ValueTask",
+      "Parameters": [
+        {
+          "Name": "frame",
+          "Type": "Double"
+        },
+        {
+          "Name": "force",
+          "Type": "Boolean"
+        }
+      ],
+      "Description": "Moves the animation to the specified frame and starts playback from that point."
+    },
+    {
+      "Name": "GoToAndStop",
+      "ReturnType": "ValueTask",
+      "Parameters": [
+        {
+          "Name": "frame",
+          "Type": "Double"
+        },
+        {
+          "Name": "force",
+          "Type": "Boolean"
+        }
+      ],
+      "Description": "Moves the animation to the specified frame and stops playback at that point."
+    },
+    {
+      "Name": "SetSpeedAsync",
+      "ReturnType": "ValueTask",
+      "Parameters": [
+        {
+          "Name": "speed",
+          "Type": "Double"
+        }
+      ],
+      "Description": "Asynchronously sets the speed for the associated animation. 1 is normal speed, 2 is double speed, 0.5 is half speed, etc."
+    },
+    {
+      "Name": "SetDirectionAsync",
+      "ReturnType": "ValueTask",
+      "Parameters": [
+        {
+          "Name": "direction",
+          "Type": "LottieAnimationDirection"
+        }
+      ],
+      "Description": "Asynchronously sets the playback direction for the associated animation."
+    },
+    {
+      "Name": "AnimationReadyEvent",
+      "ReturnType": "Task",
+      "Parameters": [
+        {
+          "Name": "args",
+          "Type": "LottiePlayerLoadedEventArgs"
+        }
+      ],
+      "Description": "Invokes the event when the animation is ready. (DOMLoaded)"
+    },
+    {
+      "Name": "DOMLoadedEvent",
+      "ReturnType": "Task",
+      "Parameters": [
+        {
+          "Name": "args",
+          "Type": "LottiePlayerLoadedEventArgs"
+        }
+      ],
+      "Description": "Invokes the event when the DOM is fully loaded with the Lottie animation."
+    },
+    {
+      "Name": "CompleteEvent",
+      "ReturnType": "Task",
+      "Parameters": [],
+      "Description": "Invokes the event when the animation completes.\nRemarks: This event is triggered when the animation has finished playing all frames and loops, if applicable. If it\u0027s set to loop indefinitely, this event will never be triggered."
+    },
+    {
+      "Name": "LoopCompleteEvent",
+      "ReturnType": "Task",
+      "Parameters": [],
+      "Description": "Invokes the event when a loop completes."
+    },
+    {
+      "Name": "EnterFrameEvent",
+      "ReturnType": "Task",
+      "Parameters": [
+        {
+          "Name": "args",
+          "Type": "LottiePlayerEventFrameArgs"
+        }
+      ],
+      "Description": "Invokes the event with the specified arguments."
+    }
+  ]
+}

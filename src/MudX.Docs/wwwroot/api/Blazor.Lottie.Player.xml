@@ -1,0 +1,628 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Blazor.Lottie.Player</name>
+    </assembly>
+    <members>
+        <member name="T:Blazor.Lottie.Player.LottiePlaybackOptions">
+            <summary>
+            Configuration options for Lottie animation playback and rendering.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlaybackOptions.Path">
+            <summary>
+            The source or path to the lottie animation JSON file.
+            </summary>
+            <remarks>
+            This can be a URL or a local path relative to the web root. <br/>e.g. "./_content/Blazor.Lottie.Player/loading.json"
+            <br/>or "https://example.com/path/to/animation.json". <br/>
+            </remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlaybackOptions.AutoPlay">
+            <summary>
+            Gets or sets whether the animation should start playing automatically.
+            </summary>
+            <remarks>Default is true.</remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlaybackOptions.Renderer">
+            <summary>
+            Gets or sets the type of Lottie animation to render.
+            </summary>
+            <remarks>Default is SVG for best feature support.</remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlaybackOptions.Loop">
+            <summary>
+            Gets or sets the loop behavior for the animation.
+            </summary>
+            <remarks>
+            Can be true (infinite loop), false (no loop), or a positive integer 
+            for a specific number of loops.
+            </remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlaybackOptions.Direction">
+            <summary>
+            Gets or sets the playback direction.
+            </summary>
+            <remarks>1 for forward, -1 for reverse. Default is 1.</remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlaybackOptions.Speed">
+            <summary>
+            Gets or sets the playback speed multiplier.
+            </summary>
+            <remarks>1.0 is normal speed, 2.0 is double speed, 0.5 is half speed. Default is 1.0.</remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlaybackOptions.SetSubFrame">
+            <summary>
+            Gets or sets whether to enable smooth frame interpolation for high refresh rate displays.
+            </summary>
+            <remarks>Default is true for smooth animations.</remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlaybackOptions.Quality">
+            <summary>
+            Gets or sets the rendering quality level.
+            </summary>
+            <remarks>Default is High.</remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlaybackOptions.EnterFrameEvent">
+            <summary>
+            Whether to enable the enterFrame event.
+            </summary>
+            <remarks>
+            If <c>CurrentFrameChangedFunc</c> is null this should be false.
+            </remarks>
+        </member>
+        <member name="T:Blazor.Lottie.Player.LottiePlayer">
+            <summary>
+            A Blazor component for rendering and controlling Lottie animations using BodyMovin.
+            </summary>
+            <remarks>The <see cref="T:Blazor.Lottie.Player.LottiePlayer"/> component provides a flexible way to integrate Lottie animations into
+            Blazor applications. It supports various customization options, including animation source, playback settings, and
+            event callbacks for animation lifecycle events.</remarks>
+        </member>
+        <member name="F:Blazor.Lottie.Player.LottiePlayer.ElementId">
+            <summary>
+            Represents the unique identifier for a Lottie element's surrounding div.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.LottiePlayerModule">
+            <summary>
+            The module used to control Lottie Player functionality.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.Classname">
+            <summary>
+            The class list for the surrounding div, which includes the base class and the Blazor Lottie Player class.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.Stylename">
+            <summary>
+            The style string for the surrounding div, which includes the base style and any user-defined styles.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.MergedUserAttributes">
+            <summary>
+            Returns the merged user attributes with sensible defaults, allowing user overrides.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.Class">
+            <summary>
+            The CSS class name(s) to apply to the container.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.Style">
+            <summary>
+            The inline CSS styles to apply to the component.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.UserAttributes">
+            <summary>
+            Sets a collection of user-defined HTML attributes represented as key-value pairs.
+            </summary>
+            <remarks>
+            This property is typically used to provide additional HTML attributes during
+            rendering such as ARIA accessibility tags, data attributes, or any other custom
+            HTML attributes that you want to apply to the component.
+            </remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.Src">
+            <summary>
+            Gets or sets the source or relative URL for the component's content.
+            </summary>
+            <remarks>
+            *Required* e.g.<br/>
+            Src="<c>https://mudxtra.github.io/LottiePlayer/newAnimation.json</c>"<br/>
+            Src="<c>./wwwroot/lottie/newAnimation.json</c>"
+            </remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.AutoPlay">
+            <summary>
+            A value indicating whether the media should automatically start playing when loaded. If set to
+            <c>false</c>, the media will not start playing until AnimationPaused is set to false.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.Loop">
+            <summary>
+            Gets or sets whether the animation should loop.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.LoopCount">
+            <summary>
+            Gets or sets the number of times a loop should occur. Requires <see cref="P:Blazor.Lottie.Player.LottiePlayer.Loop"/> to be true.
+            </summary>
+            <remarks>
+            Default is 0 (infinite loop).
+            </remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.AnimationType">
+            <summary>
+            Gets or sets the type of animation to be used for rendering the Lottie animation.
+            </summary>
+            <remarks>
+            Defaults to <see cref="F:Blazor.Lottie.Player.LottieAnimationType.Svg"/>.
+            </remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.AnimationDirection">
+            <summary>
+            Gets or sets the direction in which the Lottie animation plays.
+            </summary>
+            <remarks>
+            Defaults to <see cref="F:Blazor.Lottie.Player.LottieAnimationDirection.Forward"/>.<br/>
+            Changing this property after initialization will not change the playback direction of the animation, use <see cref="M:Blazor.Lottie.Player.LottiePlayer.SetDirectionAsync(Blazor.Lottie.Player.LottieAnimationDirection)"/>
+            </remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.AnimationSpeed">
+            <summary>
+            Gets or sets the speed of the animation.
+            </summary>
+            <remarks>
+            Defaults to 1.0 (normal speed).<br/>
+            Changing this property after initialization will not change the speed of the animation, use <see cref="M:Blazor.Lottie.Player.LottiePlayer.SetSpeedAsync(System.Double)"/>   
+            </remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.CurrentFrameChangeFunc">
+            <summary>
+            Called when the current frame changes, with custom filtering logic
+            </summary>
+            <remarks>
+            The function receives the current frame number and should return true if the event should be raised.
+            This allows for custom throttling logic (e.g., only every 10th frame, only on specific frames, etc.)
+            <br/>Warning: Frame updates could happen as frequently as 30-60 times per second.
+            <br/>Defaults to <c>null</c>. <see cref="P:Blazor.Lottie.Player.LottiePlayer.CurrentFrameChanged"/> is only raised if something is attached to the handler.
+            <br/>Example: <c>frame => frame % 10 == 0</c> will raise the event every 10th frame.
+            </remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.CurrentFrameChanged">
+            <summary>
+            Called when the current frame changes (only when <see cref="P:Blazor.Lottie.Player.LottiePlayer.CurrentFrameChangeFunc"/> returns true)
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.DOMLoaded">
+            <summary>
+            Called when the Lottie player is initialized and the DOM is ready.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.AnimationReady">
+            <summary>
+            Called when the animation is fully loaded and ready for playback.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.AnimationCompleted">
+            <summary>
+            Called when the animation completes.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.AnimationLoopCompleted">
+            <summary>
+            Called when an animation loop completes.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.AnimationOptions">
+            <summary>
+            Additional Less Used Animation Options.
+            </summary>
+            <remarks>Refer to <see cref="T:Blazor.Lottie.Player.LottieAnimationOptions"/> for defaults.</remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.CurrentAnimationFrame">
+            <summary>
+            Gets the current animation frame as a double-precision value. This is updated during playback by the EventCallback of CurrentFrameChanged.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.IsAnimationLoaded">
+            <summary>
+            Gets a value indicating whether the animation has been loaded and is ready for playback.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.IsAnimationPaused">
+            <summary>
+            Gets a value indicating whether the animation is paused.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.IsAnimationStopped">
+            <summary>
+            Gets a value indicating whether the animation is stopped.
+            </summary>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayer.PlayAnimationAsync">
+            <summary>
+            If the animation is not already playing, this method will start playing the animation.
+            </summary>
+            <remarks>Should not be called before OnAfterRenderAsync.</remarks>
+            <returns><see langword="true"/> if the animation was successfully started; otherwise, <see langword="false"/>.</returns>
+            <exception cref="T:System.InvalidOperationException"></exception>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayer.PauseAnimationAsync">
+            <summary>
+            Pauses the currently playing animation in the Lottie player.
+            </summary>
+            <remarks>Should not be called before OnAfterRenderAsync.</remarks>
+            <returns><see langword="true"/> if the animation was successfully paused; otherwise, <see langword="false"/>.</returns>
+            <exception cref="T:System.InvalidOperationException"></exception>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayer.StopAnimationAsync">
+            <summary>
+            Stops the currently playing animation asynchronously.
+            </summary>
+            <remarks>This method halts the animation playback if an animation is currently running.  The method
+            returns a boolean indicating whether the operation was successful.</remarks>
+            <returns><see langword="true"/> if the animation was successfully stopped; otherwise, <see langword="false"/>.</returns>
+            <exception cref="T:System.InvalidOperationException">Thrown if the Lottie Player Module is not initialized.</exception>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayer.SetSpeedAsync(System.Double)">
+            <summary>
+            Asynchronously sets the playback speed for the Lottie animation.
+            </summary>
+            <param name="speed">The desired playback speed. Must be a positive value, where 1.0 represents normal speed.</param>
+            <exception cref="T:System.InvalidOperationException">Thrown if the Lottie Player Module is not initialized.</exception>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayer.SetDirectionAsync(Blazor.Lottie.Player.LottieAnimationDirection)">
+            <summary>
+            Sets the playback direction of the Lottie animation asynchronously.
+            </summary>
+            <param name="direction">The desired playback direction of the animation. Must be a valid <see cref="T:Blazor.Lottie.Player.LottieAnimationDirection"/> value.</param>
+            <exception cref="T:System.InvalidOperationException">Thrown if the Lottie Player Module is not initialized.</exception>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayer.InitializeLottieModule">
+            <summary>
+            Disposes the LottiePlayer Module if it exists, cleaning up resources and references. Then re-initializes it with
+            any updated options.
+            </summary>
+            <exception cref="T:System.InvalidOperationException"></exception>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayer.OnAfterRenderAsync(System.Boolean)">
+            <summary>
+            OnAfterRenderAsync override
+            </summary>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayer.SetParametersAsync(Microsoft.AspNetCore.Components.ParameterView)">
+            <summary>
+            Override the SetParametersAsync method to handle component parameters.
+            </summary>
+            <param name="parameters">The parameters submitted with the component</param>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayer.DisposeAsync">
+            <summary>
+            Disposes the LottiePlayer component asynchronously, cleaning up resources and references.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Blazor.Lottie.Player.LottiePlayerModule">
+            <summary>
+            Provides functionality to control and manage a Lottie animation player in a Blazor application. 
+            </summary>
+            <remarks>
+            This class interacts with a JavaScript module to initialize, play, pause, and stop Lottie animations
+            within a specified HTML element. It also implements asynchronous disposal to clean up resources.
+            <para><b>WARNING:</b> This class does not load lottie javascript files, you must load those yourself or use the component.</para>
+            </remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayerModule.CanExecute">
+            <summary>
+            Indicates whether the module can execute javascript based on its current state.
+            </summary>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.#ctor(Microsoft.JSInterop.IJSRuntime,Microsoft.AspNetCore.Components.ElementReference)">
+            <summary>
+            The constructor for the LottiePlayerModule class.
+            </summary>
+            <param name="js">An active IJSRuntime</param>
+            <param name="elementRef">The reference to the HTML element that the Lottie animation will be rendered in.</param>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.InitializeAsync(Blazor.Lottie.Player.LottiePlaybackOptions)">
+            <summary>
+            Initializes the Lottie player with the specified playback options.
+            </summary>
+            <remarks>This method imports the required JavaScript module and invokes the initialization logic for
+            the Lottie player. It also ensures that the instance is not disposing and that the JavaScript runtime is available before
+            loading the module.</remarks>
+            <param name="lottiePlaybackOptions">The playback options to configure the Lottie player.</param>
+            <returns><see langword="true"/> if the initialization is successful; otherwise, <see langword="false"/>.</returns>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.PlayAsync">
+            <summary>
+            Plays the Lottie animation.
+            </summary>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.PauseAsync">
+            <summary>
+            Pauses the currently playing Lottie animation.
+            </summary>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.StopAsync">
+            <summary>
+            Stops the currently playing Lottie animation.
+            </summary>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.GoToAndPlay(System.Double,System.Boolean)">
+            <summary>
+            Moves the animation to the specified frame and starts playback from that point.
+            </summary>
+            <param name="frame">The frame number to move the animation to. Must be a non-negative value.</param>
+            <param name="force">A boolean value indicating whether to force the animation to move to the specified frame  even if it is already
+            playing.  <see langword="true"/> to force the action; otherwise, <see langword="false"/>.</param>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.GoToAndStop(System.Double,System.Boolean)">
+            <summary>
+            Moves the animation to the specified frame and stops playback at that point.
+            </summary>
+            <param name="frame">The frame number to move the animation to. Must be a non-negative value.</param>
+            <param name="force">A boolean value indicating whether to force the animation to move to the specified frame  even if it is already
+            playing.  <see langword="true"/> to force the action; otherwise, <see langword="false"/>.</param>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.SetSpeedAsync(System.Double)">
+            <summary>
+            Asynchronously sets the speed for the associated animation. 1 is normal speed, 2 is double speed, 0.5 is half speed, etc.
+            </summary>
+            <param name="speed">The speed value to set. Must be a non-negative number.</param>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.SetDirectionAsync(Blazor.Lottie.Player.LottieAnimationDirection)">
+            <summary>
+            Asynchronously sets the playback direction for the associated animation.
+            </summary>
+            <param name="direction">The direction to play the animation. It can be forward or backward.</param>
+        </member>
+        <member name="E:Blazor.Lottie.Player.LottiePlayerModule.OnAnimationReady">
+            <summary>
+            Triggers when the Lottie animation is ready to be played and loaded by the DOM.
+            </summary>
+        </member>
+        <member name="E:Blazor.Lottie.Player.LottiePlayerModule.OnDOMLoaded">
+            <summary>
+            Triggers when the Lottie animation has fully loaded in the DOM.
+            </summary>
+        </member>
+        <member name="E:Blazor.Lottie.Player.LottiePlayerModule.OnEnterFrame">
+            <summary>
+            Triggers when the Lottie animation enters a new frame.
+            </summary>
+        </member>
+        <member name="E:Blazor.Lottie.Player.LottiePlayerModule.OnComplete">
+            <summary>
+            Triggers when the Lottie animation completes playing.
+            </summary>
+        </member>
+        <member name="E:Blazor.Lottie.Player.LottiePlayerModule.OnLoopComplete">
+            <summary>
+            Triggers when the Lottie animation completes a loop.
+            </summary>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.AnimationReadyEvent(Blazor.Lottie.Player.LottiePlayerLoadedEventArgs)">
+            <summary>
+            Invokes the <see cref="E:Blazor.Lottie.Player.LottiePlayerModule.OnAnimationReady"/> event when the animation is ready. (DOMLoaded)
+            </summary>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.DOMLoadedEvent(Blazor.Lottie.Player.LottiePlayerLoadedEventArgs)">
+            <summary>
+            Invokes the <see cref="E:Blazor.Lottie.Player.LottiePlayerModule.OnDOMLoaded"/> event when the DOM is fully loaded with the Lottie animation.
+            </summary>
+            <param name="args"></param>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.CompleteEvent">
+            <summary>
+            Invokes the <see cref="E:Blazor.Lottie.Player.LottiePlayerModule.OnComplete"/> event when the animation completes.
+            </summary>
+            <remarks>
+            This event is triggered when the animation has finished playing all frames and loops, if applicable. If it's set to loop
+            indefinitely, this event will never be triggered.
+            </remarks>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.LoopCompleteEvent">
+            <summary>
+            Invokes the <see cref="E:Blazor.Lottie.Player.LottiePlayerModule.OnLoopComplete"/> event when a loop completes.
+            </summary>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.EnterFrameEvent(Blazor.Lottie.Player.LottiePlayerEventFrameArgs)">
+            <summary>
+            Invokes the <see cref="E:Blazor.Lottie.Player.LottiePlayerModule.OnEnterFrame"/> event with the specified arguments.
+            </summary>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.DisposeAsync">
+            <summary>
+            Disposes the Lottie player module and cleans up resources.
+            </summary>
+        </member>
+        <member name="T:Blazor.Lottie.Player.LottieAnimationOptions">
+            <summary>
+            Represents the advanced configuration options for rendering Lottie animations.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottieAnimationOptions.LottieSourceJs">
+            <summary>
+            Gets or sets the URL of the Lottie JavaScript library used for rendering Lottie animations.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottieAnimationOptions.AnimationQuality">
+            <summary>
+            Gets or sets the quality level of the Lottie animation rendering. This is a global setting.
+            </summary>
+            <remarks>Defaults to <see cref="F:Blazor.Lottie.Player.LottieAnimationQuality.High"/>. Higher quality levels may
+            result in smoother animations but could increase resource usage.</remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottieAnimationOptions.SmoothFrameInterpolation">
+            <summary>
+            Gets or sets whether to enable smooth frame interpolation for high refresh rate displays.
+            </summary>
+            <remarks>
+            <para>When <c>true</c> (default), the animation will interpolate between keyframes to create 
+            smooth motion that adapts to your display's refresh rate (60Hz, 120Hz, etc.).</para>
+            <para>When <c>false</c>, the animation will only update on the original After Effects keyframes, 
+            which may appear choppy on high refresh displays but offers better performance and 
+            pixel-perfect reproduction of the original animation timing.</para>
+            </remarks>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottieAnimationOptions.Equals(System.Object)">
+            <summary>
+            Determines whether the specified object is equal to the current instance.
+            </summary>
+            <remarks>Two instances are considered equal if they have the same <see cref="P:Blazor.Lottie.Player.LottieAnimationOptions.LottieSourceJs"/>,  <see
+            cref="P:Blazor.Lottie.Player.LottieAnimationOptions.AnimationQuality"/>, and <see cref="P:Blazor.Lottie.Player.LottieAnimationOptions.SmoothFrameInterpolation"/> values.</remarks>
+            <param name="obj">The object to compare with the current instance.</param>
+            <returns><see langword="true"/> if the specified object is equal to the current instance;  otherwise, <see
+            langword="false"/>.</returns>
+        </member>
+        <member name="M:Blazor.Lottie.Player.LottieAnimationOptions.GetHashCode">
+            <summary>
+            Returns a hash code for the current object.
+            </summary>
+            <remarks>The hash code is computed based on the values of the <see cref="P:Blazor.Lottie.Player.LottieAnimationOptions.LottieSourceJs"/>,  <see
+            cref="P:Blazor.Lottie.Player.LottieAnimationOptions.AnimationQuality"/>, and <see cref="P:Blazor.Lottie.Player.LottieAnimationOptions.SmoothFrameInterpolation"/> properties.  This ensures that objects
+            with the same property values produce the same hash code.</remarks>
+            <returns>An integer hash code that represents the current object.</returns>
+        </member>
+        <member name="T:Blazor.Lottie.Player.LottieAnimationDirection">
+            <summary>
+            Specifies the playback direction for a Lottie animation.
+            </summary>
+        </member>
+        <member name="F:Blazor.Lottie.Player.LottieAnimationDirection.Forward">
+            <summary>
+            Represents the forward direction an animation will play.
+            </summary>
+        </member>
+        <member name="F:Blazor.Lottie.Player.LottieAnimationDirection.Reverse">
+            <summary>
+            Represents the reverse direction an animation will play.
+            </summary>
+        </member>
+        <member name="T:Blazor.Lottie.Player.LottieAnimationQuality">
+            <summary>
+            Specifies the rendering quality level for Lottie animations.
+            </summary>
+            <remarks>
+            Quality affects the precision of curve calculations and overall visual fidelity.
+            Higher quality settings provide smoother curves and better visual accuracy but 
+            require more computational resources.
+            </remarks>
+        </member>
+        <member name="F:Blazor.Lottie.Player.LottieAnimationQuality.Low">
+            <summary>
+            Low quality rendering with basic curve precision.
+            </summary>
+            <remarks>
+            Fastest performance with reduced visual fidelity. Best for simple animations
+            or when performance is critical (mobile devices, multiple simultaneous animations).
+            </remarks>
+        </member>
+        <member name="F:Blazor.Lottie.Player.LottieAnimationQuality.Medium">
+            <summary>
+            Medium quality rendering with balanced precision and performance.
+            </summary>
+            <remarks>
+            Good balance between visual quality and performance. Suitable for most
+            general-purpose animations and typical web applications.
+            </remarks>
+        </member>
+        <member name="F:Blazor.Lottie.Player.LottieAnimationQuality.High">
+            <summary>
+            High quality rendering with maximum curve precision and visual fidelity.
+            </summary>
+            <remarks>
+            Best visual quality with smooth, precise curves. Use for detailed animations
+            where visual perfection is important. May impact performance on lower-end devices.
+            </remarks>
+        </member>
+        <member name="T:Blazor.Lottie.Player.LottieAnimationType">
+            <summary>
+            Specifies the type of Lottie animation to render.
+            </summary>
+        </member>
+        <member name="F:Blazor.Lottie.Player.LottieAnimationType.Svg">
+            <summary>
+            Creates clean SVG elements with proper viewBox handling.
+            </summary>
+            <remarks>Best feature support and general purpose.</remarks>
+        </member>
+        <member name="F:Blazor.Lottie.Player.LottieAnimationType.Canvas">
+            <summary>
+            Uses 2D context, clears canvas each frame, handles sizing automatically.
+            </summary>
+            <remarks>Performance option for complex animations, typically better for full screen or
+            large animations.</remarks>
+        </member>
+        <member name="F:Blazor.Lottie.Player.LottieAnimationType.Html">
+            <summary>
+            Creates HTML elements with CSS transforms.
+            </summary>
+            <remarks>Optional, generally slower with limited support for complex animations.</remarks>
+        </member>
+        <member name="T:Blazor.Lottie.Player.LottiePlayerEventFrameArgs">
+            <summary>
+            Event arguments for the Lottie player loaded event.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayerEventFrameArgs.Type">
+            <summary>
+            Gets the ID of the event.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayerEventFrameArgs.CurrentTime">
+            <summary>
+            Gets the current frame of the animation as a zero-based index.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayerEventFrameArgs.TotalTime">
+            <summary>
+            Gets the total number of frames to be processed.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayerEventFrameArgs.Direction">
+            <summary>
+            The current direction of the Lottie animation playback.
+            </summary>
+        </member>
+        <member name="T:Blazor.Lottie.Player.LottiePlayerLoadedEventArgs">
+            <summary>
+            Event arguments for the Lottie player loaded event.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayerLoadedEventArgs.ElementId">
+            <summary>
+            Gets the ID of the Lottie player element.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayerLoadedEventArgs.CurrentFrame">
+            <summary>
+            Gets the current frame of the animation as a zero-based index.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayerLoadedEventArgs.TotalFrames">
+            <summary>
+            Gets the total number of frames processed.
+            </summary>
+        </member>
+        <member name="T:Blazor.Lottie.Player.EnumExtensions">
+            <summary>
+            Provides extension methods for working with enumeration types.
+            </summary>
+            <remarks>This class includes methods that enhance the functionality of enums, such as retrieving
+            custom descriptions defined by the <see cref="T:System.ComponentModel.DescriptionAttribute"/>.</remarks>
+        </member>
+        <member name="M:Blazor.Lottie.Player.EnumExtensions.ToDescription(System.Enum)">
+            <summary>
+            Retrieves the description associated with an enumeration value.
+            </summary>
+            <remarks>This method is useful for obtaining human-readable descriptions of enumeration
+            values when the <see cref="T:System.ComponentModel.DescriptionAttribute"/> is used to provide metadata for the
+            values.</remarks>
+        </member>
+    </members>
+</doc>

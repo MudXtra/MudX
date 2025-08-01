@@ -1,0 +1,203 @@
+{
+  "Component": "LottiePlayer",
+  "Namespace": "Blazor.Lottie.Player",
+  "Description": "A Blazor component for rendering and controlling Lottie animations using BodyMovin.\nRemarks: The component provides a flexible way to integrate Lottie animations into Blazor applications. It supports various customization options, including animation source, playback settings, and event callbacks for animation lifecycle events.",
+  "Parameters": [
+    {
+      "Name": "Class",
+      "Type": "String",
+      "Default": "null",
+      "Description": "The CSS class name(s) to apply to the container."
+    },
+    {
+      "Name": "Style",
+      "Type": "String",
+      "Default": "null",
+      "Description": "The inline CSS styles to apply to the component."
+    },
+    {
+      "Name": "UserAttributes",
+      "Type": "Dictionary\u003CString, Object\u003E",
+      "Default": "null",
+      "Description": "Sets a collection of user-defined HTML attributes represented as key-value pairs.\nRemarks: This property is typically used to provide additional HTML attributes during rendering such as ARIA accessibility tags, data attributes, or any other custom HTML attributes that you want to apply to the component."
+    },
+    {
+      "Name": "Src",
+      "Type": "String",
+      "Default": "null",
+      "Description": "Gets or sets the source or relative URL for the component\u0027s content.\nRemarks: *Required* e.g. Src=\u0022https://mudxtra.github.io/LottiePlayer/newAnimation.json\u0022 Src=\u0022./wwwroot/lottie/newAnimation.json\u0022"
+    },
+    {
+      "Name": "AutoPlay",
+      "Type": "Boolean",
+      "Default": "true",
+      "Description": "A value indicating whether the media should automatically start playing when loaded. If set to false, the media will not start playing until AnimationPaused is set to false."
+    },
+    {
+      "Name": "Loop",
+      "Type": "Boolean",
+      "Default": "true",
+      "Description": "Gets or sets whether the animation should loop."
+    },
+    {
+      "Name": "LoopCount",
+      "Type": "Int32",
+      "Default": "0",
+      "Description": "Gets or sets the number of times a loop should occur. Requires to be true.\nRemarks: Default is 0 (infinite loop)."
+    },
+    {
+      "Name": "AnimationType",
+      "Type": "LottieAnimationType",
+      "Default": "Svg",
+      "Description": "Gets or sets the type of animation to be used for rendering the Lottie animation.\nRemarks: Defaults to ."
+    },
+    {
+      "Name": "AnimationDirection",
+      "Type": "LottieAnimationDirection",
+      "Default": "Forward",
+      "Description": "Gets or sets the direction in which the Lottie animation plays.\nRemarks: Defaults to . Changing this property after initialization will not change the playback direction of the animation, use"
+    },
+    {
+      "Name": "AnimationSpeed",
+      "Type": "Double",
+      "Default": "1",
+      "Description": "Gets or sets the speed of the animation.\nRemarks: Defaults to 1.0 (normal speed). Changing this property after initialization will not change the speed of the animation, use"
+    },
+    {
+      "Name": "CurrentFrameChangeFunc",
+      "Type": "Func\u003CDouble, Boolean\u003E",
+      "Default": "null",
+      "Description": "Called when the current frame changes, with custom filtering logic\nRemarks: The function receives the current frame number and should return true if the event should be raised. This allows for custom throttling logic (e.g., only every 10th frame, only on specific frames, etc.) Warning: Frame updates could happen as frequently as 30-60 times per second. Defaults to null. is only raised if something is attached to the handler. Example: frame =\u003E frame % 10 == 0 will raise the event every 10th frame."
+    },
+    {
+      "Name": "CurrentFrameChanged",
+      "Type": "EventCallback\u003CLottiePlayerEventFrameArgs\u003E",
+      "Default": "",
+      "Description": "Called when the current frame changes (only when returns true)"
+    },
+    {
+      "Name": "DOMLoaded",
+      "Type": "EventCallback\u003CLottiePlayerLoadedEventArgs\u003E",
+      "Default": "",
+      "Description": "Called when the Lottie player is initialized and the DOM is ready."
+    },
+    {
+      "Name": "AnimationReady",
+      "Type": "EventCallback\u003CLottiePlayerLoadedEventArgs\u003E",
+      "Default": "",
+      "Description": "Called when the animation is fully loaded and ready for playback."
+    },
+    {
+      "Name": "AnimationCompleted",
+      "Type": "EventCallback",
+      "Default": "",
+      "Description": "Called when the animation completes."
+    },
+    {
+      "Name": "AnimationLoopCompleted",
+      "Type": "EventCallback",
+      "Default": "",
+      "Description": "Called when an animation loop completes."
+    },
+    {
+      "Name": "AnimationOptions",
+      "Type": "LottieAnimationOptions",
+      "Default": null,
+      "Description": "Additional Less Used Animation Options.\nRemarks: Refer to for defaults."
+    }
+  ],
+  "Events": [],
+  "PublicProperties": [
+    {
+      "Name": "LottiePlayerModule",
+      "Type": "LottiePlayerModule",
+      "Description": "The module used to control Lottie Player functionality."
+    },
+    {
+      "Name": "TotalAnimationFrames",
+      "Type": "Double",
+      "Description": null
+    },
+    {
+      "Name": "CurrentAnimationFrame",
+      "Type": "Double",
+      "Description": "Gets the current animation frame as a double-precision value. This is updated during playback by the EventCallback of CurrentFrameChanged."
+    },
+    {
+      "Name": "IsAnimationLoaded",
+      "Type": "Boolean",
+      "Description": "Gets a value indicating whether the animation has been loaded and is ready for playback."
+    },
+    {
+      "Name": "IsAnimationPaused",
+      "Type": "Boolean",
+      "Description": "Gets a value indicating whether the animation is paused."
+    },
+    {
+      "Name": "IsAnimationStopped",
+      "Type": "Boolean",
+      "Description": "Gets a value indicating whether the animation is stopped."
+    }
+  ],
+  "PublicFields": [
+    {
+      "Name": "ElementId",
+      "Type": "String",
+      "Default": "lottie-t1nv0cma",
+      "Description": "Represents the unique identifier for a Lottie element\u0027s surrounding div."
+    }
+  ],
+  "Methods": [
+    {
+      "Name": "PlayAnimationAsync",
+      "ReturnType": "ValueTask",
+      "Parameters": [],
+      "Description": "If the animation is not already playing, this method will start playing the animation.\nRemarks: Should not be called before OnAfterRenderAsync."
+    },
+    {
+      "Name": "PauseAnimationAsync",
+      "ReturnType": "ValueTask",
+      "Parameters": [],
+      "Description": "Pauses the currently playing animation in the Lottie player.\nRemarks: Should not be called before OnAfterRenderAsync."
+    },
+    {
+      "Name": "StopAnimationAsync",
+      "ReturnType": "ValueTask",
+      "Parameters": [],
+      "Description": "Stops the currently playing animation asynchronously.\nRemarks: This method halts the animation playback if an animation is currently running. The method returns a boolean indicating whether the operation was successful."
+    },
+    {
+      "Name": "SetSpeedAsync",
+      "ReturnType": "ValueTask",
+      "Parameters": [
+        {
+          "Name": "speed",
+          "Type": "Double"
+        }
+      ],
+      "Description": "Asynchronously sets the playback speed for the Lottie animation."
+    },
+    {
+      "Name": "SetDirectionAsync",
+      "ReturnType": "ValueTask",
+      "Parameters": [
+        {
+          "Name": "direction",
+          "Type": "LottieAnimationDirection"
+        }
+      ],
+      "Description": "Sets the playback direction of the Lottie animation asynchronously."
+    },
+    {
+      "Name": "SetParametersAsync",
+      "ReturnType": "Task",
+      "Parameters": [
+        {
+          "Name": "parameters",
+          "Type": "ParameterView"
+        }
+      ],
+      "Description": "Override the SetParametersAsync method to handle component parameters."
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "Component": "LottieAnimationQuality",
+  "Namespace": "Blazor.Lottie.Player",
+  "Description": "Specifies the rendering quality level for Lottie animations.\nRemarks: Quality affects the precision of curve calculations and overall visual fidelity. Higher quality settings provide smoother curves and better visual accuracy but require more computational resources.",
+  "Parameters": [],
+  "Events": [],
+  "PublicProperties": [],
+  "PublicFields": [
+    {
+      "Name": "value__",
+      "Type": "Int32",
+      "Default": "0",
+      "Description": null
+    }
+  ],
+  "Methods": []
+}
