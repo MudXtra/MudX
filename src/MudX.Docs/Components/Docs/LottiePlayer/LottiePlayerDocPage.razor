@@ -1,0 +1,86 @@
+@page "/docs/lottie"
+@using MudX.Docs.LottiePlayer
+@using MudX.Docs.Examples
+
+<PageTitle>Lottie Player</PageTitle>
+
+<DocsPage Headline="Blazor Lottie Player">
+    <ChildContent>
+        <DocsPageHeader>
+            <Description>
+                A new componenet <CodeInline>LottiePlayer</CodeInline> will provide a fast and easy way to load Lottie Animations 
+                through a player or class in your Blazor projects. <br/><MudLink Href="https://github.com/MudXtra/LottiePlayer" Target="_blank">Visit the Github</MudLink>!
+                <MudAlert Severity="Severity.Warning">
+                    This component is not a part of the MudX library, but is included here for documentation purposes. You must 
+                    download it separately via nuget @@ <CodeInline Tag="false">Blazor.Lottie.Player</CodeInline>
+                </MudAlert>
+            </Description>
+        </DocsPageHeader>
+
+        <DocsPageSection Title="Basic Usage">
+            <Description>
+                You can put a <CodeInline>LottiePlayer</CodeInline> anywhere inside a page or component. It will generate a div 
+                element container holding the Lottie Animation you put into the <CodeInline Tag="false">Src</CodeInline> property. 
+                There are lots of properties to control the animation, as well as Actions and Events to capture information. The 
+                Lottie Player only accepts <b>JSON</b> files as source, so you can use the <CodeInline Tag="false">Src</CodeInline> property 
+                to point to a local or remote JSON file.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@BlazorLottieBasicExampleCode.Files">
+                    <BlazorLottieBasicExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Properties">
+            <Description>
+                The <CodeInline>LottiePlayer</CodeInline> component has several properties that you can use to customize its behavior. 
+                Most properties will force a re-render and synchronization of the Lottie Animation, so be careful when using them if you 
+                are trying to maintain state. Some Properties are initialized and ignored if changed after initial render. See the API 
+                for details.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@BlazorLottiePropertiesExampleCode.Files">
+                    <BlazorLottiePropertiesExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Actions">
+            <Description>
+                The <CodeInline>LottiePlayer</CodeInline> component has several actions that can be performed on it after initialization 
+                including what's seen in the above examples. Play, Pause, Stop, SetSpeed, SetDirection allow you to control the animation 
+                using these Actions.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@BlazorLottieActionsExampleCode.Files">
+                    <BlazorLottieActionsExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Advanced">
+            <Description>
+                The <CodeInline>LottiePlayer</CodeInline> component has several more advanced features such as the 
+                ability to roll your own component using just the <CodeInline Tag="false">LottiePlayerModule</CodeInline> class. 
+                As well you can look at a few different animations here with the ability to resize accordingly. 
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@BlazorLottieAdvancedExampleCode.Files">
+                    <BlazorLottieAdvancedExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+    </ChildContent>
+    <ApiContent>
+        <ApiSection ApiJson="MudXCopyToClipboard.api.json" />
+    </ApiContent>
+
+</DocsPage>
+
+@code {
+#pragma warning disable CS0414
+    private static string __title__ = "Blazor Lottie Player";
+#pragma warning restore CS0414
+}

@@ -6,6 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Services\**" />
+    <Content Remove="Services\**" />
+    <EmbeddedResource Remove="Services\**" />
+    <None Remove="Services\**" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <SupportedPlatform Include="browser" />
@@ -26,7 +33,6 @@
 
   <ItemGroup>
     <Folder Include="Components\Docs\CopyToClipboard\Examples\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 
     <Target Name="GenerateNavJsonBeforeBuild" BeforeTargets="PreBuildEvent">
@@ -47,6 +53,10 @@
 
     <ItemGroup>
         <EmbeddedResource Include="wwwroot\nav-structure.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Blazor.Lottie.Player" Version="1.0.3" />
     </ItemGroup>
 
 </Project>
