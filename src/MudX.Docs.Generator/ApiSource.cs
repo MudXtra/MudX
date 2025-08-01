@@ -59,7 +59,6 @@ namespace MudX.Docs.Generator
                 }
             }
 
-
             if (File.Exists(xmlPath))
             {
                 var mudDocs = LoadXmlDocumentation(xmlPath);
@@ -71,9 +70,54 @@ namespace MudX.Docs.Generator
                 Console.WriteLine($"⚠️ MudBlazor XML documentation file not found: {xmlPath}");
             }
 
+            Assembly lottieAssembly = typeof(Blazor.Lottie.Player.LottiePlayer).Assembly;
+            xmlPath = Path.ChangeExtension(lottieAssembly.Location, ".xml");
+
+            if (!File.Exists(xmlPath))
+            {
+                var mudBlazorAssemblyName = lottieAssembly.GetName().Name;
+                var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                var nugetPath = Path.Combine(userProfile, ".nuget", "packages", mudBlazorAssemblyName!.ToLower());
+
+                var fallbackPath = Path.Combine(rootDirectory, "..", "wwwroot", "api", "Blazor.Lottie.Player.xml");
+
+                if (Directory.Exists(nugetPath))
+                {
+                    var xmlFiles = Directory.GetFiles(nugetPath, "Blazor.Lottie.Player.xml", SearchOption.AllDirectories);
+                    if (xmlFiles.Length > 0)
+                    {
+                        xmlPath = xmlFiles[0];
+                        CopyIfDifferent(xmlPath, fallbackPath);
+                    }
+                    else
+                    {
+                        xmlPath = fallbackPath;
+                    }
+                }
+                else
+                {
+                    xmlPath = fallbackPath;
+                }
+            }
+
+            if (File.Exists(xmlPath))
+            {
+                var docs = LoadXmlDocumentation(xmlPath);
+                foreach (var kv in docs)
+                    _xmlDocs[kv.Key] = kv.Value;
+            }
+            else
+            {
+                Console.WriteLine($"⚠️ Lottie XML documentation file not found: {xmlPath}");
+            }
+
             // Get all component types (subclass of ComponentBase) in MudX namespace
             var components = targetAssembly.GetTypes()
                 .Where(t => t.IsSubclassOf(typeof(ComponentBase)) && t.Namespace?.Contains("MudX") == true);
+
+            components = components.Union(
+                lottieAssembly.GetTypes()
+                    .Where(t => t.Namespace?.Contains("Blazor.Lottie.Player") == true));
 
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
 
@@ -147,7 +191,12 @@ namespace MudX.Docs.Generator
                         })
                 };
 
-
+                if (type.Name.StartsWith("<") || type.Name.StartsWith("_") ||
+                    type.Name.StartsWith("EnumExtensi") || type.Name.StartsWith("Identif"))
+                {
+                    // Skip compiler-generated types (e.g., lambda expressions, async methods)
+                    continue;
+                }
                 var jsonPath = Path.Combine(outputDir, $"{type.Name}.api.json");
                 var serialized = JsonSerializer.Serialize(doc, jsonOptions);
                 WriteIfDifferent(jsonPath, serialized);

@@ -1,0 +1,109 @@
+using System.Collections.Generic;
+using MudX;
+
+namespace MudX.Docs.Examples
+{
+    public static class BlazorLottieAdvancedExampleCode
+    {
+        public static readonly IEnumerable<CodeFile> Files = new[]
+        {
+            new CodeFile
+            (
+                Title: "BlazorLottieAdvancedExample.razor",
+                Code: @"@namespace MudX.Docs.LottiePlayer
+@using System.Globalization
+@inject ISnackbar Snackbar
+
+<div class=""d-flex mx-auto"" style=""@($""width: {_width}px;"")"">
+    <LottiePlayer @ref=""@_lottiePlayer""
+                  Class=""my-4""
+                  Src=""@_lottieAnim.Src"" />
+</div>
+
+<MudGrid Class=""d-flex"">
+    <MudItem xs=""6"" lg=""4"" Class=""d-flex justify-center"">
+        <MudButton Variant=""Variant.Filled"" Color=""Color.Primary"" OnClick=""@ToggleAnimation"">@(_play ? ""Pause"" : ""Play"")</MudButton>
+    </MudItem>
+    <MudItem xs=""6"" lg=""4"" Class=""d-flex justify-center align-items-center"">
+        <MudSlider @bind-Value=""@_width"" Min=""100"" Max=""300"" Step=""5"" ValueLabel>
+            Width: @($""{_width}px"")
+        </MudSlider>
+    </MudItem>
+    <MudItem xs=""12"" lg=""4"" Class=""d-flex justify-center align-items-center"">
+        <MudSelect @bind-Value=""@_lottieAnim"" Label=""Select Animation"" FullWidth=""false"" Style=""min-width: 300px;"" RelativeWidth=""@DropdownWidth.Adaptive"">
+            @foreach (var lottie in _lottieList.OrderBy(x => x.Name))
+            {
+                <MudSelectItem Value=""@lottie"">@lottie.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private LottiePlayer _lottiePlayer = default!;
+    private List<LottieAnimationList> _lottieList = [];
+    private LottieAnimationList _lottieAnim = default!;
+    private bool _play = true;
+    private int _width = 175;
+    private string _lottieName = string.Empty;
+    private string _lottieSrc = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _lottieList.Add(new LottieAnimationList() { Name = ""Hand Loading"", Src = ""https://lottie.host/99ab6923-62d6-4030-aeb0-282d33242f3e/Z1CzIUWU18.json"" });
+        _lottieList.Add(new LottieAnimationList() { Name = ""Gift Box"", Src = ""./_content/MudX.Docs/lottie/newAnimation.json"" });
+        _lottieList.Add(new LottieAnimationList() { Name = ""Lego Loading"", Src = ""https://lottie.host/694149cc-b526-4803-acff-522c384f3319/UM1M0cO0TD.json"" });
+        _lottieList.Add(new LottieAnimationList() { Name = ""Handshake"", Src = ""https://lottie.host/382bbcd7-e7b1-4a30-90cd-884a9c7c3bb1/F7I9nPKEr1.json"" });
+        _lottieList.Add(new LottieAnimationList() { Name = ""HotDog Loading"", Src = ""./_content/MudX.Docs/lottie/BunBun.json"" });
+        _lottieAnim = _lottieList[4];
+    }
+
+    private void AddLottie(MouseEventArgs args)
+    {
+        if (!string.IsNullOrWhiteSpace(_lottieName) && !string.IsNullOrWhiteSpace(_lottieSrc))
+        {
+            _lottieList.Add(new LottieAnimationList() { Name = _lottieName, Src = _lottieSrc });
+            _lottieName = string.Empty;
+            _lottieSrc = string.Empty;
+            _lottieAnim = _lottieList[_lottieList.Count - 1];
+            Snackbar.Add(""Lottie animation added successfully!"", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add(""Please provide both name and source URL for the Lottie animation."", Severity.Error);
+        }
+    }
+
+    private async Task ToggleAnimation()
+    {
+        if (_play)
+        {
+            await _lottiePlayer!.PauseAnimationAsync();
+        }
+        else
+        {
+            await _lottiePlayer!.PlayAnimationAsync();
+        }
+        _play = !_play;
+    }
+}
+
+@code {
+    public class LottieAnimationList
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Src { get; set; } = string.Empty;
+        public override string ToString()
+        {
+            return $""{Name}"";
+        }
+    }
+}
+",
+                Language: CodeLanguage.Razor
+            )
+        };
+    }
+}

@@ -1,0 +1,17 @@
+{
+  "Component": "LottieAnimationDirection",
+  "Namespace": "Blazor.Lottie.Player",
+  "Description": "Specifies the playback direction for a Lottie animation.",
+  "Parameters": [],
+  "Events": [],
+  "PublicProperties": [],
+  "PublicFields": [
+    {
+      "Name": "value__",
+      "Type": "Int32",
+      "Default": "0",
+      "Description": null
+    }
+  ],
+  "Methods": []
+}

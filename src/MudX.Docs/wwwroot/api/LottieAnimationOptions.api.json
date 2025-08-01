@@ -1,0 +1,44 @@
+{
+  "Component": "LottieAnimationOptions",
+  "Namespace": "Blazor.Lottie.Player",
+  "Description": "Represents the advanced configuration options for rendering Lottie animations.",
+  "Parameters": [],
+  "Events": [],
+  "PublicProperties": [
+    {
+      "Name": "LottieSourceJs",
+      "Type": "String",
+      "Description": "Gets or sets the URL of the Lottie JavaScript library used for rendering Lottie animations."
+    },
+    {
+      "Name": "AnimationQuality",
+      "Type": "LottieAnimationQuality",
+      "Description": "Gets or sets the quality level of the Lottie animation rendering. This is a global setting.\nRemarks: Defaults to . Higher quality levels may result in smoother animations but could increase resource usage."
+    },
+    {
+      "Name": "SmoothFrameInterpolation",
+      "Type": "Boolean",
+      "Description": "Gets or sets whether to enable smooth frame interpolation for high refresh rate displays.\nRemarks: When true (default), the animation will interpolate between keyframes to create smooth motion that adapts to your display\u0027s refresh rate (60Hz, 120Hz, etc.).When false, the animation will only update on the original After Effects keyframes, which may appear choppy on high refresh displays but offers better performance and pixel-perfect reproduction of the original animation timing."
+    }
+  ],
+  "PublicFields": [],
+  "Methods": [
+    {
+      "Name": "Equals",
+      "ReturnType": "Boolean",
+      "Parameters": [
+        {
+          "Name": "obj",
+          "Type": "Object"
+        }
+      ],
+      "Description": "Determines whether the specified object is equal to the current instance.\nRemarks: Two instances are considered equal if they have the same , , and values."
+    },
+    {
+      "Name": "GetHashCode",
+      "ReturnType": "Int32",
+      "Parameters": [],
+      "Description": "Returns a hash code for the current object.\nRemarks: The hash code is computed based on the values of the , , and properties. This ensures that objects with the same property values produce the same hash code."
+    }
+  ]
+}

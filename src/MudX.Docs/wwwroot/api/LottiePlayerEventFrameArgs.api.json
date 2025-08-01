@@ -1,0 +1,31 @@
+{
+  "Component": "LottiePlayerEventFrameArgs",
+  "Namespace": "Blazor.Lottie.Player",
+  "Description": "Event arguments for the Lottie player loaded event.",
+  "Parameters": [],
+  "Events": [],
+  "PublicProperties": [
+    {
+      "Name": "Type",
+      "Type": "String",
+      "Description": "Gets the ID of the event."
+    },
+    {
+      "Name": "CurrentTime",
+      "Type": "Double",
+      "Description": "Gets the current frame of the animation as a zero-based index."
+    },
+    {
+      "Name": "TotalTime",
+      "Type": "Double",
+      "Description": "Gets the total number of frames to be processed."
+    },
+    {
+      "Name": "Direction",
+      "Type": "LottieAnimationDirection",
+      "Description": "The current direction of the Lottie animation playback."
+    }
+  ],
+  "PublicFields": [],
+  "Methods": []
+}

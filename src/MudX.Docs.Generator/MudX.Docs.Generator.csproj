@@ -16,6 +16,10 @@
   </Target>    
 
   <ItemGroup>
+    <PackageReference Include="Blazor.Lottie.Player" Version="1.0.4" />
+  </ItemGroup>    
+
+  <ItemGroup>
     <ProjectReference Include="..\MudX\MudX.csproj" />
   </ItemGroup>
 

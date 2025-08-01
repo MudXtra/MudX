@@ -1,0 +1,17 @@
+{
+  "Component": "LottieAnimationType",
+  "Namespace": "Blazor.Lottie.Player",
+  "Description": "Specifies the type of Lottie animation to render.",
+  "Parameters": [],
+  "Events": [],
+  "PublicProperties": [],
+  "PublicFields": [
+    {
+      "Name": "value__",
+      "Type": "Int32",
+      "Default": "0",
+      "Description": null
+    }
+  ],
+  "Methods": []
+}

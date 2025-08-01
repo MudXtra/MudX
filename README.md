@@ -1,4 +1,6 @@
-﻿## Getting started with MudX is easy:
+﻿[![Sponsor](https://img.shields.io/badge/Sponsor-❤️_GitHub_Sponsors-orange?logo=github&style=for-the-badge)](https://github.com/sponsors/YOUR_USERNAME)
+
+## Getting started with MudX is easy:
 
 1. **Step 1:** Install [MudBlazor](https://mudblazor.com/getting-started/installation).
 2. **Step 2:** Add MudX to your project via NuGet.
@@ -15,6 +17,7 @@
 - [MudXCodeBlock](#mudxcodeblock)
 - [MudXCopyToClipboard](#mudxcopytoclipboard)
 - [MudXBreadcrumbs](#mudxbreadcrumbs)
+- [Blazor Lottie Player](#blazor-lottie-player)]
 
 ---
 
@@ -61,4 +64,14 @@ A component that allows users to copy text to the clipboard with access to an ex
 
 A self-navigating breadcrumb navigation component that supports custom separators and icons.  
 ![MudXBreadcrumbs Image](https://github.com/MudXtra/Mudx/raw/dev/images/MudXBreadcrumbs.png)  
+[Back to top](#table-of-contents)
+
+---
+
+### Blazor Lottie Player
+![status](https://img.shields.io/badge/status-new-red)
+
+A Blazor component for rendering Lottie animations, downloadable separately from MudX but designed and
+maintained by the MudX team.
+![Blazor Lottie Player Image](https://github.com/MudXtra/Mudx/raw/dev/images/BlazorLottiePlayer.gif)  
 [Back to top](#table-of-contents)
