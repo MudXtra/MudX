@@ -8,12 +8,12 @@
     {
       "Name": "CurrentFrame",
       "Type": "Double",
-      "Description": null
+      "Description": "The current time/frame as reported back after EventFrame events."
     },
     {
       "Name": "TotalFrames",
       "Type": "Double",
-      "Description": null
+      "Description": "The total number of frames in the animation as returned by AnimationReady"
     }
   ],
   "PublicFields": [],
@@ -98,6 +98,21 @@
         }
       ],
       "Description": "Asynchronously sets the playback direction for the associated animation."
+    },
+    {
+      "Name": "ExecuteActionAsync",
+      "ReturnType": "ValueTask",
+      "Parameters": [
+        {
+          "Name": "action",
+          "Type": "String"
+        },
+        {
+          "Name": "args",
+          "Type": "Object[]"
+        }
+      ],
+      "Description": null
     },
     {
       "Name": "AnimationReadyEvent",

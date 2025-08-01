@@ -8,12 +8,14 @@
     <ChildContent>
         <DocsPageHeader>
             <Description>
-                A new componenet <CodeInline>LottiePlayer</CodeInline> will provide a fast and easy way to load Lottie Animations 
-                through a player or class in your Blazor projects. <br/><MudLink Href="https://github.com/MudXtra/LottiePlayer" Target="_blank">Visit the Github</MudLink>!
-                <MudAlert Severity="Severity.Warning">
-                    This component is not a part of the MudX library, but is included here for documentation purposes. You must 
-                    download it separately via nuget @@ <CodeInline Tag="false">Blazor.Lottie.Player</CodeInline>
-                </MudAlert>
+                A new component, <CodeInline>LottiePlayer</CodeInline>, makes it quick and easy to use Lottie animations in your Blazor projects—either 
+                via a player or a class. By default, the component loads the Lottie JavaScript library for you. If needed, you can manually provide the 
+                path to the <MudLink Target="_blank" Href="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.13.0/lottie.min.js">latest Bodymovin 
+                script</MudLink>. All animations shown here are free and credited to <MudLink Href="https://lottiefiles.com" Target="_blank">LottieFiles
+                </MudLink> and their creators.
+                <MudAlert Severity="Severity.Warning"> This component is not part of the MudX library. It is documented here for convenience, but must be 
+                    installed separately via NuGet: <CodeInline Tag="false">Blazor.Lottie.Player</CodeInline></MudAlert>
+                <MudLink Href="https://github.com/MudXtra/LottiePlayer" Target="_blank">Visit and star the MudXtra Lottie repo</MudLink>!
             </Description>
         </DocsPageHeader>
 
@@ -50,7 +52,9 @@
             <Description>
                 The <CodeInline>LottiePlayer</CodeInline> component has several actions that can be performed on it after initialization 
                 including what's seen in the above examples. Play, Pause, Stop, SetSpeed, SetDirection allow you to control the animation 
-                using these Actions.
+                using these Actions. The <CodeInline Tag="false">LottiePlayerModule</CodeInline> is accessible from the component as well 
+                and has access to the <CodeInline Tag="false">ExecuteActionAsync</CodeInline> method where you can feed it the action such as <c>stop</c> 
+                followed by an object array for parameters that will be passed to it. In javascript that will become <c>animation.stop(args...)</c>
             </Description>
             <ChildContent>
                 <SectionContent Codes="@BlazorLottieActionsExampleCode.Files">
@@ -76,12 +80,6 @@
     <ApiContent>
         <ApiSection ApiJson="LottiePlayer.api.json" />
         <ApiSection ApiJson="LottiePlayerModule.api.json" />
-        <ApiSection ApiJson="LottieAnimationDirection.api.json" />
-        <ApiSection ApiJson="LottieAnimationOptions.api.json" />
-        <ApiSection ApiJson="LottieAnimationQuality.api.json" />
-        <ApiSection ApiJson="LottieAnimationType.api.json" />
-        <ApiSection ApiJson="LottiePlayerEventFrameArgs.api.json" />
-        <ApiSection ApiJson="LottiePlayerLoadedEventArgs.api.json" />
     </ApiContent>
 
 </DocsPage>
