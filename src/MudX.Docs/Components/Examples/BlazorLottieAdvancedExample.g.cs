@@ -20,22 +20,22 @@ namespace MudX.Docs.Examples
                   Src=""@_lottieAnim.Src"" />
 </div>
 
-<MudGrid Class=""d-flex"">
-    <MudItem xs=""6"" lg=""4"" Class=""d-flex justify-center"">
+<MudGrid Class=""d-flex align-center justify-space-between"">
+    <MudItem xs=""12"" lg=""4"" Class=""d-flex justify-center"">
         <MudButton Variant=""Variant.Filled"" Color=""Color.Primary"" OnClick=""@ToggleAnimation"">@(_play ? ""Pause"" : ""Play"")</MudButton>
     </MudItem>
-    <MudItem xs=""6"" lg=""4"" Class=""d-flex justify-center align-items-center"">
-        <MudSlider @bind-Value=""@_width"" Min=""100"" Max=""300"" Step=""5"" ValueLabel>
-            Width: @($""{_width}px"")
-        </MudSlider>
-    </MudItem>
-    <MudItem xs=""12"" lg=""4"" Class=""d-flex justify-center align-items-center"">
-        <MudSelect @bind-Value=""@_lottieAnim"" Label=""Select Animation"" FullWidth=""false"" Style=""min-width: 300px;"" RelativeWidth=""@DropdownWidth.Adaptive"">
+    <MudItem xs=""12"" lg=""4"" Class=""d-flex justify-center align-center"">
+        <MudSelect @bind-Value=""@_lottieAnim"" Label=""Select Animation"" FullWidth=""false"" Style=""max-width: 300px;"" RelativeWidth=""@DropdownWidth.Adaptive"">
             @foreach (var lottie in _lottieList.OrderBy(x => x.Name))
             {
                 <MudSelectItem Value=""@lottie"">@lottie.Name</MudSelectItem>
             }
         </MudSelect>
+    </MudItem>
+    <MudItem xs=""12"" lg=""4"" Class=""d-flex justify-center align-center"">
+        <MudSlider @bind-Value=""@_width"" Min=""100"" Max=""300"" Step=""5"" ValueLabel>
+            Width: @($""{_width}px"")
+        </MudSlider>
     </MudItem>
 </MudGrid>
 

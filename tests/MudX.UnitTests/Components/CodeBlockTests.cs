@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
+using AwesomeAssertions;
 using Bunit;
-using FluentAssertions;
 using MudBlazor;
 using MudX.UnitTests.Viewer.TestComponents.CodeBlock;
 using MudX.Utilities;

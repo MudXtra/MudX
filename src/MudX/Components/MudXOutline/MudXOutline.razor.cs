@@ -300,7 +300,7 @@ namespace MudX
         /// <summary>
         /// Causes an immediate repositioning of the Index
         /// </summary>
-        public async Task PositionIndex()
+        public virtual async Task PositionIndex()
         {
             if (IsJSRuntimeAvailable)
             {
