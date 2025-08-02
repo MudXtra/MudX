@@ -8,12 +8,12 @@
     {
       "Name": "CurrentFrame",
       "Type": "Double",
-      "Description": "The current time/frame as reported back after EventFrame events."
+      "Description": null
     },
     {
       "Name": "TotalFrames",
       "Type": "Double",
-      "Description": "The total number of frames in the animation as returned by AnimationReady"
+      "Description": null
     }
   ],
   "PublicFields": [],
