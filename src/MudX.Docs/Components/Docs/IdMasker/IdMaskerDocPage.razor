@@ -1,0 +1,41 @@
+@page "/docs/idmasker"
+@using MudX.Docs.IdMasker
+@using MudX.Docs.Examples
+
+<PageTitle>ID Masker</PageTitle>
+
+<DocsPage Headline="IdMasker">
+    <ChildContent>
+        <DocsPageHeader>
+            <Description>
+                A static class, <CodeInline Tag="false">IdMasker</CodeInline>, will provide a fast and easy way to obfuscate strings into more human readable strings. This avoids
+                the use of i, I, o, O, S, and Z in the new string. It is not meant to be cryptographically secure just an easy way to obfuscate an ID or other string.
+            </Description>
+        </DocsPageHeader>
+
+        <DocsPageSection Title="Basic Usage">
+            <Description>
+                You can execute a Masking or UnMasking with the static class <CodeInline Tag="false">IdMasker</CodeInline> anywhere inside C#. E.g.<br />
+                <CodeInline Tag=false>IdMasker.MaskId("1234567890")</CodeInline> or <br />
+                <CodeInline Tag=false>IdMasker.UnMaskId("vwReJKVWNY")</CodeInline> or <br />
+                <CodeInline Tag=false>IdMasker.MaskId("A0E6C1F7-9B2D-4B6C-8F42-7D9E5F1A2B3C")</CodeInline>
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@IdMaskerBasicExampleCode.Files">
+                    <IdMaskerBasicExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+    </ChildContent>
+    <ApiContent>
+        <ApiSection ApiJson="IdMasker.api.json" />
+    </ApiContent>
+
+</DocsPage>
+
+@code {
+#pragma warning disable CS0414
+    private static string __title__ = "Id Masker / Obfuscation";
+#pragma warning restore CS0414
+}
