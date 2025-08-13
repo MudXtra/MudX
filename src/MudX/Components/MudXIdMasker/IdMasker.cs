@@ -269,7 +269,7 @@ namespace MudX
             for (int i = 0; i < encoded.Length;)
             {
                 var ch = encoded[i];
-                var digits = i + 2 <= encoded.Length ? encoded.Substring(i, 2) : null;
+                var digits = char.IsAsciiLetter(ch) ? null : i + 2 <= encoded.Length ? encoded.Substring(i, 2) : null;
                 if (LetterToDigitIdMappings.TryGetValue(ch, out var digit))
                 {
                     sb.Append(digit);
