@@ -210,7 +210,9 @@ namespace MudX
             if (string.IsNullOrEmpty(id))
                 return id;
 
-            var sb = new StringBuilder(id.Length);
+            var len = (id.Count(char.IsAsciiLetter) * 2) + id.Count(c => !char.IsAsciiLetter(c));
+
+            var sb = new StringBuilder(len);
 
             for (int i = 0; i < id.Length;)
             {
