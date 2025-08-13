@@ -21,7 +21,7 @@ namespace MudX.Docs.Examples
 </div>
 
 <MudGrid Class=""d-flex"">
-    <MudItem xs=""4"" md=""3"" Class=""d-flex justify-center"">
+    <MudItem xs=""4"" md=""3"" Class=""d-flex align-center justify-center"">
         <MudButton Variant=""Variant.Filled"" Color=""Color.Primary"" OnClick=""@ToggleAnimation"">@(_play ? ""Pause"" : ""Play"")</MudButton>
     </MudItem>
     <MudItem xs=""4"" md=""3"" Class=""d-flex justify-center align-items"">
@@ -30,7 +30,7 @@ namespace MudX.Docs.Examples
             Speed: @_speed.ToString(""0.0"", CultureInfo.CurrentCulture)
         </MudSlider>
     </MudItem>
-    <MudItem xs=""4"" md=""3"" Class=""d-flex justify-center align-items-center"">
+    <MudItem xs=""4"" md=""3"" Class=""d-flex justify-center align-center"">
         <MudSwitch T=""bool"" Value=""_forward"" ValueChanged=""@ChangeDirectionValue""
                    LabelPlacement=""Placement.Left"" Color=""Color.Primary"">Reverse</MudSwitch>
         <MudText Class=""mud-switch mud-switch-label-medium mud-input-content-placement-end"">Forward</MudText>

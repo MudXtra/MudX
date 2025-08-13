@@ -12,16 +12,15 @@ namespace MudX.Docs.Examples
                 Title: "BlazorLottiePropertiesExample.razor",
                 Code: @"@namespace MudX.Docs.LottiePlayer
 
-<div class=""d-flex mx-auto"" style=""width: 200px;"">
+<div class=""d-flex mx-auto my-4"" style=""width: 195px;"">
     <LottiePlayer @ref=""@_lottiePlayer""
                   AutoPlay=""@_autoPlay""
-                  Class=""my-4""
                   Src=""@_lottieSrc""
                   LoopCount=""@_loopCount""
                   AnimationType=""@_animationType"" />
 </div>
 
-<MudGrid Class=""d-flex"">
+<MudGrid Class=""d-flex align-center justify-center"">
     <MudItem xs=""4"" md=""3"" Class=""d-flex justify-center align-items"">
         <MudSwitch Color=""Color.Primary"" @bind-Value=""@_autoPlay"" @bind-Value:after=""@(() => _counter++)"" LabelPlacement=""Placement.Right"">AutoPlay</MudSwitch>
     </MudItem>

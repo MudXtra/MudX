@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
+using AwesomeAssertions;
 using Bunit;
-using FluentAssertions;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Microsoft.JSInterop.Infrastructure;
 using Moq;
@@ -32,6 +33,10 @@ namespace MudX.UnitTests.Components
             // the sections
             divs = comp.FindAll(".mudx-toc-section");
             divs.Count.Should().Be(3);
+
+            var outline = comp.FindComponent<MudXOutline>();
+            outline.Should().NotBeNull();
+            outline.Instance.Sections.Count.Should().Be(3);
         }
 
         [Test]
@@ -67,6 +72,25 @@ namespace MudX.UnitTests.Components
             comp.Markup.Should().Contain("Item 2");
             comp.Markup.Should().Contain("Item 3");
             comp.Markup.Should().Contain("Lorem ipsum");
+        }
+
+        [Test]
+        public void Outline_ContentDrawer_ShouldRenderCorrectly()
+        {
+            var provider = Context.RenderComponent<MudPopoverProvider>();
+            var comp = Context.RenderComponent<OutlineBasicTest>();
+            // The content drawer should be rendered
+            var contentDrawer = provider.Find(".mudx-outline-popover");
+            contentDrawer.Should().NotBeNull();
+            // The drawer should have the correct class
+            contentDrawer.ClassList.Contains("mud-popover-open").Should().BeTrue();
+            var outline = comp.FindComponent<MudXOutline>();
+            outline.Should().NotBeNull();
+
+            outline.SetParametersAndRender(parameters => parameters.Add(p => p.ContentDrawerOpen, false));
+
+            // When the content drawer is closed, it should not have the open class
+            contentDrawer.ClassList.Contains("mud-popover-open").Should().BeFalse();
         }
 
         [Test]
@@ -302,5 +326,107 @@ namespace MudX.UnitTests.Components
             mockModule.Verify(m => m.DisposeAsync(), Times.Once);
         }
 
+        [Test]
+        public async Task MudXOutline_OnParametersSetAsync_ShouldSetAnchorAndScrollContainerSelector()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXOutline>(parameters => parameters
+                .Add(p => p.Anchor, Anchor.Top)
+                .Add(p => p.ScrollContainerSelector, null!));
+
+            // Act
+            await comp.InvokeAsync(async () => await comp.Instance.SetParametersAsync(ParameterView.Empty));
+
+            var outline = comp.Instance;
+
+            // Assert
+            outline.Anchor.Should().Be(Anchor.Top);
+            // _anchor should be set to Anchor.Left for Anchor.Top
+            var anchorField = typeof(MudXOutline).GetField("_anchor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            anchorField.Should().NotBeNull();
+            anchorField.GetValue(outline).Should().Be(Anchor.Left);
+            // _scrollContainerSelector should be "html" if ScrollContainerSelector is null or empty
+            var scrollSelectorField = typeof(MudXOutline).GetField("_scrollContainerSelector", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            scrollSelectorField.Should().NotBeNull();
+            scrollSelectorField.GetValue(outline).Should().Be("html");
+        }
+
+        [Test]
+        public async Task MudXOutline_PositionChanged_ShouldOpenOrCloseDrawerAndCallPositionIndex()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXOutline>(parameters => parameters
+                .Add(p => p.TOCBreakpoint, Breakpoint.Md)
+                .Add(p => p.ContentDrawerOpen, true));
+
+            var positionIndexMethod = typeof(MudXOutline).GetMethod("PositionIndex");
+            positionIndexMethod.Should().NotBeNull();
+            positionIndexMethod.CreateDelegate(typeof(Func<Task>), comp.Instance);
+
+            // Use a derived class to override PositionIndex for tracking
+            var testOutline = Context.RenderComponent<TestMudXOutline>(p => p.Add(p => p.ContentDrawerOpen, true));
+
+            // Act: Should close drawer for Breakpoint.Md (since Md <= TOCBreakpoint)
+            await testOutline.InvokeAsync(async () => await testOutline.Instance.PositionChanged(null, Breakpoint.Md));
+
+            // Assert: Drawer should be closed
+            testOutline.Instance._contentDrawerOpenState.Value.Should().BeFalse();
+            testOutline.Instance.PositionIndexCalled.Should().BeTrue();
+            testOutline.Instance.PositionIndexCalled = false;
+
+            // Act: Should open drawer for Breakpoint.Lg (since Lg > TOCBreakpoint)
+            await testOutline.InvokeAsync(async () => await testOutline.Instance.PositionChanged(null, Breakpoint.Lg));
+
+            // Assert: Drawer should be open and PositionIndex called
+            testOutline.Instance._contentDrawerOpenState.Value.Should().BeTrue();
+            testOutline.Instance.PositionIndexCalled.Should().BeTrue();
+        }
+
+        [TestCase(Breakpoint.Always, true, true)]
+        [TestCase(Breakpoint.None, false, false)]
+        [TestCase(Breakpoint.Xs, false, false)]
+        [TestCase(Breakpoint.Sm, false, false)]
+        [TestCase(Breakpoint.Md, false, false)]
+        [TestCase(Breakpoint.Lg, true, true)]
+        [TestCase(Breakpoint.Xl, true, true)]
+        [TestCase(Breakpoint.Xxl, true, true)]
+        [TestCase(Breakpoint.SmAndDown, false, false)]
+        [TestCase(Breakpoint.MdAndDown, false, false)]
+        [TestCase(Breakpoint.LgAndDown, true, true)]
+        [TestCase(Breakpoint.XlAndDown, true, true)]
+        [TestCase(Breakpoint.SmAndUp, true, true)]
+        [TestCase(Breakpoint.MdAndUp, false, false)]
+        [TestCase(Breakpoint.LgAndUp, false, false)]
+        [TestCase(Breakpoint.XlAndUp, false, false)]
+        [Test]
+        public async Task MudXOutline_PositionChanged_ShouldBehaveAsExpected(
+            Breakpoint breakpoint, bool expectedDrawerOpen, bool expectPositionIndex)
+        {
+            // Arrange
+            var testOutline = Context.RenderComponent<TestMudXOutline>(p =>
+                p.Add(x => x.TOCBreakpoint, Breakpoint.Md)
+                 .Add(x => x.ContentDrawerOpen, !expectedDrawerOpen)); // Start in opposite state
+
+            testOutline.Instance.PositionIndexCalled = false;
+
+            // Act
+            await testOutline.InvokeAsync(async () =>
+                await testOutline.Instance.PositionChanged(null, breakpoint));
+
+            // Assert
+            testOutline.Instance._contentDrawerOpenState.Value.Should().Be(expectedDrawerOpen);
+            testOutline.Instance.PositionIndexCalled.Should().Be(expectPositionIndex);
+        }
+
+        // Helper derived class to track PositionIndex calls
+        private class TestMudXOutline : MudXOutline
+        {
+            public bool PositionIndexCalled { get; set; }
+            public override async Task PositionIndex()
+            {
+                PositionIndexCalled = true;
+                await Task.CompletedTask;
+            }
+        }
     }
 }

@@ -1,7 +1,8 @@
-﻿using Bunit;
-using FluentAssertions;
+﻿using AwesomeAssertions;
+using Bunit;
 using MudX.Utilities;
 using NUnit.Framework;
+using Assert = NUnit.Framework.Assert;
 
 namespace MudX.UnitTests.Components
 {
@@ -32,6 +33,15 @@ namespace MudX.UnitTests.Components
 
             // Assert: Verify the initialize method was called
             moduleMock.VerifyInvoke("initialize");
+        }
+
+        [Test]
+        public void ProviderShouldFailIfJSFails()
+        {
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                var comp = Context.RenderComponent<MudXProvider>();
+            }, "Failed to initialize MudX");
         }
     }
 }

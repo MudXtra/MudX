@@ -16,7 +16,7 @@ namespace MudX.Utilities
         /// Converts the origin to a page position point of X and Y, MudPopover will translate that to a 1x1 box
         /// relative to that point.
         /// </summary>
-        /// <param name="rect">BoundingClientRect typicall gotten from ElementReference.MudGetBoundingClientRectAsync()</param>
+        /// <param name="rect">BoundingClientRect typically gotten from ElementReference.MudGetBoundingClientRectAsync()</param>
         /// <param name="origin">The Anchor Origin</param>
         /// <returns></returns>
         public static (double X, double Y) GetPagePositionFromOrigin(BoundingClientRect rect, Origin origin)

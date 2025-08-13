@@ -1,6 +1,6 @@
 ﻿using AngleSharp.Dom;
+using AwesomeAssertions;
 using Bunit;
-using FluentAssertions;
 using MudBlazor;
 using MudX.UnitTests.Viewer.TestComponents.SecurityCode;
 using MudX.Utilities;
@@ -169,7 +169,7 @@ namespace MudX.UnitTests.Components
             // starts paste at position 0
             await comp.InvokeAsync(async () => await comp.Instance.ClipboardPasteEvent("mudx-code-0-random-guid", pasteText));
             comp.WaitForAssertion(() => comp.Instance._codeState.Value.Should().Be(expectedValue));
-            comp.Instance.CodeItems[0].Value.Should().Be(expectedValue.Substring(0, 1));
+            comp.Instance.CodeItems[0].Value.Should().Be(expectedValue[..1]);
 
             // reset value and Items (ensure onchangehandler happens)
             await comp.InvokeAsync(async () => await comp.Instance._codeState.SetValueAsync(default));
@@ -179,7 +179,7 @@ namespace MudX.UnitTests.Components
             // start paste at position 1
             await comp.InvokeAsync(async () => await comp.Instance.ClipboardPasteEvent("mudx-code-1-random-guid", pasteText));
             comp.WaitForAssertion(() => comp.Instance._codeState.Value.Should().Be(expectedValue2));
-            comp.Instance.CodeItems[1].Value.Should().Be(expectedValue.Substring(0, 1));
+            comp.Instance.CodeItems[1].Value.Should().Be(expectedValue[..1]);
         }
 
         [Test]
