@@ -5,7 +5,7 @@ namespace MudX
     /// <summary>
     /// A static class for masking and unmasking IDs using an obfuscation technique for human friendly keyboard inputs.
     /// The returned IDs are not cryptographically secure, but are designed to be human-friendly and easy to type.
-    /// The resulting Mask is always the same length as the original ID.
+    /// The resulting Mask may be longer than the original ID, as ASCII letters are converted to 2-character sequences.
     /// </summary>
     public static class IdMasker
     {
