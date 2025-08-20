@@ -1,3 +1,25 @@
+/* MudX Splitter */
+.mudx-splitter-hr {
+    margin-block-start: 10px;
+    margin-block-end: 16px;
+    margin-inline-start: 20px;
+    margin-inline-end: 20px;
+    background: var(--mud-palette-divider);
+    flex-shrink: 0;
+    border: none;
+    height: 8px;
+    pointer-events: auto;
+    cursor: grab;
+}
+
+    .mudx-splitter-hr:active {
+        cursor: grabbing;
+    }
+
+    .mudx-splitter-hr:focus {
+        outline: none;
+    }
+
 /* MudX Security Code */
 .mudx-code-item .mud-input {
     height: 42px;
@@ -9,7 +31,7 @@
     width: 32px;
 }
 
-.mudx-code-container .d-flex .mud-input-control.mudx-code-item.dense, 
+.mudx-code-container .d-flex .mud-input-control.mudx-code-item.dense,
 .mudx-code-container .d-flex .mud-input-control.mudx-code-item.vertical {
     margin: 0px;
 }
@@ -137,23 +159,23 @@
     margin-left: 3.75rem;
 }
 
-        .mudx-style-bullet .mudx-toc-nav-navlink::before {
-            content: "";
-            position: absolute;
-            top: 0.55rem;
-            left: .4rem;
-            width: 10px;
-            height: 10px;
-            background-color: var(--mud-palette-primary-text);
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
+.mudx-style-bullet .mudx-toc-nav-navlink::before {
+    content: "";
+    position: absolute;
+    top: 0.55rem;
+    left: .4rem;
+    width: 10px;
+    height: 10px;
+    background-color: var(--mud-palette-primary-text);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
 
-        .mudx-style-bullet .mudx-toc-nav-navlink.active::before {
-            background-color: var(--mud-palette-primary);
-            transform: scale(1.4);
-            box-shadow: 0 0 6px var(--mud-palette-primary);
-        }
+.mudx-style-bullet .mudx-toc-nav-navlink.active::before {
+    background-color: var(--mud-palette-primary);
+    transform: scale(1.4);
+    box-shadow: 0 0 6px var(--mud-palette-primary);
+}
 
 /* =========================
    Scroll Style

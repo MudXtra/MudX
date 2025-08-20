@@ -1,0 +1,19 @@
+@namespace MudX
+
+<div @ref="@_dragElement"
+     @onpointerdown="@OnPointerDown" @onpointerdown:preventDefault
+     @onpointerup="@OnPointerUp" @onpointerup:preventDefault
+     @onpointercancel="@OnPointerCancel" @onpointercancel:preventDefault
+     @onlostpointercapture="@OnPointerCancel" @onlostpointercapture:preventDefault
+     @onpointermove="@OnPointerMove" @onpointermove:preventDefault>
+     <span class="@SeparatorClass">
+         @if (SeparatorTemplate != null)
+         {
+             @SeparatorTemplate     
+         }
+         else
+         {
+             <hr class="mudx-splitter-hr" />
+         }
+     </span>
+</div>                
