@@ -1,0 +1,46 @@
+@page "/docs/splitter"
+@using MudX.Docs.Splitter
+@using MudX.Docs.Examples
+
+<PageTitle>Splitter</PageTitle>
+
+<DocsPage Headline="Splitter">
+    <ChildContent>
+        <DocsPageHeader>
+            <Description>
+                A basic splitter component to create resizable layouts. A fully customizable splitter with support for both horizontal and vertical 
+                panels, as well as the ability to create your own <CodeInline Tag="false">SplitterTemplate</CodeInline>
+            </Description>
+        </DocsPageHeader>
+
+        <DocsPageSection Title="Basic Usage">
+            <Description>
+                The default settings of <CodeInline>MudXSplitter</CodeInline> include a numeric pattern of 4 digits. You
+                can change the pattern by using the <CodeInline Tag="false">Pattern</CodeInline> parameter, and you can change the Placeholders
+                used to display the pattern by using the individual Placeholder parameters [e.g.,
+                <CodeInline Tag="false">PlaceholderNumeric(#)</CodeInline>, <CodeInline Tag="false">PlaceholderAlpha(A)</CodeInline>,
+                <CodeInline Tag="false">PlaceholderAlphaNumeric(?)</CodeInline>, <CodeInline Tag="false">PlaceholderSpecial(@@)</CodeInline>,
+                and <CodeInline Tag="false">PlaceholderAny(*)</CodeInline>]. Patterns consist of Placeholder characters and non-Placeholder
+                characters. When a character is not a placeholder, it is displayed as it appears in the pattern read-only. So in the above
+                scneario, <CodeInline Tag="false">##/##/####</CodeInline> would style to a typical American Date and allow two digits
+                for the month, two digits for the day, and four digits for the year, filling in the non-placeholder characters as you type.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SplitterBasicExampleCode.Files">
+                    <SplitterBasicExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+    </ChildContent>
+    <ApiContent>
+        <ApiSection ApiJson="MudXSplitter.api.json" />
+    </ApiContent>
+
+</DocsPage>
+
+@code {
+#pragma warning disable CS0414
+    private static string __title__ = "Splitter";
+#pragma warning restore CS0414
+}

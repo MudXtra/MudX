@@ -3,13 +3,14 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using MudBlazor.Utilities;
 using MudX.Extensions;
+using MudX.Utilities;
 
 namespace MudX
 {
     /// <summary>
     /// A splitter component for allowing users to resize two adjacent panels. Can be oriented horizontally or vertically and nested within each other.
     /// </summary>
-    public partial class MudXSplitter : ComponentBase
+    public partial class MudXSplitter : ComponentBase, IAsyncDisposable
     {
         internal record struct DragPoints(double XDown, double YDown, int StartSize);
         internal DragPoints? _points;
@@ -22,22 +23,82 @@ namespace MudX
         internal record struct ViewPortSize(double Width, double Height);
         internal ViewPortSize? _viewportSize;
 
+        private IJSObjectReference? _module;
+        private bool _disposing;
+
         /// <summary>
-        /// The primary class used on the span surrounding the separator and/or separator template.
+        /// The primary classes used on the outermost container div.
         /// </summary>
-        protected string SeparatorClass =>
-            new CssBuilder("mudx-splitter-slider")
+        protected string SeparatorContainerClassname =>
+            new CssBuilder("mudx-splitter-container")
             .AddClass($"mudx-splitter-{Direction.ToDescription()}")
+            .AddClass(Class)
+            .Build();
+
+        /// <summary>
+        /// The primary class used on the div surrounding the separator and/or separator template.
+        /// </summary>
+        protected string SeparatorClassname =>
+            new CssBuilder("mudx-splitter-separator")
+            .AddClass($"mudx-splitter-{Direction.ToDescription()}")
+            .Build();
+
+        /// <summary>
+        /// The style used for the splitter container.
+        /// </summary>
+        protected string SeparatorContainerStylename =>
+            new StyleBuilder()
+            .AddStyle("height", $"{Height}")
+            .AddStyle("width", $"{Width}")
+            .AddStyle(Style)
+            .Build();
+
+        /// <summary>
+        /// Gets the style name for the start splitter, based on the current size and direction.
+        /// </summary>
+        protected string StartSplitterStylename =>
+            new StyleBuilder()
+            .AddStyle("width", $"{_startSize}%", Direction is SplitterDirection.Horizontal)
+            .AddStyle("height", $"{_startSize}%", Direction is SplitterDirection.Vertical)
             .Build();
 
         [Inject]
         private IJSRuntime _jSRuntime { get; set; } = default!;
 
         /// <summary>
-        /// The orientation for the splitter.
+        /// Sets the CSS class for the outermost container div.
         /// </summary>
         [Parameter]
+        public string? Class { get; set; }
+
+        /// <summary>
+        /// Sets the CSS style for the outermost container div.
+        /// </summary>
+        [Parameter]
+        public string? Style { get; set; }
+
+        /// <summary>
+        /// The orientation for the splitter.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to <see cref="SplitterDirection.Horizontal"/>.
+        /// </remarks>
+        [Parameter]
         public SplitterDirection Direction { get; set; } = SplitterDirection.Horizontal;
+
+        /// <summary>
+        /// Sets the height value for the splitter container.
+        /// </summary>
+        /// <remarks>Defaults to 100%</remarks>
+        [Parameter]
+        public string Height { get; set; } = "100%";
+
+        /// <summary>
+        /// Sets the width value for the splitter container. Can be any valid CSS unit.
+        /// </summary>
+        /// <remarks>Defaults to 100%</remarks>
+        [Parameter]
+        public string Width { get; set; } = "100%";
 
         /// <summary>
         /// The template for the separator, always in horizontal orientation. When used in vertical mode, the separator is rotated 90 degrees.
@@ -46,9 +107,33 @@ namespace MudX
         public RenderFragment? SeparatorTemplate { get; set; }
 
         /// <summary>
+        /// Sets the content in the left panel region when in horizontal mode, or the top panel region when in vertical mode.
+        /// </summary>
+        [Parameter, EditorRequired]
+        public RenderFragment StartSplitter { get; set; }
+
+        /// <summary>
+        /// Sets the content in the right panel region when in horizontal mode, or the bottom panel region when in vertical mode.
+        /// </summary>
+        [Parameter, EditorRequired]
+        public RenderFragment EndSplitter { get; set; }
+
+        /// <summary>
         /// Gets a value indicating whether dragging is currently allowed.
         /// </summary>
         private bool CanDrag => _dragging && _points is not null && _viewportSize is not null;
+
+        /// <summary>
+        /// override OnAfterRenderAsync to import the JS module for drag handling.
+        /// </summary>
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            await base.OnAfterRenderAsync(firstRender);
+            if (firstRender)
+            {
+                _module = await _jSRuntime.InvokeAsync<IJSObjectReference>("import", AssemblyInfo.ModulePath("mudxSplitter.js"));
+            }
+        }
 
         private async Task OnPointerDown(PointerEventArgs args)
         {
@@ -109,9 +194,13 @@ namespace MudX
             // Reset the swipe deltas when starting or stopping dragging
             _points = null;
             _viewportSize = null;
+
+            if (_module == null)
+                return;
+
             if (isDragging)
             {
-                var sizeArray = await _jSRuntime.InvokeAsync<double[]>("window.xtraDrag.startDrag", _dragElement, args.PointerId);
+                var sizeArray = await _module.InvokeAsync<double[]>("startDrag", _dragElement, args.PointerId);
                 if (sizeArray is not { Length: 2 })
                 {
                     throw new InvalidOperationException("JSInterop did not return the expected MudSheet size array.");
@@ -120,7 +209,7 @@ namespace MudX
             }
             else
             {
-                await _jSRuntime.InvokeVoidAsync("window.xtraDrag.cancelDrag", _dragElement, args.PointerId);
+                await _module.InvokeVoidAsync("cancelDrag", _dragElement, args.PointerId);
             }
         }
 
@@ -135,15 +224,43 @@ namespace MudX
         private void PerformPointerDrag(double startX, double startY, double currentX, double currentY, int baseSize)
         {
             // Get pixel movement in the appropriate direction
-            var delta = currentY - startY;
+            var delta = Direction switch
+            {
+                SplitterDirection.Horizontal => currentX - startX,
+                SplitterDirection.Vertical => currentY - startY,
+                _ => throw new NotImplementedException()
+            };
 
-            var viewportPixels = _viewportSize!.Value.Height;
+            var viewportPixels = Direction switch
+            {
+                SplitterDirection.Horizontal => _viewportSize!.Value.Width,
+                SplitterDirection.Vertical => _viewportSize!.Value.Height,
+                _ => throw new NotImplementedException()
+            };
 
             // Convert pixel movement into percentage of viewport
             var newSize = baseSize + (delta / viewportPixels * 100);
 
             _startSize = Math.Clamp((int)newSize, 0, 100);
             StateHasChanged();
+        }
+
+        /// <summary>
+        /// overridew DisposeAsync to clean up the JS module reference
+        /// </summary>
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposing)
+                return;
+
+            _disposing = true;
+
+            if (_module is not null)
+            {
+                await _module.DisposeAsync();
+                _module = null;
+            }
+            GC.SuppressFinalize(this);
         }
     }
 }
