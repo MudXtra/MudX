@@ -1,19 +1,20 @@
 @namespace MudX
 
-<div @ref="@_dragElement" class="@SeparatorContainerClassname"
+<div @ref="@_dragElement" 
+     class="@SeparatorContainerClassname"
      style="@SeparatorContainerStylename"
      @onpointerdown="@OnPointerDown" @onpointerdown:preventDefault
      @onpointerup="@OnPointerUp" @onpointerup:preventDefault
      @onpointercancel="@OnPointerCancel" @onpointercancel:preventDefault
      @onlostpointercapture="@OnPointerCancel" @onlostpointercapture:preventDefault
      @onpointermove="@OnPointerMove" @onpointermove:preventDefault>
-    <div class="mudx-splitter-start" style="@StartSplitterStylename">
+    <div class="@StartSplitterClassname">
         @if (StartSplitter != null)
         {
             @StartSplitter
         }
     </div>
-    <div class="@SeparatorClassname">
+    <div @ref="@_splitElement" class="@SeparatorClassname">
         @if (SeparatorTemplate != null)
         {
             @SeparatorTemplate
@@ -23,7 +24,7 @@
             <div class="mudx-splitter-hr"></div>
         }
     </div>
-    <div class="mudx-splitter-end">
+    <div class="@EndSplitterClassname">
         @if (EndSplitter != null)
         {
             @EndSplitter

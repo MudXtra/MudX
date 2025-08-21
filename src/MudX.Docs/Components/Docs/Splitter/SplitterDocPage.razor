@@ -15,19 +15,27 @@
 
         <DocsPageSection Title="Basic Usage">
             <Description>
-                The default settings of <CodeInline>MudXSplitter</CodeInline> include a numeric pattern of 4 digits. You
-                can change the pattern by using the <CodeInline Tag="false">Pattern</CodeInline> parameter, and you can change the Placeholders
-                used to display the pattern by using the individual Placeholder parameters [e.g.,
-                <CodeInline Tag="false">PlaceholderNumeric(#)</CodeInline>, <CodeInline Tag="false">PlaceholderAlpha(A)</CodeInline>,
-                <CodeInline Tag="false">PlaceholderAlphaNumeric(?)</CodeInline>, <CodeInline Tag="false">PlaceholderSpecial(@@)</CodeInline>,
-                and <CodeInline Tag="false">PlaceholderAny(*)</CodeInline>]. Patterns consist of Placeholder characters and non-Placeholder
-                characters. When a character is not a placeholder, it is displayed as it appears in the pattern read-only. So in the above
-                scneario, <CodeInline Tag="false">##/##/####</CodeInline> would style to a typical American Date and allow two digits
-                for the month, two digits for the day, and four digits for the year, filling in the non-placeholder characters as you type.
+                The default setting of <CodeInline>MudXSplitter</CodeInline> is for the <CodeInline Tag="false">Direction</CodeInline> 
+                to be <CodeInline Tag="false">SplitterDirection.Horizontal</CodeInline>, and it uses an 8px wide splitter bar with 20px of margin 
+                on each side between the panes. The <CodeInline Tag=false>StartSplitter</CodeInline> pane is the left side and the 
+                <CodeInline Tag=false>EndSplitter</CodeInline> pane is the right side. 
             </Description>
             <ChildContent>
                 <SectionContent Codes="@SplitterBasicExampleCode.Files">
                     <SplitterBasicExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Vertical">
+            <Description>
+                It is as simple as setting <CodeInline Tag="false">Direction</CodeInline> to <CodeInline Tag="false">SplitterDirection.Vertical</CodeInline> 
+                to use it as a vertical splitter. The <CodeInline Tag=false>StartSplitter</CodeInline> pane is the top side and the 
+                <CodeInline Tag=false>EndSplitter</CodeInline> pane is the bottom side. 
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SplitterVerticalExampleCode.Files">
+                    <SplitterVerticalExample />
                 </SectionContent>
             </ChildContent>
         </DocsPageSection>

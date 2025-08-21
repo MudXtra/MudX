@@ -18,6 +18,7 @@ namespace MudX
         internal readonly TimeSpan PointerMoveThrottle = TimeSpan.FromMilliseconds(16);
         private bool _dragging = false;
         private ElementReference _dragElement = default!;
+        private ElementReference _splitElement = default!;
         private int _startSize = 50; // left or top size
 
         internal record struct ViewPortSize(double Width, double Height);
@@ -44,12 +45,30 @@ namespace MudX
             .Build();
 
         /// <summary>
+        /// Sets the CSS class for the start splitter div.
+        /// </summary>
+        protected string StartSplitterClassname =>
+            new CssBuilder("mudx-splitter-start")
+            .AddClass($"mudx-splitter-{Direction.ToDescription()}")
+            .Build();
+
+        /// <summary>
+        /// Sets the CSS class for the end splitter div.
+        /// </summary>
+        protected string EndSplitterClassname =>
+            new CssBuilder("mudx-splitter-end")
+            .AddClass($"mudx-splitter-{Direction.ToDescription()}")
+            .Build();
+
+        /// <summary>
         /// The style used for the splitter container.
         /// </summary>
         protected string SeparatorContainerStylename =>
             new StyleBuilder()
             .AddStyle("height", $"{Height}")
             .AddStyle("width", $"{Width}")
+            .AddStyle("grid-template-columns", $"{_startSize}% auto 1fr", Direction is SplitterDirection.Horizontal)
+            .AddStyle("grid-template-rows", $"{_startSize}% auto 1fr", Direction is SplitterDirection.Vertical)
             .AddStyle(Style)
             .Build();
 
@@ -63,7 +82,7 @@ namespace MudX
             .Build();
 
         [Inject]
-        private IJSRuntime _jSRuntime { get; set; } = default!;
+        private IJSRuntime JSRuntime { get; set; } = default!;
 
         /// <summary>
         /// Sets the CSS class for the outermost container div.
@@ -131,7 +150,7 @@ namespace MudX
             await base.OnAfterRenderAsync(firstRender);
             if (firstRender)
             {
-                _module = await _jSRuntime.InvokeAsync<IJSObjectReference>("import", AssemblyInfo.ModulePath("mudxSplitter.js"));
+                _module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", AssemblyInfo.ModulePath("mudxSplitter.js"));
             }
         }
 
