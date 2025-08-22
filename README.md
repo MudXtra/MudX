@@ -19,6 +19,7 @@
 - [MudXCodeBlock](#mudxcodeblock)
 - [MudXCopyToClipboard](#mudxcopytoclipboard)
 - [MudXBreadcrumbs](#mudxbreadcrumbs)
+- [MudXSplitter](#mudxsplitter)
 - [Blazor Lottie Player](#blazor-lottie-player)]
 
 ---
@@ -70,10 +71,20 @@ A self-navigating breadcrumb navigation component that supports custom separator
 
 ---
 
+### MudXSplitter
+![status](https://img.shields.io/badge/status-extended-blue)
+
+A component designed to split panels with a draggable element. No inputs were harmed in the creation 
+of this component.
+![MudXBreadcrumbs Image](https://github.com/MudXtra/Mudx/raw/dev/images/MudXSplitter.png)  
+[Back to top](#table-of-contents)
+
+---
+
 ### Blazor Lottie Player
 ![status](https://img.shields.io/badge/status-new-red)
 
 A Blazor component for rendering Lottie animations, downloadable separately from MudX but designed and
 maintained by the MudX team.
-![Blazor Lottie Player Image](https://github.com/MudXtra/Mudx/raw/dev/images/BlazorLottiePlayer.gif)  
+![Blazor Lottie Player Image](https://github.com/MudXtra/Mudx/raw/dev/images/BlazorLottiePlayer.png)  
 [Back to top](#table-of-contents)

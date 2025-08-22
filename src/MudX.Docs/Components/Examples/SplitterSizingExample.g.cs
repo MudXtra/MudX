@@ -1,0 +1,68 @@
+using System.Collections.Generic;
+using MudX;
+
+namespace MudX.Docs.Examples
+{
+    public static class SplitterSizingExampleCode
+    {
+        public static readonly IEnumerable<CodeFile> Files = new[]
+        {
+            new CodeFile
+            (
+                Title: "SplitterSizingExample.razor",
+                Code: @"@namespace MudX.Docs.Splitter
+
+<div class=""mx-4"">
+    <MudSlider Min=""0"" Max=""100"" @bind-Value=""_startSize"" ValueLabel>Current Size</MudSlider>
+</div>
+<MudGrid>
+    <MudItem xs=""12"" md=""6"" lg=""3"">
+        <MudNumericField @bind-Value=""_minStartSize"" Label=""Start Min Size"" Variant=""Variant.Outlined"" Min=""0"" Max=""100"" />
+        <MudNumericField @bind-Value=""_minEndSize"" Label=""End Min Size"" Variant=""Variant.Outlined"" Min=""0"" Max=""100"" />
+        <MudText>Current Size: @_startSize</MudText>
+    </MudItem>
+    <MudItem xs=""12"" md=""6"" lg=""9"" Class=""d-flex mx-auto"">
+        <MudPaper Class=""pa-4"" Elevation=""3"" Outlined>
+            <MudXSplitter Height=""400px"" @bind-StartSize=""_startSize"" StartMinimumSize=""@_minStartSize"" EndMinimumSize=""@_minEndSize"">
+                <StartSplitter>
+                    <MudStack Spacing=""1"">
+                        <MudButton Variant=""Variant.Filled"" Color=""Color.Primary"" StartIcon=""@Icons.Material.Filled.Add"">
+                            New Chat
+                        </MudButton>
+                        <MudDivider />
+                        <MudList T=""string"" Dense=""true"">
+                            <MudListSubheader>Chats</MudListSubheader>
+                            <MudListItem>How to cook pasta?</MudListItem>
+                            <MudListItem>Blazor data grid filtering</MudListItem>
+                            <MudListItem>Travel ideas 2025</MudListItem>
+                        </MudList>
+                    </MudStack>
+                </StartSplitter>
+
+                <EndSplitter>
+                    <MudStack Class=""pa-2 mud-height-full"" Spacing=""2"">
+                        <MudText Typo=""Typo.h6"">Blazor data grid filtering</MudText>
+                        <MudPaper Class=""pa-2 mud-height-full"" Outlined>
+                            <MudText><b>You:</b> How do I filter server-side in MudDataGrid?</MudText>
+                            <MudText><b>ChatGPT:</b> You can use the `ServerData` callback and build your filter expression dynamically...</MudText>
+                            <MudText><b>You:</b> Got it, thanks!</MudText>
+                        </MudPaper>
+                        <MudTextField T=""string"" Placeholder=""Send a message..."" FullWidth=""true"" Class=""rounded"" Variant=""Variant.Outlined"" />
+                    </MudStack>
+                </EndSplitter>
+            </MudXSplitter>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    private int _startSize = 33;
+    private int _minStartSize = 20;
+    private int _minEndSize = 20;
+}",
+                Language: CodeLanguage.Razor
+            )
+        };
+    }
+}

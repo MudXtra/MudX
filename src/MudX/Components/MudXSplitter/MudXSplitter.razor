@@ -1,0 +1,33 @@
+@inherits MudComponentBase
+@namespace MudX
+
+<div class="@SeparatorContainerClassname"
+     style="@SeparatorContainerStylename">
+    <div class="@StartSplitterClassname" @attributes="@UserAttributes">
+        @if (StartSplitter != null)
+        {
+            @StartSplitter
+        }
+    </div>
+    <div @ref="@_splitElement" class="@SeparatorClassname"
+         @onpointerdown="@OnPointerDown" @onpointerdown:preventDefault
+         @onpointerup="@OnPointerUp" @onpointerup:preventDefault
+         @onpointercancel="@OnPointerCancel" @onpointercancel:preventDefault
+         @onlostpointercapture="@OnPointerCancel" @onlostpointercapture:preventDefault
+         @onpointermove="@OnPointerMove" @onpointermove:preventDefault>
+        @if (SeparatorTemplate != null)
+        {
+            @SeparatorTemplate
+        }
+        else
+        {
+            <div class="mudx-splitter-hr"></div>
+        }
+    </div>
+    <div class="@EndSplitterClassname">
+        @if (EndSplitter != null)
+        {
+            @EndSplitter
+        }
+    </div>
+</div>                

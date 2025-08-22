@@ -1,0 +1,95 @@
+@page "/docs/splitter"
+@using MudX.Docs.Splitter
+@using MudX.Docs.Examples
+
+<PageTitle>Splitter</PageTitle>
+
+<DocsPage Headline="Splitter">
+    <ChildContent>
+        <DocsPageHeader>
+            <Description>
+                A flexible splitter component for building resizable layouts. It supports both horizontal and vertical panels, and you can fully customize 
+                its appearance and behavior by providing your own <CodeInline Tag="false">SplitterTemplate</CodeInline>. It does not use any sort of input
+                elements, instead it leverages pointer events for smooth dragging across devices.
+            </Description>
+        </DocsPageHeader>
+
+        <DocsPageSection Title="Basic Usage">
+            <Description>
+                By default, <CodeInline>MudXSplitter</CodeInline> uses <CodeInline Tag="false">SplitterDirection.Horizontal</CodeInline>. It renders an 8px-wide splitter 
+                bar with 10px of margin on all four sides. The <CodeInline Tag="false">StartSplitter</CodeInline> pane appears on the left, and the 
+                <CodeInline Tag="false">EndSplitter</CodeInline> pane appears on the right.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SplitterBasicExampleCode.Files">
+                    <SplitterBasicExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Vertical">
+            <Description>
+                To create a vertical splitter, set <CodeInline Tag="false">Direction</CodeInline> to <CodeInline Tag="false">SplitterDirection.Vertical</CodeInline>. 
+                In this case, the <CodeInline Tag="false">StartSplitter</CodeInline> pane appears at the top, and the <CodeInline Tag="false">EndSplitter</CodeInline> 
+                pane appears at the bottom.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SplitterVerticalExampleCode.Files">
+                    <SplitterVerticalExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Customization">
+            <Description>
+                You can customize <CodeInline>MudXSplitter</CodeInline> in two ways:<br />
+                Apply CSS for small style adjustments (e.g., splitter size or color).<br />
+                Provide a custom <CodeInline Tag="false">SplitterTemplate</CodeInline> to fully control the splitter’s appearance and behavior.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SplitterCustomizeExampleCode.Files">
+                    <SplitterCustomizeExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Sizing">
+            <Description>
+                By default the Splitter component runs 100% width and height of its container. You can set a fixed height or width using the 
+                <CodeInline Tag=false>Height</CodeInline> or <CodeInline Tag=false>Width</CodeInline> parameters. <br />
+                Each pane of the splitter can be sized according to your layout needs. You can: <br />
+                Set a minimum size for the <CodeInline Tag=false>StartSplitter</CodeInline> and <CodeInline Tag=false>EndSplitter</CodeInline> panes.<br />
+                Bind the current size of the <CodeInline Tag=false>StartSplitter</CodeInline> pane to a variable.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SplitterSizingExampleCode.Files">
+                    <SplitterSizingExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Nesting">
+            <Description>
+                Splitters can be nested to create complex layouts. For example, you can use a horizontal splitter for a sidebar and content area, 
+                then place a vertical splitter inside the content area to divide an editor and a console. Nesting allows you to build multi-pane 
+                interfaces similar to IDEs or dashboards.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SplitterNestingExampleCode.Files">
+                    <SplitterNestingExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+    </ChildContent>
+    <ApiContent>
+        <ApiSection ApiJson="MudXSplitter.api.json" />
+    </ApiContent>
+
+</DocsPage>
+
+@code {
+#pragma warning disable CS0414
+    private static string __title__ = "Splitter";
+#pragma warning restore CS0414
+}

@@ -1,0 +1,96 @@
+using System.Collections.Generic;
+using MudX;
+
+namespace MudX.Docs.Examples
+{
+    public static class SplitterCustomizeExampleCode
+    {
+        public static readonly IEnumerable<CodeFile> Files = new[]
+        {
+            new CodeFile
+            (
+                Title: "SplitterCustomizeExample.razor",
+                Code: @"@namespace MudX.Docs.Splitter
+
+<style>
+    .custom-splitter .mudx-splitter-separator:hover {
+        outline: dashed 1px orange;
+    }
+</style>
+
+@if (_overrideCss)
+{
+    <style>
+        .custom-splitter .mudx-splitter-separator .mudx-splitter-hr {
+            background: red;
+            width: 4px;
+        }
+    </style>
+}
+<MudGrid>
+    <MudItem xs=""12"" md=""6"" lg=""3"">
+        <MudSwitch @bind-Value=""_overrideCss"" Label=""Override CSS"" />
+        <MudSwitch @bind-Value=""_overrideTemplate"" Label=""Override Template"" />       
+    </MudItem>
+    <MudItem xs=""12"" md=""6"" lg=""9"" Class=""d-flex mx-auto"">
+        <MudPaper Class=""pa-4"" Elevation=""3"" Outlined Width=""100%"" Height=""100%"">
+            <MudXSplitter StartSize=""25"" Class=""custom-splitter"" Height=""240px"" SeparatorTemplate=""@(_overrideTemplate? SeparatorTemplate : null)"">
+                <StartSplitter>
+                    <MudList T=""string"" Dense=""true"">
+                        <MudListSubheader>People</MudListSubheader>
+                        <MudListItem>Anna</MudListItem>
+                        <MudListItem>Brian</MudListItem>
+                        <MudListItem>Charlie</MudListItem>
+                        <MudListItem>Denise</MudListItem>
+                    </MudList>
+                </StartSplitter>
+                <EndSplitter>
+                    <MudStack StretchItems=""StretchItems.Middle"" Spacing=""0"">
+                        <div>
+                            <MudChat ChatPosition=""ChatBubblePosition.Start"" Dense>
+                                <MudChatHeader Name=""Anna"" Time=""12:46"" />
+                                <MudAvatar Size=""Size.Small"">An</MudAvatar>
+                                <MudChatBubble>
+                                    Hey There!
+                                </MudChatBubble>
+                            </MudChat>
+
+                            <MudChat ChatPosition=""ChatBubblePosition.End"" Dense>
+                                <MudChatHeader Name=""Kelly"" />
+                                <MudAvatar Size=""Size.Small"">
+                                    Ke
+                                </MudAvatar>
+                                <MudChatBubble>
+                                    Hi, how's it going?
+                                </MudChatBubble>
+                            </MudChat>
+
+                            <MudChat ChatPosition=""ChatBubblePosition.Start"" Dense>
+                                <MudChatHeader Name=""Anna"" Time=""12:47"" />
+                                <MudAvatar Size=""Size.Small"">An</MudAvatar>
+                                <MudChatBubble>
+                                    Pretty good thanks!
+                                </MudChatBubble>
+                            </MudChat>
+                        </div>
+                        <div class=""mud-height-full""></div>
+                        <MudTextField @bind-Value=""_text"" Placeholder=""Type a message..."" FullWidth=""true"" />
+                    </MudStack>
+                </EndSplitter>
+            </MudXSplitter>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private bool _overrideCss = true;
+    private bool _overrideTemplate = false;
+    private string? _text;
+
+    private RenderFragment SeparatorTemplate => @<div style=""background: indigo; width: 4px; height: 100%; margin: 5px""></div>;
+}",
+                Language: CodeLanguage.Razor
+            )
+        };
+    }
+}
