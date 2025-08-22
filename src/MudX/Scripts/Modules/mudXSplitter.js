@@ -4,7 +4,7 @@ export async function startDrag(element, pointerId) {
         element.setPointerCapture(pointerId);
         // ensure the element can receive keyboard down event
         element.focus();
-        const rect = element.getBoundingClientRect();
+        const rect = element.parentElement.getBoundingClientRect();
         return [rect.width, rect.height];
     }
     return [window.innerWidth, window.innerHeight];

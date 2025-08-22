@@ -1,5 +1,4 @@
-﻿@namespace MudX.Docs.Splitter
-
+﻿
 <MudPaper Class="pa-4" Elevation="3" Outlined>
     <MudXSplitter Direction="SplitterDirection.Vertical" Height="250px">
         <StartSplitter>
@@ -12,6 +11,7 @@
 </MudPaper>
 
 @code {
+    public static string __description__ = "Vertical Splitter";
     private string? _text;
 
     private string resultText => string.IsNullOrWhiteSpace(_text)

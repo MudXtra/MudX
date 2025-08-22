@@ -1,0 +1,78 @@
+using System.Collections.Generic;
+using MudX;
+
+namespace MudX.Docs.Examples
+{
+    public static class SplitterNestingExampleCode
+    {
+        public static readonly IEnumerable<CodeFile> Files = new[]
+        {
+            new CodeFile
+            (
+                Title: "SplitterNestingExample.razor",
+                Code: @"@namespace MudX.Docs.Splitter
+
+<MudPaper Class=""pa-4"" Elevation=""3"" Outlined>
+    <!-- Outer Splitter -->
+    <MudXSplitter Height=""240px"" StartSize=""25"">
+        <!-- Left Panel -->
+        <StartSplitter>
+            <MudList T=""string"" Dense=""true"">
+                <MudListSubheader>Files</MudListSubheader>
+                <MudListItem>Main.razor</MudListItem>
+                <MudListItem>Index.razor</MudListItem>
+                <MudListItem>ThemeService.cs</MudListItem>
+            </MudList>
+        </StartSplitter>
+        <!-- Right Panel with Nested Splitter -->
+        <EndSplitter>
+            <MudXSplitter Direction=""SplitterDirection.Vertical"">
+                <!-- Top (Code Editor) -->
+                <StartSplitter>
+                    <MudPaper Class=""pa-2 mud-height-full mud-width-full"" Outlined>
+                        <MudText Typo=""Typo.h6"">Editor</MudText>
+                        <MudXCodeBlock Codes=""@_codes"" />
+                    </MudPaper>
+                </StartSplitter>
+                <!-- Bottom (Console) -->
+                <EndSplitter>
+                    <MudPaper Class=""pa-2 mud-height-full mud-width-full"" Outlined>
+                        <MudText Typo=""Typo.h6"">Console Output</MudText>
+                        <MudText>[INFO] App started successfully</MudText>
+                        <MudText>[WARN] Unused variable detected</MudText>
+                    </MudPaper>
+                </EndSplitter>
+            </MudXSplitter>
+        </EndSplitter>
+    </MudXSplitter>
+</MudPaper>
+
+@code {
+    private List<CodeFile> _codes;
+
+    public SplitterNestingExample()
+    {
+        _codes = new List<CodeFile> { GenerateCodeFile(1) };
+    }
+
+    private CodeFile GenerateCodeFile(int counter) 
+    {
+        return new CodeFile(
+            Title: $""Main{counter}.cs"",
+            Language: CodeLanguage.CSharp,
+            Code: 
+            ""public class Program\r\n"" +
+            ""{\t\\\\ Counter: "" + counter + ""\r\n"" +            
+            ""    static void Main(string[] args)\r\n"" +
+            ""    {\r\n"" +
+            ""        Console.WriteLine(\""Hello World!\"");\r\n"" +
+            ""    }\r\n"" +
+            ""}""
+        );
+    }
+}",
+                Language: CodeLanguage.Razor
+            )
+        };
+    }
+}

@@ -6,8 +6,8 @@ namespace MudX
     /// The orientation in which the splitter is oriented, either horizontal or vertical.
     /// </summary>
     /// <remarks>
-    /// Horizontal means the splitter has a <see cref="LeftSplitter"/> and <see cref="RightSplitter"/> panel, 
-    /// while Vertical means the splitter has a <see cref="TopSplitter"/> and <see cref="BottomSplitter"/> panel.
+    /// Horizontal means the <see cref="MudXSplitter.StartSplitter"/> splitter is the left side and <see cref="MudXSplitter.EndSplitter"/>  is the right side panel, 
+    /// while Vertical means the <see cref="MudXSplitter.StartSplitter"/> splitter is the top side and <see cref="MudXSplitter.EndSplitter"/> is the bottom panel.
     /// </remarks>
     public enum SplitterDirection
     {

@@ -1,0 +1,54 @@
+
+<div class="mx-4">
+    <MudSlider Min="0" Max="100" @bind-Value="StartSize" ValueLabel>Current Size</MudSlider>
+</div>
+<MudGrid>
+    <MudItem xs="12" md="6" lg="3">
+        <MudNumericField @bind-Value="MinStartSize" Label="Start Min Size" Variant="Variant.Outlined" Min="0" Max="100" />
+        <MudNumericField @bind-Value="MinEndSize" Label="End Min Size" Variant="Variant.Outlined" Min="0" Max="100" />
+        <MudText>Current Size: @StartSize</MudText>
+    </MudItem>
+    <MudItem xs="12" md="6" lg="9" Class="d-flex mx-auto">
+        <MudPaper Class="pa-4" Elevation="3" Outlined>
+            <MudXSplitter Direction="@SplitterDirection" Height="400px" @bind-StartSize="StartSize" StartMinimumSize="@MinStartSize" EndMinimumSize="@MinEndSize">
+                <StartSplitter>
+                    <MudStack Spacing="1">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add">
+                            New Chat
+                        </MudButton>
+                        <MudDivider />
+                        <MudList T="string" Dense="true">
+                            <MudListSubheader>Chats</MudListSubheader>
+                            <MudListItem>How to cook pasta?</MudListItem>
+                            <MudListItem>Blazor data grid filtering</MudListItem>
+                            <MudListItem>Travel ideas 2025</MudListItem>
+                        </MudList>
+                    </MudStack>
+                </StartSplitter>
+
+                <EndSplitter>
+                    <MudStack Class="pa-2 mud-height-full" Spacing="2">
+                        <MudText Typo="Typo.h6">Blazor data grid filtering</MudText>
+                        <MudPaper Class="pa-2 mud-height-full" Outlined>
+                            <MudText><b>You:</b> How do I filter server-side in MudDataGrid?</MudText>
+                            <MudText><b>ChatGPT:</b> You can use the `ServerData` callback and build your filter expression dynamically...</MudText>
+                            <MudText><b>You:</b> Got it, thanks!</MudText>
+                        </MudPaper>
+                        <MudTextField T="string" Placeholder="Send a message..." FullWidth="true" Class="rounded" Variant="Variant.Outlined" />
+                    </MudStack>
+                </EndSplitter>
+            </MudXSplitter>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    public static string __description__ = "Sizing Splitters";
+    public int StartSize = 33;
+    public int MinStartSize = 20;
+    public int MinEndSize = 20;
+
+    [Parameter]
+    public SplitterDirection SplitterDirection { get; set; }
+}

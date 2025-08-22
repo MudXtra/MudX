@@ -12,7 +12,7 @@ namespace MudX.Docs.Examples
                 Title: "SplitterVerticalExample.razor",
                 Code: @"@namespace MudX.Docs.Splitter
 
-<MudPaper Class=""pa-4"" Elevation=""0"">
+<MudPaper Class=""pa-4"" Elevation=""3"" Outlined>
     <MudXSplitter Direction=""SplitterDirection.Vertical"" Height=""250px"">
         <StartSplitter>
             <MudTextField @bind-Value=""_text"" Label=""Enter some text"" Variant=""Variant.Outlined"" Immediate FullWidth=""true"" AutoGrow />

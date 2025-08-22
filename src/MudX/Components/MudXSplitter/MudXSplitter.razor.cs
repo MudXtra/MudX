@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using MudBlazor;
+using MudBlazor.State;
 using MudBlazor.Utilities;
 using MudX.Extensions;
 using MudX.Utilities;
@@ -10,22 +12,33 @@ namespace MudX
     /// <summary>
     /// A splitter component for allowing users to resize two adjacent panels. Can be oriented horizontally or vertically and nested within each other.
     /// </summary>
-    public partial class MudXSplitter : ComponentBase, IAsyncDisposable
+    public partial class MudXSplitter : MudComponentBase, IAsyncDisposable
     {
         internal record struct DragPoints(double XDown, double YDown, int StartSize);
         internal DragPoints? _points;
         internal DateTime _lastPointerMove = DateTime.MinValue;
         internal readonly TimeSpan PointerMoveThrottle = TimeSpan.FromMilliseconds(16);
-        private bool _dragging = false;
-        private ElementReference _dragElement = default!;
+        internal bool _dragging = false;
         private ElementReference _splitElement = default!;
-        private int _startSize = 50; // left or top size
+        internal readonly ParameterState<int> _startSizeState; // left or top size
 
         internal record struct ViewPortSize(double Width, double Height);
         internal ViewPortSize? _viewportSize;
 
-        private IJSObjectReference? _module;
-        private bool _disposing;
+        internal IJSObjectReference? _module;
+        internal bool _disposing;
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public MudXSplitter()
+        {
+            using var registerScope = CreateRegisterScope();
+            _startSizeState = registerScope.RegisterParameter<int>(nameof(StartSize))
+                .WithParameter(() => StartSize)
+                .WithEventCallback(() => StartSizeChanged)
+                .WithChangeHandler(OnStartSizeChanged);
+        }
 
         /// <summary>
         /// The primary classes used on the outermost container div.
@@ -67,34 +80,46 @@ namespace MudX
             new StyleBuilder()
             .AddStyle("height", $"{Height}")
             .AddStyle("width", $"{Width}")
-            .AddStyle("grid-template-columns", $"{_startSize}% auto 1fr", Direction is SplitterDirection.Horizontal)
-            .AddStyle("grid-template-rows", $"{_startSize}% auto 1fr", Direction is SplitterDirection.Vertical)
+            .AddStyle("grid-template-columns", $"{_startSizeState.Value}% auto 1fr", Direction is SplitterDirection.Horizontal)
+            .AddStyle("grid-template-rows", $"{_startSizeState.Value}% auto 1fr", Direction is SplitterDirection.Vertical)
             .AddStyle(Style)
-            .Build();
-
-        /// <summary>
-        /// Gets the style name for the start splitter, based on the current size and direction.
-        /// </summary>
-        protected string StartSplitterStylename =>
-            new StyleBuilder()
-            .AddStyle("width", $"{_startSize}%", Direction is SplitterDirection.Horizontal)
-            .AddStyle("height", $"{_startSize}%", Direction is SplitterDirection.Vertical)
             .Build();
 
         [Inject]
         private IJSRuntime JSRuntime { get; set; } = default!;
 
         /// <summary>
-        /// Sets the CSS class for the outermost container div.
+        /// Sets or gets the starting size of the <see cref="StartSplitter"/>.
         /// </summary>
+        /// <remarks>
+        /// Defaults to 50.
+        /// </remarks>
         [Parameter]
-        public string? Class { get; set; }
+        public int StartSize { get; set; } = 50;
 
         /// <summary>
-        /// Sets the CSS style for the outermost container div.
+        /// Event callback for when the <see cref="StartSize"/> changes.
         /// </summary>
         [Parameter]
-        public string? Style { get; set; }
+        public EventCallback<int> StartSizeChanged { get; set; }
+
+        /// <summary>
+        /// The minimum percentage the <see cref="StartSplitter" /> will go.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to 0.
+        /// </remarks>
+        [Parameter]
+        public int StartMinimumSize { get; set; }
+
+        /// <summary>
+        /// The minimum percentage the <see cref="EndSplitter" /> will go.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to 0.
+        /// </remarks>
+        [Parameter]
+        public int EndMinimumSize { get; set; }
 
         /// <summary>
         /// The orientation for the splitter.
@@ -129,18 +154,30 @@ namespace MudX
         /// Sets the content in the left panel region when in horizontal mode, or the top panel region when in vertical mode.
         /// </summary>
         [Parameter, EditorRequired]
-        public RenderFragment StartSplitter { get; set; }
+        public required RenderFragment StartSplitter { get; set; }
 
         /// <summary>
         /// Sets the content in the right panel region when in horizontal mode, or the bottom panel region when in vertical mode.
         /// </summary>
         [Parameter, EditorRequired]
-        public RenderFragment EndSplitter { get; set; }
+        public required RenderFragment EndSplitter { get; set; }
 
         /// <summary>
         /// Gets a value indicating whether dragging is currently allowed.
         /// </summary>
         private bool CanDrag => _dragging && _points is not null && _viewportSize is not null;
+
+        private Task OnStartSizeChanged(ParameterChangedEventArgs<int> args)
+        {
+            // Clamp the new value to respect minimum sizes
+            var clamped = Math.Clamp(args.Value, StartMinimumSize, 100 - EndMinimumSize);
+
+            // Only update if the value actually changed
+            if (args.Value != clamped)
+                return _startSizeState.SetValueAsync(clamped);
+
+            return Task.CompletedTask;
+        }
 
         /// <summary>
         /// override OnAfterRenderAsync to import the JS module for drag handling.
@@ -154,15 +191,15 @@ namespace MudX
             }
         }
 
-        private async Task OnPointerDown(PointerEventArgs args)
+        internal async Task OnPointerDown(PointerEventArgs args)
         {
             // Handle pointer down event
             await SetDraggingState(true, args);
             // set starting point after extending pointer capture and starting drag
-            _points = new DragPoints(args.ClientX, args.ClientY, _startSize);
+            _points = new DragPoints(args.ClientX, args.ClientY, _startSizeState.Value);
         }
 
-        private async Task OnPointerUp(PointerEventArgs args)
+        internal async Task OnPointerUp(PointerEventArgs args)
         {
             // Handle pointer up event
             // perform a final "move" checking original points
@@ -172,30 +209,30 @@ namespace MudX
                 return;
             }
 
-            PerformPointerDrag(_points!.Value.XDown, _points!.Value.YDown,
+            await PerformPointerDrag(_points!.Value.XDown, _points!.Value.YDown,
                 args.ClientX, args.ClientY, _points!.Value.StartSize);
 
             await SetDraggingState(false, args);
         }
 
-        private void OnPointerMove(PointerEventArgs args)
+        internal Task OnPointerMove(PointerEventArgs args)
         {
             // Handle pointer move event
             // If the sheet is open and dragging and points set, we handle the pointer move
-            if (!CanDrag) return;
+            if (!CanDrag) return Task.CompletedTask;
 
             // Throttle pointer move events to avoid excessive updates
             var now = DateTime.UtcNow;
             if (now - _lastPointerMove < PointerMoveThrottle)
-                return;
+                return Task.CompletedTask;
 
             _lastPointerMove = now;
 
-            PerformPointerDrag(_points!.Value.XDown, _points!.Value.YDown,
+            return PerformPointerDrag(_points!.Value.XDown, _points!.Value.YDown,
                 args.ClientX, args.ClientY, _points!.Value.StartSize);
         }
 
-        private Task OnPointerCancel(PointerEventArgs args)
+        internal Task OnPointerCancel(PointerEventArgs args)
         {
             // Handle pointer cancel event
             return SetDraggingState(false, args);
@@ -207,7 +244,7 @@ namespace MudX
         /// </summary>
         /// <param name="isDragging">A boolean indicating whether the sheet is in a dragging operation.</param>
         /// <param name="args">The pointer event arguments containing details about the pointer interaction.</param>
-        private async Task SetDraggingState(bool isDragging, PointerEventArgs args)
+        internal async Task SetDraggingState(bool isDragging, PointerEventArgs args)
         {
             _dragging = isDragging;
             // Reset the swipe deltas when starting or stopping dragging
@@ -219,7 +256,7 @@ namespace MudX
 
             if (isDragging)
             {
-                var sizeArray = await _module.InvokeAsync<double[]>("startDrag", _dragElement, args.PointerId);
+                var sizeArray = await _module.InvokeAsync<double[]>("startDrag", _splitElement, args.PointerId);
                 if (sizeArray is not { Length: 2 })
                 {
                     throw new InvalidOperationException("JSInterop did not return the expected MudSheet size array.");
@@ -228,7 +265,7 @@ namespace MudX
             }
             else
             {
-                await _module.InvokeVoidAsync("cancelDrag", _dragElement, args.PointerId);
+                await _module.InvokeVoidAsync("cancelDrag", _splitElement, args.PointerId);
             }
         }
 
@@ -240,7 +277,7 @@ namespace MudX
         /// <param name="startY">y coordinate of the starting point.</param>
         /// <param name="currentX">x coordinate of the current point.</param>
         /// <param name="currentY">y coordinate of the current point.</param>
-        private void PerformPointerDrag(double startX, double startY, double currentX, double currentY, int baseSize)
+        private async Task PerformPointerDrag(double startX, double startY, double currentX, double currentY, int baseSize)
         {
             // Get pixel movement in the appropriate direction
             var delta = Direction switch
@@ -260,12 +297,12 @@ namespace MudX
             // Convert pixel movement into percentage of viewport
             var newSize = baseSize + (delta / viewportPixels * 100);
 
-            _startSize = Math.Clamp((int)newSize, 0, 100);
+            await _startSizeState.SetValueAsync(Math.Clamp((int)newSize, StartMinimumSize, 100 - EndMinimumSize));
             StateHasChanged();
         }
 
         /// <summary>
-        /// overridew DisposeAsync to clean up the JS module reference
+        /// overrides DisposeAsync to clean up the JS module reference
         /// </summary>
         public async ValueTask DisposeAsync()
         {
@@ -276,6 +313,7 @@ namespace MudX
 
             if (_module is not null)
             {
+                await _module.InvokeVoidAsync("cancelDrag", _splitElement, null);
                 await _module.DisposeAsync();
                 _module = null;
             }
