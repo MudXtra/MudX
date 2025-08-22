@@ -13,7 +13,7 @@ namespace MudX.Docs.Examples
                 Code: @"@namespace MudX.Docs.Splitter
 
 <style>
-    .mudx-splitter-separator:hover {
+    .custom-splitter .mudx-splitter-separator:hover {
         outline: dashed 1px orange;
     }
 </style>

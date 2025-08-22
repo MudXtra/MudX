@@ -18,7 +18,7 @@
     margin-inline-start: 10px;
     margin-inline-end: 10px;
     background: var(--mud-palette-divider);
-    border: none;
+    border: 0;
 }
 
 .mudx-splitter-separator {
@@ -51,7 +51,7 @@
     }
 
     .mudx-splitter-separator:focus {
-        outline: none;
+        outline: 0;
     }
 
 .mudx-splitter-start, .mudx-splitter-end {
