@@ -79,5 +79,12 @@
   "Events": [],
   "PublicProperties": [],
   "PublicFields": [],
-  "Methods": []
+  "Methods": [
+    {
+      "Name": "PositionCopyButton",
+      "ReturnType": "Task",
+      "Parameters": [],
+      "Description": "Causes an immediate repositioning of the Copy Button"
+    }
+  ]
 }
