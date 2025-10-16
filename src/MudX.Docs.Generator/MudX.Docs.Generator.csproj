@@ -16,7 +16,7 @@
   </Target>    
 
   <ItemGroup>
-    <PackageReference Include="Blazor.Lottie.Player" Version="1.0.5" />
+    <PackageReference Include="Blazor.Lottie.Player" Version="1.0.6" />
   </ItemGroup>    
 
   <ItemGroup>
