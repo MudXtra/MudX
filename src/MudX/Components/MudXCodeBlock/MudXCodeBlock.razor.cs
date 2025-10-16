@@ -232,9 +232,10 @@ public partial class MudXCodeBlock : MudComponentBase, IAsyncDisposable
         }
         else if (_generateCode)
         {
-            await GenerateCode();
             _isRendered = true;
+            await GenerateCode();
         }
+        // fallback to ensure copy button is in right spot if the component receives any sort of focus
         await PositionCopyButton();
     }
 
@@ -249,7 +250,6 @@ public partial class MudXCodeBlock : MudComponentBase, IAsyncDisposable
             if (boundingRect != null)
                 _position = PagePosition.GetPagePositionFromOrigin(boundingRect, CopyOrigin.Value);
         }
-        StateHasChanged();
     }
 
     private async Task GenerateCode()
@@ -258,7 +258,13 @@ public partial class MudXCodeBlock : MudComponentBase, IAsyncDisposable
             return;
         await _module.InvokeVoidAsync("highlightElementById", _elementId);
         _generateCode = false;
-        _isRendered = true;
+
+        // Let Blazor flush DOM updates
+        await InvokeAsync(StateHasChanged);
+        await Task.Yield();
+
+        await PositionCopyButton();
+        StateHasChanged();
     }
 
     private void ChangedTabIndex()

@@ -24,39 +24,37 @@
     }
     @if (Codes?.Count() > 0 && CopyOrigin.HasValue)
     {
-        @CopyButton(CopyOrigin.Value)
+        <MudPopover @ref="_popover" Open="true" Paper="false" Class="@CopyPopoverClass" Duration="500"
+                    UserAttributes="@PositionAttributes"
+                    TransformOrigin="@CopyOrigin.Value" AnchorOrigin="@CopyOrigin.Value" OverflowBehavior="OverflowBehavior.FlipNever">
+            <style>
+                @($"#popovercontent-{_popover?.Id}") button span {
+                    opacity: @(_showCopy ? ".8" : ".1") !important;
+                    transition: opacity .3s ease-in-out;
+                }
+
+                @($"#popovercontent-{_popover?.Id}") button:hover span {
+                    opacity: 1 !important;
+                    transition: opacity .3s ease-in-out;
+                }
+            </style>
+            <MudTooltip Visible="_showMessage" ShowOnHover="false" Delay="150" Duration="300" ShowOnFocus="false"
+                        Placement="@GetPlacement(CopyOrigin.Value)" Color="Color.Transparent">
+                <ChildContent>
+                    <MudIconButton Class="@CopyButtonClass" OnClick="CopyToClipboard" Icon="@CopyIcon" Size="Size.Small" />
+                </ChildContent>
+                <TooltipContent>
+                    @if (_showMessage)
+                    {
+                        <MudAlert Class="@(_codeFileCount > 1 ? "mudx-code-tabs mudx-code-alert" : "mudx-code-alert")" Severity="@(_copySuccess? Severity.Success: Severity.Error)" Dense="true">@_copyMessage</MudAlert>
+                    }
+                </TooltipContent>
+            </MudTooltip>
+        </MudPopover>
     }
 </div>
 
 @code {
     private RenderFragment CodeDisplay(string codeStr, string lang) => @<pre class="@PreClass()"><code class="@CodeClass(lang)">@codeStr</code></pre>;
 
-    private RenderFragment CopyButton(Origin origin) =>
-    @<MudPopover @ref="_popover" Open="true" Paper="false" Class="@CopyPopoverClass" Duration="500" 
-                 UserAttributes="@PositionAttributes"
-                 TransformOrigin="@origin" AnchorOrigin="@origin" OverflowBehavior="OverflowBehavior.FlipNever">
-        <style>
-            #popovercontent-@(_popover?.Id) button span {
-                opacity: @(_showCopy ? ".8" : ".1") !important;
-                transition: opacity .3s ease-in-out;
-            }
-
-            #popovercontent-@(_popover?.Id) button:hover span {
-                opacity: 1 !important;
-                transition: opacity .3s ease-in-out;
-            }
-        </style>
-        <MudTooltip Visible="_showMessage" ShowOnHover="false" Delay="150" Duration="300" ShowOnFocus="false"
-                    Placement="@GetPlacement(origin)" Color="Color.Transparent">
-            <ChildContent>
-                <MudIconButton Class="@CopyButtonClass" OnClick="CopyToClipboard" Icon="@CopyIcon" Size="Size.Small" />
-            </ChildContent>
-            <TooltipContent>
-                @if (_showMessage)
-                {
-                    <MudAlert Class="@(_codeFileCount > 1 ? "mudx-code-tabs mudx-code-alert" : "mudx-code-alert")" Severity="@(_copySuccess ? Severity.Success : Severity.Error)" Dense="true">@_copyMessage</MudAlert>
-                }                
-            </TooltipContent>
-        </MudTooltip>
-    </MudPopover>;
 }
