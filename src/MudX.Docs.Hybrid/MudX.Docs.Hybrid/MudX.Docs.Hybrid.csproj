@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MudX.Docs.Hybrid.Client\MudX.Docs.Hybrid.Client.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.10" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
   </ItemGroup>
 
