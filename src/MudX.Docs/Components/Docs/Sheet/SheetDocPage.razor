@@ -1,0 +1,95 @@
+@page "/docs/sheet"
+@using MudX.Docs.Sheet
+@using MudX.Docs.Examples
+
+<PageTitle>Sheet</PageTitle>
+
+<DocsPage Headline="Sheet">
+    <ChildContent>
+        <DocsPageHeader>
+            <Description>
+                A Material Design sheet component that slides in from an edge of the screen to display contextual content.
+                Commonly used in mobile UIs for lists or selections (bottom sheet) or in desktop layouts for menus or side panels (side sheet).
+                Supports positioning at the top, bottom, left, right, or center.<br />
+                <sup>*</sup> When a Sheet is open the current page scroll is prevented until that sheet is closed.
+                <MudAlert Class="mt-4" Severity="Severity.Warning">
+                    <b>Warning:</b> This component is currently under development.
+                    <br />
+                    <br />
+                    Breaking changes such as updates to the API, look and feel, or CSS classes, may occur even in minor patch releases.
+                    Please use it only if you are prepared to adapt your code accordingly and provide feedback or contribute code.
+                </MudAlert>
+            </Description>
+        </DocsPageHeader>
+
+        <DocsPageSection Title="Basic Usage">
+            <Description>
+                <CodeInline Tag="true">MudSheet</CodeInline> is used to show content from the screen edges:
+                <ul class="mt-2" style="list-style: initial; padding-left: 1.5rem;">
+                    <li><CodeInline Tag="false">Standard</CodeInline>: Defaults to <strong>true</strong> (non-modal); Set to <c>false</c> for Modal.</li>
+                    <li><CodeInline Tag="false">EnableDragToSize</CodeInline>: Draggable via the handle if true, (vertical or horizontal based on <CodeInline Tag="false">Position</CodeInline>).</li>
+                    <li><b>CSS</b>: Top/Bottom sheets have a default max width of 640px — override via CSS.</li>
+                </ul>
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SheetBasicUsageExampleCode.Files">
+                    <SheetBasicUsageExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Primary Controls">
+            <Description>
+                You can two-way bind both the <CodeInline Tag="false">Open</CodeInline> and <CodeInline Tag="false">CurrentSize</CodeInline> properties.
+                With <CodeInline Tag="false">SnapMode</CodeInline> enabled, the sheet will snap to the nearest value in
+                <CodeInline Tag="false">PresetSizes</CodeInline> when dragging ends. You can also control the sheet programmatically using
+                <CodeInline Tag="false">ToggleSizeAsync</CodeInline>, <CodeInline Tag="false">OpenSheetAsync</CodeInline>, and
+                <CodeInline Tag="false">CloseSheetAsync</CodeInline>.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SheetBindExampleCode.Files">
+                    <SheetBindExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Appearance">
+            <Description>
+                Customize the sheet's appearance using various properties—see the API for all options.
+                Examples include <CodeInline Tag="false">BorderRadius</CodeInline> and <CodeInline Tag="false">AriaLabel</CodeInline>.
+                By default, <CodeInline Tag="false">MudXSheet</CodeInline> uses <CodeInline Tag="false">MudPaper</CodeInline>.
+                Here, the <b>Left</b> and <b>Top</b> sheets have Paper disabled; <b>Bottom</b> and <b>Right</b> use the default.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SheetAppearanceExampleCode.Files">
+                    <SheetAppearanceExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Behavior">
+            <Description>
+                Customize the sheet's behavior using various properties—see the API for all options.
+                Examples include <CodeInline Tag="false">CoverAppBar</CodeInline> which allows you to cover the
+                appbar in Standard or not cover the appbar in Modal modes. <CodeInline Tag="false">CloseOnEscapeKey</CodeInline>
+                allows the Escape Key to close the sheet so long as any part of it has focus.
+                Below are two common use cases for the <CodeInline Tag="false">Sheet</CodeInline> component.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SheetBehaviorExampleCode.Files">
+                    <SheetBehaviorExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+    </ChildContent>
+    <ApiContent>
+        <ApiSection ApiJson="MudXSheet.api.json" />
+    </ApiContent>
+</DocsPage>
+
+@code {
+#pragma warning disable CS0414
+    private static string __title__ = "Sheet";
+#pragma warning restore CS0414
+}
