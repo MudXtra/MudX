@@ -1,0 +1,52 @@
+@namespace MudX
+@inherits MudComponentBase
+
+<MudPopover Open="@_openSheetState.Value"
+            Class="@PopoverClassname"
+            Style="@PopoverStylename"
+            AnchorOrigin="@Origin"
+            TransformOrigin="@Origin"
+            OverflowBehavior="OverflowBehavior.FlipNever"
+            RelativeWidth="DropdownWidth.Ignore"
+            UserAttributes="@(new Dictionary<string, object> { ["mudsheet"] = true })"
+            Paper="false">
+            <!-- If sheet is modal focus is brought to firstchild, which will be the sheet handle -->
+    <MudFocusTrap DefaultFocus="@(Standard ? DefaultFocus.None : DefaultFocus.FirstChild)">
+        <!-- Outer Sheet -->
+        <div id="@ElementId" class="@Classname" style="@Stylename"
+             @attributes="@UpdatedAttributes" @onkeydown="@HandleKeyDownAsync">
+            <!-- Sheet Handle (Toggle Button and Dragging) -->
+            <div @ref="@_handleRef" class="@($"mud-sheet-handle{(EnableDragToSize ? " mud-draggable" : string.Empty)}")" tabindex="-1"
+                 @onpointerdown="@HandlePointerDownAsync" @onpointerdown:preventDefault
+                 @onpointerup="@HandlePointerUpAsync" @onpointerup:preventDefault
+                 @onpointercancel="@HandlePointerCancelAsync" @onpointercancel:preventDefault
+                 @onlostpointercapture="@HandlePointerCancelAsync" @onlostpointercapture:preventDefault             
+                 @onpointermove="@HandlePointerMoveAsync" @onpointermove:preventDefault>
+                @(SheetHandleFragment ?? DefaultHandleFragment)
+            </div>
+            <!-- Sheet Content -->
+            <div class="mud-sheet-content">
+                <MudElement Class="@(Paper ? "mud-width-full mud-height-full mud-paper overflow-auto" : string.Empty)" HtmlTag="@(Paper ? "div" : "content")">
+                    @ChildContent      
+                </MudElement>                   
+            </div>
+        </div>
+    </MudFocusTrap>
+</MudPopover>
+
+<!-- Modal mode -->
+@if (_openSheetState.Value && !Standard)
+{
+    <MudOverlay Visible="true"
+                Class="@($"mud-{ElementId}")"
+                LockScroll="true"
+                AutoClose="true"
+                Modal="true"
+                DarkBackground="true"
+                OnClosed="@CloseSheetAsync" />
+}
+
+@code {
+    private RenderFragment DefaultHandleFragment => 
+        @<MudIconButton Icon="@DragHandle" Class="mud-sheet-handle-button" OnClick="@ToggleSizeAsync" @onpointerdown:stopPropagation aria-controls="@ElementId" />;
+}
