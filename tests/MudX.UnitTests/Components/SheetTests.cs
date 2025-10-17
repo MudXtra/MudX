@@ -103,7 +103,7 @@ public class SheetTests : BunitTest
         comp.Instance.CurrentSize = 77;
         comp.Render();
         comp.WaitForAssertion(() => comp.Instance.TestSheet.CurrentSize.Should().Be(77));
-        provider.Find("div[MudXSheet].mud-popover").GetAttribute("style").Should().Contain("height:77vh");
+        provider.Find("div[mudsheet].mud-popover").GetAttribute("style").Should().Contain("height:77vh");
 
         // test two way binding for close using the open variable
         comp.Find("button.toggle-open").Click();
@@ -293,13 +293,13 @@ public class SheetTests : BunitTest
         };
         // double[] is width and height in that order
         var dragStartMock = jsInterop
-            .Setup<double[]>("window.MudXSheetHelper.startDrag", handleRef, pointer.PointerId)
+            .Setup<double[]>("window.mudsheetHelper.startDrag", handleRef, pointer.PointerId)
             .SetResult([640, 480]); // width, then height
 
         await handle.TriggerEventAsync("onpointerdown", pointer);
 
         // verify the drag start was called
-        dragStartMock.VerifyInvoke("window.MudXSheetHelper.startDrag").Arguments.Should().BeEquivalentTo(new object[] { handleRef, pointer.PointerId });
+        dragStartMock.VerifyInvoke("window.mudsheetHelper.startDrag").Arguments.Should().BeEquivalentTo(new object[] { handleRef, pointer.PointerId });
 
         // verify the ViewPortSize struct was passed correctly
         var viewSize = comp.Instance._viewportSize;
@@ -374,7 +374,7 @@ public class SheetTests : BunitTest
         comp.Instance.GetState<int>(nameof(comp.Instance.CurrentSize)).Should().Be(50);
 
         // verify the drag stop was called
-        Context.JSInterop.VerifyInvoke("window.MudXSheetHelper.cancelDrag")
+        Context.JSInterop.VerifyInvoke("window.mudsheetHelper.cancelDrag")
             .Arguments.Should().BeEquivalentTo(new object[] { handleRef, pointer.PointerId });
         comp.Instance._points.Should().BeNull();
         comp.Instance._dragging.Should().BeFalse();
@@ -415,7 +415,7 @@ public class SheetTests : BunitTest
 
         // double[] is width and height in that order
         jsInterop
-            .Setup<double[]>("window.MudXSheetHelper.startDrag", handleRef, pointer.PointerId)
+            .Setup<double[]>("window.mudsheetHelper.startDrag", handleRef, pointer.PointerId)
             .SetResult([640, 480]); // width, then height
 
         await handle.TriggerEventAsync("onpointerdown", pointer);
@@ -555,7 +555,7 @@ public class SheetTests : BunitTest
         await comp.Instance.DisposeAsync();
 
         // verify the JS interop was called to cancel the drag but only once even though we disposed multiple times
-        Context.JSInterop.VerifyInvoke("window.MudXSheetHelper.cancelDrag");
+        Context.JSInterop.VerifyInvoke("window.mudsheetHelper.cancelDrag");
     }
 
     [Test]
@@ -614,7 +614,7 @@ public class SheetTests : BunitTest
 
         // Trigger OnAfterRender
         await comp.InvokeAsync(() => comp.Instance.GetType()
-            .GetMethod("OnAfterRender", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .GetMethod("OnAfterRenderAsync", BindingFlags.NonPublic | BindingFlags.Instance)!
             .Invoke(comp.Instance, new object[] { false }));
 
         // Should have re-rendered at least once
