@@ -14,6 +14,9 @@ namespace MudX;
 /// Commonly used in mobile UIs for lists or selections (bottom sheet) or in desktop layouts for menus or side panels (side sheet). 
 /// Supports positioning at the top, bottom, left, right, or center.
 /// </summary>
+/// <remarks>
+/// When a Sheet is open the current page scroll is prevented.
+/// </remarks>
 public partial class MudXSheet : MudComponentBase, IAsyncDisposable
 {
     /// <summary>
@@ -23,6 +26,7 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
     internal bool _dragging;
     private bool _isDisposing = false;
     private bool _updateState;
+    private MudPopover _popOverRef = default!;
 
     internal record struct DragPoints(double XDown, double YDown, int StartSize);
     internal DragPoints? _points;
@@ -39,7 +43,7 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
     private readonly ParameterState<int> _currentSizeState;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MudSheet"/> class.
+    /// Initializes a new instance of the <see cref="MudXSheet"/> class.
     /// </summary>
     public MudXSheet()
     {
@@ -81,7 +85,7 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
     protected string PopoverClassname =>
         new CssBuilder("mud-sheet-popover")
             .AddClass($"mud-sheet-position-{Positioning.ToDescriptionString()}")
-            .AddClass("mud-popover-fixed")
+            .AddClass("mud-popover-position-override")
             .AddClass($"mud-sheet-cover-appbar",
                 // If value has been set then use it
                 // else use M3 specifications (Modal covers)
@@ -95,6 +99,8 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
         new StyleBuilder()
             .AddStyle("width", $"{_currentSizeState.Value}vw", Positioning is Position.Left or Position.Right or Position.Center)
             .AddStyle("height", $"{_currentSizeState.Value}vh", Positioning is Position.Top or Position.Bottom or Position.Center)
+        // this line is to offset the popover constantly setting max-width to none
+        .AddStyle("min-width", "100%", Positioning is Position.Top or Position.Bottom)
             .AddStyle(Style, !string.IsNullOrEmpty(Style))
             .Build();
 
@@ -673,23 +679,20 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
         return ChangeSize(args.Value);
     }
 
-    /// <summary>
-    /// Override OnAfterRender
-    /// </summary>
-    protected override void OnAfterRender(bool firstRender)
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        base.OnAfterRender(firstRender);
+        await base.OnAfterRenderAsync(firstRender);
         if (_updateState)
         {
             // If the state has been updated, we need to re-render the component
             _updateState = false;
+            await JSRuntime.InvokeVoidAsync("window.mudsheetHelper.setMudSheetEdge", _popOverRef.Id);
             StateHasChanged();
         }
     }
 
-    /// <summary>
-    /// Override the setting of Parameters
-    /// </summary>
+    /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
     {
         // var currentSize is true if the parameters contain a value
@@ -740,9 +743,7 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
         await base.SetParametersAsync(parameters);
     }
 
-    /// <summary>
-    /// Override DisposeAsync
-    /// </summary>
+    /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
         if (JSRuntimeReady && _dragging)

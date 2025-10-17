@@ -43,7 +43,10 @@ window.mudxGeneral = {
 // Using this instead of modules that are normally used in MudX
 window.mudsheetHelper = {
 
-    setMudSheetEdge: function (popoverContentNode, classListArray) {
+    setMudSheetEdge: function (popoverContentNodeId) {
+        const popoverContentNode = document.getElementById("popovercontent-" + popoverContentNodeId);
+        if (!popoverContentNode) return;
+        const classListArray = Array.from(popoverContentNode.classList);
         // center of viewport
         let positionleft = window.innerWidth / 2;
         let positiontop = window.innerHeight / 2;
@@ -86,14 +89,17 @@ window.mudsheetHelper = {
         } else if (classListArray.includes('mud-sheet-position-top')) {
             positiontop = appbarTop;
         } else if (classListArray.includes('mud-sheet-position-left')) {
-            positionleft = 0;
+            positionleft = -1;
         } else if (classListArray.includes('mud-sheet-position-right')) {
             positionleft = window.innerWidth;
         }
 
+        // account for scroll
+        positiontop += window.scrollY;
+        positionleft += window.scrollX;
+
         popoverContentNode.setAttribute('data-pc-x', positionleft);
         popoverContentNode.setAttribute('data-pc-y', positiontop);
-        return this.getUpdatedBoundingClientRect(positiontop, positionleft);
     },
 
     getUpdatedBoundingClientRect: function (positiontop, positionleft) {
