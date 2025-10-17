@@ -32,16 +32,16 @@
     </MudGrid>
 </MudContainer>
 
-<MudSheet @bind-Open="@_sheet1Open" Position="Position.Bottom" Standard="false" CloseOnEscapeKey="@_closeOnEsc" CoverAppBar="@_coverAppBar">
+<MudXSheet @bind-Open="@_sheet1Open" Position="Position.Bottom" Standard="false" CloseOnEscapeKey="@_closeOnEsc" CoverAppBar="@_coverAppBar">
     <MudList SelectionMode="@SelectionMode.MultiSelection" T="Drink">
         @foreach (Drink item in Enum.GetValues(typeof(Drink))) 
         {
             <MudListItem Value="@item">@item</MudListItem>
         }
     </MudList>
-</MudSheet>
+</MudXSheet>
 
-<MudSheet @bind-Open="@_sheet4Open" Position="Position.End" CurrentSize="25" CloseOnEscapeKey="@_closeOnEsc" CoverAppBar="@_coverAppBar">
+<MudXSheet @bind-Open="@_sheet4Open" Position="Position.End" CurrentSize="25" CloseOnEscapeKey="@_closeOnEsc" CoverAppBar="@_coverAppBar">
     <MudStack AlignItems="AlignItems.Center">
         <MudTextField T="string" Label="Search"
                         Adornment="Adornment.Start" Class="mb-4 sticky-search"
@@ -56,7 +56,7 @@
             </ItemTemplate>
         </MudTreeView>
     </MudStack>
-</MudSheet>
+</MudXSheet>
 
 @code {
     #nullable enable
@@ -70,7 +70,6 @@
     /// Gets a cascading value indicating whether the layout and text direction are rendered in a right-to-left format.
     /// </summary>
     [CascadingParameter(Name = "RightToLeft")]
-    [Category(CategoryTypes.Sheet.Appearance)]
     public bool RightToLeft { get; set; }
 
     private IReadOnlyCollection<string> _selectedTreeValues { get; set; } = [];

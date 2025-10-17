@@ -23,21 +23,21 @@
     </MudGrid>
 </MudContainer>
 
-<MudSheet @bind-Open="@_sheet1Open" @bind-CurrentSize="@_currentSize" SnapMode="@_snapMode" Position="Position.Bottom" Paper="false">
+<MudXSheet @bind-Open="@_sheet1Open" @bind-CurrentSize="@_currentSize" SnapMode="@_snapMode" Position="Position.Bottom" Paper="false">
     <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="close" OnClick="@(() => _sheet1Open = !_sheet1Open)" />
     <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Primary" aria-label="github" />
     <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="Color.Secondary" aria-label="add to favorite" />
     <MudIconButton Icon="@Icons.Material.Filled.Share" Disabled="true" aria-label="share" />
-</MudSheet>
+</MudXSheet>
 
-<MudSheet @bind-Open="@_sheet2Open" @bind-CurrentSize="@_currentSize" SnapMode="@_snapMode" Position="Position.Top" Paper="false">
+<MudXSheet @bind-Open="@_sheet2Open" @bind-CurrentSize="@_currentSize" SnapMode="@_snapMode" Position="Position.Top" Paper="false">
     <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="close" OnClick="@(() => _sheet2Open = !_sheet2Open)" />
     <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Primary" aria-label="github" />
     <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="Color.Secondary" aria-label="add to favorite" />
     <MudIconButton Icon="@Icons.Material.Filled.Share" Disabled="true" aria-label="share" />
-</MudSheet>
+</MudXSheet>
 
-<MudSheet @bind-Open="@_sheet3Open" @bind-CurrentSize="@_currentSize" SnapMode="@_snapMode" Position="Position.Left">
+<MudXSheet @bind-Open="@_sheet3Open" @bind-CurrentSize="@_currentSize" SnapMode="@_snapMode" Position="Position.Left">
     <MudStack Spacing="4">
         <MudText Typo="Typo.h6">User Settings</MudText>
         <MudTextField T="string" Label="Display Name" Variant="Variant.Outlined" />
@@ -54,9 +54,9 @@
             <MudButton Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
         </MudStack>
     </MudStack>
-</MudSheet>
+</MudXSheet>
 
-<MudSheet @bind-Open="@_sheet4Open" @bind-CurrentSize="@_currentSize" SnapMode="@_snapMode" Position="Position.Right">
+<MudXSheet @bind-Open="@_sheet4Open" @bind-CurrentSize="@_currentSize" SnapMode="@_snapMode" Position="Position.Right">
     <MudStack Spacing="4">
         <MudText Typo="Typo.h6">User Settings</MudText>
         <MudTextField T="string" Label="Display Name" Variant="Variant.Outlined" />
@@ -73,7 +73,7 @@
             <MudButton Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
         </MudStack>
     </MudStack>
-</MudSheet>
+</MudXSheet>
 
 @code {
     private bool _sheet1Open = false;

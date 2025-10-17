@@ -10,7 +10,8 @@
             <Description>
                 A Material Design sheet component that slides in from an edge of the screen to display contextual content.
                 Commonly used in mobile UIs for lists or selections (bottom sheet) or in desktop layouts for menus or side panels (side sheet).
-                Supports positioning at the top, bottom, left, right, or center.
+                Supports positioning at the top, bottom, left, right, or center.<br />
+                <sup>*</sup> When a Sheet is open the current page scroll is prevented until that sheet is closed.
                 <MudAlert Class="mt-4" Severity="Severity.Warning">
                     <b>Warning:</b> This component is currently under development.
                     <br />
@@ -31,8 +32,7 @@
                 </ul>
             </Description>
             <ChildContent>
-                <!-- Codes="@SheetBasicExampleCode.Files" -->
-                <SectionContent >
+                <SectionContent Codes="@SheetBasicUsageExampleCode.Files">
                     <SheetBasicUsageExample />
                 </SectionContent>
             </ChildContent>
@@ -47,8 +47,7 @@
                 <CodeInline Tag="false">CloseSheetAsync</CodeInline>.
             </Description>
             <ChildContent>
-                <!-- Codes="@SheetBindExampleCode.Files" -->
-                <SectionContent>
+                <SectionContent Codes="@SheetBindExampleCode.Files">
                     <SheetBindExample />
                 </SectionContent>
             </ChildContent>
@@ -62,8 +61,7 @@
                 Here, the <b>Left</b> and <b>Top</b> sheets have Paper disabled; <b>Bottom</b> and <b>Right</b> use the default.
             </Description>
             <ChildContent>
-                <!-- Codes="@SheetAppearanceExampleCode.Files" -->
-                <SectionContent>
+                <SectionContent Codes="@SheetAppearanceExampleCode.Files">
                     <SheetAppearanceExample />
                 </SectionContent>
             </ChildContent>
@@ -78,8 +76,7 @@
                 Below are two common use cases for the <CodeInline Tag="false">Sheet</CodeInline> component.
             </Description>
             <ChildContent>
-                <!-- Codes="@SheetBehaviorExampleCode.Files" -->
-                <SectionContent>
+                <SectionContent Codes="@SheetBehaviorExampleCode.Files">
                     <SheetBehaviorExample />
                 </SectionContent>
             </ChildContent>
