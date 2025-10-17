@@ -1,3 +1,297 @@
+/* MudX Sheet */
+
+div[mudsheet] {
+    display: flex;
+    min-width: 32px;
+    min-height: 32px;
+}
+
+    div[mudsheet][appbar] {
+        /* Shared layout constraint for when any appbar is present */
+        max-height: calc(100vh - var(--mud-appbar-height, 64px));
+    }
+
+        div[mudsheet][appbar][appbar-dense='true'] {
+            /* if it also contains appbar-dense we use the dense instead of regular */
+            max-height: calc(100vh - calc(var(--mud-appbar-height, 64px) - var(--mud-appbar-height, 64px) / 4));
+        }
+
+    div[mudsheet].mud-sheet-position-bottom,
+    div[mudsheet].mud-sheet-position-top {
+        width: 100%;
+        max-width: 640px;
+    }
+
+    div[mudsheet].mud-sheet-position-left,
+    div[mudsheet].mud-sheet-position-right {
+        height: 100%;
+    }
+
+        div[mudsheet].mud-sheet-position-left:not([appbar]),
+        div[mudsheet].mud-sheet-position-right:not([appbar]) {
+            max-height: 100vh;
+        }
+
+    div[mudsheet].mud-sheet-position-bottom .mud-sheet-content {
+        align-items: flex-end; /* vertical alignment starting at bottom */
+        justify-content: center; /* horizontal centering */
+    }
+
+    div[mudsheet].mud-sheet-position-top .mud-sheet-content {
+        align-items: flex-start; /* vertical alignment starting at top */
+        justify-content: center; /* horizontal centering */
+    }
+
+    div[mudsheet].mud-sheet-position-left .mud-sheet-content {
+        align-items: center; /* Center items vertically */
+        justify-content: flex-start; /* Sticky content to left */
+    }
+
+    div[mudsheet].mud-sheet-position-right .mud-sheet-content {
+        align-items: center; /* Center items vertically */
+        justify-content: flex-end; /* Sticky content to right */
+    }
+
+    div[mudsheet].mud-sheet-position-center .mud-sheet-content {
+        align-items: center; /* Vertical Alignment */
+        justify-content: center; /* Horizontal Alignment */
+    }
+
+    div[mudsheet] .mud-sheet-container {
+        position: relative;
+    }
+
+        div[mudsheet] .mud-sheet-container.mud-sheet-dragging {
+            border: 1px solid var(--mud-palette-divider);
+        }
+
+    div[mudsheet] .mud-sheet-content {
+        padding: 16px;
+    }
+
+.mud-sheet-container {
+    --sheet-borderradius: var(--mud-default-borderradius, 4px);
+    display: flex;
+    width: 100%;
+    height: 100%;
+    background-color: var(--mud-palette-surface);
+    border-radius: var(--sheet-borderradius);
+    transition: height 200ms cubic-bezier(0.4, 0, 0.2, 1), width 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+    /* Border radius utility classes */
+    .mud-sheet-container.mud-sheet-borderradius-0 {
+        --sheet-borderradius: 0px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-1 {
+        --sheet-borderradius: 1px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-2 {
+        --sheet-borderradius: 2px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-3 {
+        --sheet-borderradius: 3px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-4 {
+        --sheet-borderradius: 4px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-5 {
+        --sheet-borderradius: 5px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-6 {
+        --sheet-borderradius: 6px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-7 {
+        --sheet-borderradius: 7px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-8 {
+        --sheet-borderradius: 8px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-9 {
+        --sheet-borderradius: 9px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-10 {
+        --sheet-borderradius: 10px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-11 {
+        --sheet-borderradius: 11px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-12 {
+        --sheet-borderradius: 12px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-13 {
+        --sheet-borderradius: 13px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-14 {
+        --sheet-borderradius: 14px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-15 {
+        --sheet-borderradius: 15px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-16 {
+        --sheet-borderradius: 16px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-17 {
+        --sheet-borderradius: 17px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-18 {
+        --sheet-borderradius: 18px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-19 {
+        --sheet-borderradius: 19px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-20 {
+        --sheet-borderradius: 20px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-21 {
+        --sheet-borderradius: 21px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-22 {
+        --sheet-borderradius: 22px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-23 {
+        --sheet-borderradius: 23px;
+    }
+
+    .mud-sheet-container.mud-sheet-borderradius-24 {
+        --sheet-borderradius: 24px;
+    }
+
+    /* Sheet Content */
+    .mud-sheet-container .mud-sheet-content {
+        color: var(--mud-palette-text-primary);
+        overflow: hidden;
+        display: flex;
+        flex: 1;
+    }
+
+        .mud-sheet-container .mud-sheet-content > .mud-paper {
+            border-radius: unset;
+        }
+
+    /* Flex style Positioning & Border Radius */
+    .mud-sheet-container.mud-sheet-position-bottom {
+        flex-direction: column;
+        border-radius: var(--sheet-borderradius) var(--sheet-borderradius) 0 0;
+    }
+
+        .mud-sheet-container.mud-sheet-position-bottom .mud-sheet-handle {
+            order: -1;
+        }
+
+    .mud-sheet-container.mud-sheet-position-top {
+        flex-direction: column;
+        border-radius: 0 0 var(--sheet-borderradius) var(--sheet-borderradius);
+    }
+
+        .mud-sheet-container.mud-sheet-position-top .mud-sheet-handle {
+            order: 1;
+        }
+
+    .mud-sheet-container.mud-sheet-position-left {
+        flex-direction: row;
+        border-radius: 0 var(--sheet-borderradius) var(--sheet-borderradius) 0;
+    }
+
+        .mud-sheet-container.mud-sheet-position-left .mud-sheet-handle {
+            order: 1;
+        }
+
+    .mud-sheet-container.mud-sheet-position-right {
+        flex-direction: row;
+        border-radius: var(--sheet-borderradius) 0 0 var(--sheet-borderradius);
+    }
+
+        .mud-sheet-container.mud-sheet-position-right .mud-sheet-handle {
+            order: -1;
+        }
+
+    .mud-sheet-container.mud-sheet-position-center {
+        flex-direction: column;
+        border-radius: var(--sheet-borderradius);
+    }
+
+        .mud-sheet-container.mud-sheet-position-center .mud-sheet-handle {
+            order: -1;
+        }
+
+    /* Handle styling (Material Design touch target) */
+    .mud-sheet-container .mud-sheet-handle {
+        display: flex;
+        min-height: 32px;
+        min-width: 32px;
+        align-items: center;
+        justify-content: center;
+        color: var(--mud-palette-divider);
+        flex-shrink: 0;
+        border: none;
+    }
+
+        .mud-sheet-container .mud-sheet-handle.mud-draggable {
+            pointer-events: auto;
+            cursor: grab;
+        }
+
+            .mud-sheet-container .mud-sheet-handle.mud-draggable:active {
+                cursor: grabbing;
+            }
+
+        .mud-sheet-container .mud-sheet-handle:focus {
+            outline: none;
+        }
+
+    /* Vertical orientation (top/bottom) margin/handle customization */
+    .mud-sheet-container.mud-sheet-position-top,
+    .mud-sheet-container.mud-sheet-position-center,
+    .mud-sheet-container.mud-sheet-position-bottom {
+        margin: 0 auto;
+    }
+
+        .mud-sheet-container.mud-sheet-position-top .mud-sheet-handle,
+        .mud-sheet-container.mud-sheet-position-center .mud-sheet-handle,
+        .mud-sheet-container.mud-sheet-position-bottom .mud-sheet-handle {
+            width: 100%;
+        }
+
+    /* Horizontal orientation (left/right) margin/handle customization */
+    .mud-sheet-container.mud-sheet-position-left .mud-sheet-handle,
+    .mud-sheet-container.mud-sheet-position-right .mud-sheet-handle {
+        height: 100%;
+        writing-mode: vertical-rl;
+    }
+
+/* RTL Support */
+.mud-rtl-provider[dir='rtl'] .mud-sheet-container.mud-sheet-position-left .mud-sheet-handle {
+    order: -1;
+}
+
+.mud-rtl-provider[dir='rtl'] .mud-sheet-container.mud-sheet-position-right .mud-sheet-handle {
+    order: 1;
+}
+
 /* MudX Splitter */
 .mudx-splitter-container {
     display: grid;
