@@ -247,7 +247,7 @@ div[mudsheet] {
         justify-content: center;
         color: var(--mud-palette-divider);
         flex-shrink: 0;
-        border: none;
+        border: 0;
     }
 
         .mud-sheet-container .mud-sheet-handle.mud-draggable {
