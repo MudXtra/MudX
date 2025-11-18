@@ -353,21 +353,21 @@ div[mudsheet] {
     display: flex;
 }
 
-    .mudx-splitter-start {
-        overflow: auto;
-        grid-column: 1;
-        grid-row: 1;
-    }
+.mudx-splitter-start {
+    overflow: auto;
+    grid-column: 1;
+    grid-row: 1;
+}
 
-    .mudx-splitter-end.mudx-splitter-horizontal {
-        grid-column: 3;
-        grid-row: 1;
-    }
+.mudx-splitter-end.mudx-splitter-horizontal {
+    grid-column: 3;
+    grid-row: 1;
+}
 
-    .mudx-splitter-end.mudx-splitter-vertical {
-        grid-column: 1;
-        grid-row: 3;
-    }
+.mudx-splitter-end.mudx-splitter-vertical {
+    grid-column: 1;
+    grid-row: 3;
+}
 
 /* MudX Security Code */
 .mudx-code-item .mud-input {
@@ -596,3 +596,539 @@ div[mudsheet] {
             color: var(--mud-palette-primary);
             transform: translateX(0.1rem);
         }
+
+/* --------------------------
+   Mud Chat - Core
+   -------------------------- */
+.mud-chat {
+    display: grid;
+    column-gap: 0.75rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    border-radius: var(--mud-default-borderradius);
+}
+
+    /* .mud-chat.mud-dense .mud-chat-bubble and header adjustments */
+    .mud-chat.mud-dense .mud-chat-bubble {
+        padding: 0.1875rem 1rem;
+        min-height: calc(2.75rem * 1 / 3);
+    }
+
+        .mud-chat.mud-dense .mud-chat-bubble + .mud-chat-bubble {
+            margin-top: 0.1875rem;
+        }
+
+    .mud-chat.mud-dense .mud-chat-header {
+        line-height: calc(1.25rem * 1 / 3);
+    }
+
+    /* square variant */
+    .mud-chat.mud-square {
+        border-radius: 0px;
+    }
+
+        .mud-chat.mud-square .mud-chat-bubble {
+            border-radius: 0px;
+        }
+
+    /* --------------------------
+   Arrow Top
+   -------------------------- */
+    .mud-chat.mud-chat-arrow-top .mud-chat-bubble:before {
+        content: "";
+        mask-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMycgaGVpZ2h0PSczJyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnPjxwYXRoIGZpbGw9J2JsYWNrJyBkPSdtIDAgMCBMIDMgMCBMIDMgMyBDIDMgMiAxIDAgMCAwJy8+PC9zdmc+);
+        bottom: auto;
+        top: 0;
+    }
+
+    /* .mud-chat-arrow-top.mud-chat-start, .mud-chat-arrow-top.mud-chat-end.mud-chat-rtl -> transform: none; */
+    .mud-chat.mud-chat-arrow-top.mud-chat-start .mud-chat-bubble:before,
+    .mud-chat.mud-chat-arrow-top.mud-chat-end.mud-chat-rtl .mud-chat-bubble:before {
+        transform: none;
+    }
+
+    /* .mud-chat-arrow-top.mud-chat-end, .mud-chat-arrow-top.mud-chat-start.mud-chat-rtl -> flip */
+    .mud-chat.mud-chat-arrow-top.mud-chat-end .mud-chat-bubble:before,
+    .mud-chat.mud-chat-arrow-top.mud-chat-start.mud-chat-rtl .mud-chat-bubble:before {
+        transform: scaleX(-1);
+    }
+
+    /* border-top-radius adjustments */
+    .mud-chat.mud-chat-arrow-top.mud-chat-start .mud-chat-bubble,
+    .mud-chat.mud-chat-arrow-top.mud-chat-end.mud-chat-rtl .mud-chat-bubble {
+        border-top-left-radius: 0;
+    }
+
+    .mud-chat.mud-chat-arrow-top.mud-chat-end .mud-chat-bubble,
+    .mud-chat.mud-chat-arrow-top.mud-chat-start.mud-chat-rtl .mud-chat-bubble {
+        border-top-right-radius: 0;
+    }
+
+    /* --------------------------
+   Arrow Bottom
+   -------------------------- */
+    .mud-chat.mud-chat-arrow-bottom .mud-chat-bubble:before {
+        content: "";
+        mask-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMycgaGVpZ2h0PSczJyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnPjxwYXRoIGZpbGw9J2JsYWNrJyBkPSdtIDAgMyBMIDMgMyBMIDMgMCBDIDMgMSAxIDMgMCAzJy8+PC9zdmc+);
+        bottom: 0;
+    }
+
+    /* transforms for arrow-bottom variants */
+    .mud-chat.mud-chat-arrow-bottom.mud-chat-start .mud-chat-bubble:before,
+    .mud-chat.mud-chat-arrow-bottom.mud-chat-end.mud-chat-rtl .mud-chat-bubble:before {
+        transform: none;
+    }
+
+    .mud-chat.mud-chat-arrow-bottom.mud-chat-end .mud-chat-bubble:before,
+    .mud-chat.mud-chat-arrow-bottom.mud-chat-start.mud-chat-rtl .mud-chat-bubble:before {
+        transform: scaleX(-1);
+    }
+
+    /* border-bottom-radius adjustments */
+    .mud-chat.mud-chat-arrow-bottom.mud-chat-start .mud-chat-bubble,
+    .mud-chat.mud-chat-arrow-bottom.mud-chat-end.mud-chat-rtl .mud-chat-bubble {
+        border-bottom-left-radius: 0;
+    }
+
+    .mud-chat.mud-chat-arrow-bottom.mud-chat-end .mud-chat-bubble,
+    .mud-chat.mud-chat-arrow-bottom.mud-chat-start.mud-chat-rtl .mud-chat-bubble {
+        border-bottom-right-radius: 0;
+    }
+
+    /* --------------------------
+   Arrow Middle
+   -------------------------- */
+    .mud-chat.mud-chat-arrow-middle .mud-chat-bubble:before {
+        content: "";
+        mask-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzIDMiIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj4KICA8cG9seWdvbiBwb2ludHM9IjMsMCAzLDMgMS41LDEuNSIgZmlsbD0iYmxhY2siIC8+Cjwvc3ZnPg==);
+        top: 50%;
+    }
+
+    /* middle variants: translateY(-50%) or flip+translateY */
+    .mud-chat.mud-chat-arrow-middle.mud-chat-start .mud-chat-bubble:before,
+    .mud-chat.mud-chat-arrow-middle.mud-chat-end.mud-chat-rtl .mud-chat-bubble:before {
+        transform: translateY(-50%);
+    }
+
+    .mud-chat.mud-chat-arrow-middle.mud-chat-end .mud-chat-bubble:before,
+    .mud-chat.mud-chat-arrow-middle.mud-chat-start.mud-chat-rtl .mud-chat-bubble:before {
+        transform: scaleX(-1) translateY(-50%);
+    }
+
+/* --------------------------
+   mud-chat-bubble base
+   -------------------------- */
+.mud-chat-bubble {
+    position: relative;
+    text-align: start;
+    align-content: center;
+    width: fit-content;
+    padding: 0.5rem 1rem;
+    max-width: 90%;
+    border-radius: var(--mud-default-borderradius);
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+}
+
+    /* clickable bubble */
+    .mud-chat-bubble.mud-chat-bubble-clickable {
+        cursor: pointer;
+        user-select: none;
+        -webkit-appearance: none;
+        -webkit-tap-highlight-color: transparent;
+        transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+        --mud-ripple-color: var(--mud-palette-text-primary);
+        --mud-ripple-opacity: var(--mud-ripple-opacity-secondary) !important;
+    }
+
+/* hover/focus/active styles only on devices that hover */
+@media (hover: hover) and (pointer: fine) {
+    .mud-chat-bubble.mud-chat-bubble-clickable:hover {
+        box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0,0,0,.12);
+        background-color: var(--mud-palette-action-disabled-background);
+    }
+}
+
+.mud-chat-bubble.mud-chat-bubble-clickable:focus-visible {
+    box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0,0,0,.12);
+    background-color: var(--mud-palette-action-disabled-background);
+}
+
+.mud-chat-bubble.mud-chat-bubble-clickable:active {
+    box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0,0,0,.12);
+    background-color: var(--mud-palette-action-disabled-background);
+}
+
+/* bubble pseudo element used for arrow shapes */
+.mud-chat-bubble:before {
+    position: absolute;
+    width: 0.75rem;
+    height: 0.75rem;
+    background-color: inherit;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+
+/* spacing between adjacent bubbles */
+.mud-chat-bubble + .mud-chat-bubble {
+    margin-top: 0.5rem;
+}
+
+    /* The immediate following bubble should not carry the pseudo before (explicit none) */
+    .mud-chat-bubble + .mud-chat-bubble:before {
+        content: none !important;
+    }
+
+/* --------------------------
+   Header & Footer
+   -------------------------- */
+.mud-chat-header {
+    grid-row-start: 1;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
+    min-height: 0.5rem;
+}
+
+    .mud-chat-header time {
+        margin-left: 0.5rem;
+        opacity: 0.5;
+        font-size: 0.75rem;
+        line-height: 1rem;
+    }
+
+.mud-chat-footer {
+    opacity: 0.5;
+    font-size: 0.875rem;
+    line-height: 1rem;
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
+    min-height: 0.5rem;
+}
+
+/* Avatar alignment */
+.mud-chat .mud-avatar {
+    align-self: center;
+    grid-row-start: 1;
+}
+/* If .mud-chat contains .mud-chat-header, avatar should start in row 2 */
+.mud-chat:has(.mud-chat-header) .mud-avatar {
+    grid-row-start: 2;
+}
+
+/* --------------------------
+   Start (left) layout
+   -------------------------- */
+.mud-chat-start {
+    place-items: start;
+    grid-template-columns: 1fr 99fr;
+}
+
+    .mud-chat-start .mud-chat-header,
+    .mud-chat-start .mud-chat-footer {
+        grid-column-start: 2;
+    }
+
+    .mud-chat-start .mud-avatar {
+        grid-column-start: 1;
+        margin-left: 0.25rem;
+        margin-right: -0.35rem;
+    }
+
+    .mud-chat-start .mud-chat-bubble {
+        grid-column-start: 2;
+        text-align: start;
+    }
+
+        .mud-chat-start .mud-chat-bubble:before {
+            inset-inline-start: -0.749rem;
+        }
+
+/* --------------------------
+   End (right) layout
+   -------------------------- */
+.mud-chat-end {
+    place-items: end;
+    grid-template-columns: 99fr 1fr;
+}
+
+    .mud-chat-end .mud-chat-header,
+    .mud-chat-end .mud-chat-footer {
+        grid-column-start: 1;
+    }
+
+    .mud-chat-end .mud-avatar {
+        grid-column-start: 2;
+        margin-right: 0.25rem;
+        margin-left: -0.35rem;
+    }
+
+    .mud-chat-end .mud-chat-bubble {
+        grid-column-start: 1;
+        text-align: end;
+    }
+
+        .mud-chat-end .mud-chat-bubble:before {
+            inset-inline-start: 100%;
+            transform: scaleX(-1);
+        }
+
+/* --------------------------
+   Chat text color/background variants
+   (default and each palette color)
+   -------------------------- */
+
+.mud-chat-text {
+    background-color: var(--mud-palette-error-hover);
+}
+
+/* default */
+.mud-chat-text-default {
+    color: var(--mud-palette-text-primary);
+    --mud-ripple-color: var(--mud-palette-text-primary);
+}
+
+/* palette: primary */
+.mud-chat-text-primary {
+    color: var(--mud-palette-primary-darken);
+    --mud-ripple-color: var(--mud-palette-primary-darken);
+}
+
+/* palette: secondary */
+.mud-chat-text-secondary {
+    color: var(--mud-palette-secondary-darken);
+    --mud-ripple-color: var(--mud-palette-secondary-darken);
+}
+
+/* palette: tertiary */
+.mud-chat-text-tertiary {
+    color: var(--mud-palette-tertiary-darken);
+    --mud-ripple-color: var(--mud-palette-tertiary-darken);
+}
+
+/* palette: info */
+.mud-chat-text-info {
+    color: var(--mud-palette-info-darken);
+    --mud-ripple-color: var(--mud-palette-info-darken);
+}
+
+/* palette: success */
+.mud-chat-text-success {
+    color: var(--mud-palette-success-darken);
+    --mud-ripple-color: var(--mud-palette-success-darken);
+}
+
+/* palette: warning */
+.mud-chat-text-warning {
+    color: var(--mud-palette-warning-darken);
+    --mud-ripple-color: var(--mud-palette-warning-darken);
+}
+
+/* palette: error */
+.mud-chat-text-error {
+    color: var(--mud-palette-error-darken);    
+    --mud-ripple-color: var(--mud-palette-error-darken);
+}
+
+/* palette: dark */
+.mud-chat-text-dark {
+    color: var(--mud-palette-dark-darken);
+    --mud-ripple-color: var(--mud-palette-dark-darken);
+}
+
+/* --------------------------
+   Outlined variants (default + colors)
+   -------------------------- */
+
+/* outlined default */
+.mud-chat-outlined-default {
+    color: var(--mud-palette-text-primary);
+    border-color: var(--mud-palette-action-default-hover);
+    --mud-ripple-color: var(--mud-palette-text-primary);
+}
+
+    .mud-chat-outlined-default:before {
+        background-color: var(--mud-palette-action-default-hover);
+    }
+
+/* outlined primary */
+.mud-chat-outlined-primary {
+    color: var(--mud-palette-primary-darken);
+    border-color: var(--mud-palette-primary);
+    --mud-ripple-color: var(--mud-palette-primary-darken);
+}
+
+    .mud-chat-outlined-primary:before {
+        background-color: var(--mud-palette-primary-darken);
+    }
+
+/* outlined secondary */
+.mud-chat-outlined-secondary {
+    color: var(--mud-palette-secondary-darken);
+    border-color: var(--mud-palette-secondary);
+    --mud-ripple-color: var(--mud-palette-secondary-darken);
+}
+
+    .mud-chat-outlined-secondary:before {
+        background-color: var(--mud-palette-secondary-darken);
+    }
+
+/* outlined tertiary */
+.mud-chat-outlined-tertiary {
+    color: var(--mud-palette-tertiary-darken);
+    border-color: var(--mud-palette-tertiary);
+    --mud-ripple-color: var(--mud-palette-tertiary-darken);
+}
+
+    .mud-chat-outlined-tertiary:before {
+        background-color: var(--mud-palette-tertiary-darken);
+    }
+
+/* outlined info */
+.mud-chat-outlined-info {
+    color: var(--mud-palette-info-darken);
+    border-color: var(--mud-palette-info);
+    --mud-ripple-color: var(--mud-palette-info-darken);
+}
+
+    .mud-chat-outlined-info:before {
+        background-color: var(--mud-palette-info-darken);
+    }
+
+/* outlined success */
+.mud-chat-outlined-success {
+    color: var(--mud-palette-success-darken);
+    border-color: var(--mud-palette-success);
+    --mud-ripple-color: var(--mud-palette-success-darken);
+}
+
+    .mud-chat-outlined-success:before {
+        background-color: var(--mud-palette-success-darken);
+    }
+
+/* outlined warning */
+.mud-chat-outlined-warning {
+    color: var(--mud-palette-warning-darken);
+    border-color: var(--mud-palette-warning);
+    --mud-ripple-color: var(--mud-palette-warning-darken);
+}
+
+    .mud-chat-outlined-warning:before {
+        background-color: var(--mud-palette-warning-darken);
+    }
+
+/* outlined error */
+.mud-chat-outlined-error {
+    color: var(--mud-palette-error-darken);
+    border-color: var(--mud-palette-error);
+    --mud-ripple-color: var(--mud-palette-error-darken);
+}
+
+    .mud-chat-outlined-error:before {
+        background-color: var(--mud-palette-error-darken);
+    }
+
+.mud-chat-outlined {
+    border-style: solid;
+    border-width: 1px;
+}
+
+    .mud-chat-outlined.mud-chat-arrow-top:before {
+        top: -0.05rem !important;
+    }
+
+    .mud-chat-outlined.mud-chat-arrow-bottom:before {
+        bottom: -0.02rem !important;
+    }
+
+/* outlined dark */
+.mud-chat-outlined-dark {
+    color: var(--mud-palette-dark-darken);
+    border: 1px solid var(--mud-palette-dark);
+    --mud-ripple-color: var(--mud-palette-dark-darken);
+}
+
+    .mud-chat-outlined-dark:before {
+        background-color: var(--mud-palette-dark-darken);
+    }
+
+    .mud-chat-outlined-dark.mud-chat-arrow-top:before {
+        top: -0.05rem !important;
+    }
+
+    .mud-chat-outlined-dark.mud-chat-arrow-bottom:before {
+        bottom: -0.02rem !important;
+    }
+
+/* --------------------------
+   Filled variants (default + colors)
+   -------------------------- */
+
+.mud-chat-filled {
+    font-weight: 500;
+}
+
+/* filled default */
+.mud-chat-filled-default {
+    color: var(--mud-palette-text-primary);
+    background-color: var(--mud-palette-action-default-hover);
+    --mud-ripple-color: var(--mud-palette-text-primary);
+}
+
+/* filled primary */
+.mud-chat-filled-primary {
+    color: var(--mud-palette-primary-text);
+    background-color: var(--mud-palette-primary);
+    --mud-ripple-color: var(--mud-palette-primary-text);
+}
+
+/* filled secondary */
+.mud-chat-filled-secondary {
+    color: var(--mud-palette-secondary-text);
+    background-color: var(--mud-palette-secondary);
+    --mud-ripple-color: var(--mud-palette-secondary-text);
+}
+
+/* filled tertiary */
+.mud-chat-filled-tertiary {
+    color: var(--mud-palette-tertiary-text);
+    background-color: var(--mud-palette-tertiary);
+    --mud-ripple-color: var(--mud-palette-tertiary-text);
+}
+
+/* filled info */
+.mud-chat-filled-info {
+    color: var(--mud-palette-info-text);
+    background-color: var(--mud-palette-info);
+    --mud-ripple-color: var(--mud-palette-info-text);
+}
+
+/* filled success */
+.mud-chat-filled-success {
+    color: var(--mud-palette-success-text);
+    background-color: var(--mud-palette-success);
+    --mud-ripple-color: var(--mud-palette-success-text);
+}
+
+/* filled warning */
+.mud-chat-filled-warning {
+    color: var(--mud-palette-warning-text);
+    background-color: var(--mud-palette-warning);
+    --mud-ripple-color: var(--mud-palette-warning-text);
+}
+
+/* filled error */
+.mud-chat-filled-error {
+    color: var(--mud-palette-error-text);
+    background-color: var(--mud-palette-error);
+    --mud-ripple-color: var(--mud-palette-error-text);
+}
+
+/* filled dark */
+.mud-chat-filled-dark {
+    color: var(--mud-palette-dark-text);
+    background-color: var(--mud-palette-dark);
+    --mud-ripple-color: var(--mud-palette-dark-text);
+}
