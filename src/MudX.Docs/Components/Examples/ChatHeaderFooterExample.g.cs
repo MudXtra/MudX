@@ -18,7 +18,7 @@ namespace MudX.Docs.Examples
     <MudXChatFooter Text=""Seen"" />
 </MudXChat>
 
-<MudXChat ChatPosition=""ChatBubblePosition.Start"">
+<MudXChat Class=""mt-2"" ChatPosition=""ChatBubblePosition.Start"">
     <MudXChatHeader>
         <MudAlert Severity=""Severity.Info"" Dense=""true"">Obi-Wan Kenobi</MudAlert>
     </MudXChatHeader>
