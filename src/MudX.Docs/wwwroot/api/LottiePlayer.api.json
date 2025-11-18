@@ -143,7 +143,7 @@
     {
       "Name": "ElementId",
       "Type": "String",
-      "Default": "lottie-d0ioiec3",
+      "Default": "lottie-1y7zydmq",
       "Description": "Represents the unique identifier for a Lottie element\u0027s surrounding div."
     }
   ],
