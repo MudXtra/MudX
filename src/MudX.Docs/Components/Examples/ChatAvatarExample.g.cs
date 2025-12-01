@@ -24,7 +24,7 @@ namespace MudX.Docs.Examples
 
 <MudXChat ChatPosition=""ChatBubblePosition.Start"">
     <MudAvatar>
-        <MudImage Src=""images/jonny.jpg"" />
+        <MudImage Src=""./_content/MudX.Docs/images/jonny.jpg"" />
     </MudAvatar>
     <MudXChatBubble>
         Not leave it in Darkness

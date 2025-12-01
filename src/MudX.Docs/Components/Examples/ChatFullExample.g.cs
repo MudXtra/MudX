@@ -46,7 +46,7 @@ namespace MudX.Docs.Examples
 <MudXChat Color=""_selectedColor"" Dense=""@_dense"" Elevation=""@_elevation"" Variant=""@_variant"" Square=""_square"" ArrowPosition=""_selectedArrowPosition"" ChatPosition=""ChatBubblePosition.Start"">
     <MudXChatHeader Name=""Anakin"" Time=""12:46"" />
     <MudAvatar Size=""@(_dense? Size.Small: Size.Medium)"">
-        <MudImage Src=""images/toiletvisit.jpg"" />
+        <MudImage Src=""_content/MudX.Docs/images/toiletvisit.jpg"" />
     </MudAvatar>
     <MudXChatBubble>What kind of nonsense is this</MudXChatBubble>
     <MudXChatBubble>Put me on the Council and not make me a Master!??</MudXChatBubble>
@@ -57,7 +57,7 @@ namespace MudX.Docs.Examples
 <MudXChat Color=""_selectedColor"" Dense=""@_dense"" Elevation=""@_elevation"" Variant=""@_variant"" Square=""_square"" ArrowPosition=""_selectedArrowPosition"" ChatPosition=""ChatBubblePosition.End"">
     <MudXChatHeader Name=""Obi-Wan Kenobi"" Time=""12:45"" />
     <MudAvatar Size=""@(_dense? Size.Small: Size.Medium)"">
-        <MudImage Src=""images/jonny.jpg"" />
+        <MudImage Src=""./_content/MudX.Docs/images/jonny.jpg"" />
     </MudAvatar>
     <MudXChatBubble>Calm down, Anakin. You have been given a great honor. <br /> To be on the Council at your age.</MudXChatBubble>
     <MudXChatBubble Color=""Color.Primary"">It's never happened before.</MudXChatBubble>

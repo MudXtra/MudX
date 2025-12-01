@@ -14,11 +14,11 @@ namespace MudX
         private Variant GetBubbleVariant => Variant != null ? Variant.Value : ParentVariant;
 
         /// <inheritdoc />
-        protected string Classname => new CssBuilder("mud-chat-bubble")
-            .AddClass($"mud-chat-{GetBubbleVariant.ToDescriptionString()}")
-            .AddClass($"mud-chat-{GetBubbleVariant.ToDescriptionString()}-{GetBubbleColor.ToDescriptionString()}")
-            .AddClass($"mud-chat-arrow-{ParentArrowPosition.ToDescriptionString()}")
-            .AddClass("mud-chat-bubble-clickable", OnClick.HasDelegate || OnContextClick.HasDelegate)
+        protected string Classname => new CssBuilder("mudx-chat-bubble")
+            .AddClass($"mudx-chat-{GetBubbleVariant.ToDescriptionString()}")
+            .AddClass($"mudx-chat-{GetBubbleVariant.ToDescriptionString()}-{GetBubbleColor.ToDescriptionString()}")
+            .AddClass($"mudx-chat-arrow-{ParentArrowPosition.ToDescriptionString()}")
+            .AddClass("mudx-chat-bubble-clickable", OnClick.HasDelegate || OnContextClick.HasDelegate)
             .AddClass("mud-ripple", OnClick.HasDelegate || OnContextClick.HasDelegate)
             .AddClass(Class)
             .Build();

@@ -10,11 +10,11 @@ namespace MudX
     public partial class MudXChat : MudComponentBase
     {
         /// <inheritdoc />
-        protected string Classname => new CssBuilder("mud-chat")
-            .AddClass($"mud-chat-{ChatPosition.ToDescriptionString()}")
-            .AddClass($"mud-chat-arrow-{ArrowPosition.ToDescriptionString()}")
+        protected string Classname => new CssBuilder("mudx-chat")
+            .AddClass($"mudx-chat-{ChatPosition.ToDescriptionString()}")
+            .AddClass($"mudx-chat-arrow-{ArrowPosition.ToDescriptionString()}")
             .AddClass($"mud-square", Square)
-            .AddClass($"mud-chat-rtl", RightToLeft)
+            .AddClass($"mudx-chat-rtl", RightToLeft)
             .AddClass($"mud-dense", Dense)
             .AddClass($"mud-elevation-{Elevation}")
             .AddClass(Class)

@@ -3,12 +3,12 @@
 }
 
     .docs-section-content .docs-section-inner {
-        max-height: 300px;
+        max-height: 500px;
         overflow-y: auto;
     }
 
     .docs-section-content .docs-section-code {
-        max-height: 300px;
+        max-height: 500px;
         overflow-y: auto;
     }
 

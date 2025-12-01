@@ -10,7 +10,7 @@ namespace MudX
     public partial class MudXChatHeader : MudComponentBase
     {
         /// <inheritdoc />
-        protected string Classname => new CssBuilder("mud-chat-header")
+        protected string Classname => new CssBuilder("mudx-chat-header")
             .AddClass(Class)
             .Build();
 

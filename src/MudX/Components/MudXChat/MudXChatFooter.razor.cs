@@ -10,7 +10,7 @@ namespace MudX
     public partial class MudXChatFooter : MudComponentBase
     {
         /// <inheritdoc />
-        protected string Classname => new CssBuilder("mud-chat-footer")
+        protected string Classname => new CssBuilder("mudx-chat-footer")
             .AddClass(Class)
             .Build();
 
