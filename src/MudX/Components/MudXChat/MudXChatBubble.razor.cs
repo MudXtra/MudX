@@ -82,7 +82,7 @@ namespace MudX
         public EventCallback<MouseEventArgs> OnContextClick { get; set; }
 
         /// <summary>
-        /// Occurs when the chat bubble has been clicked.
+        /// Internal handler invoked when the chat bubble is clicked; forwards the event to the <see cref="OnClick"/> cakllback if it has been set.
         /// </summary>
         internal async Task OnClickHandler(MouseEventArgs mouseEventArgs)
         {
@@ -93,7 +93,8 @@ namespace MudX
         }
 
         /// <summary>
-        /// Occurs when the chat bubble has been right-clicked.
+        /// Internal handler invoked when the chat bubble is right-clicked; forwards the event to the <see cref="OnContextClick"/> 
+        /// callback if it has been set.
         /// </summary>
         internal async Task OnContextHandler(MouseEventArgs mouseEventArgs)
         {
