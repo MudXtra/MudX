@@ -54,7 +54,7 @@ namespace MudX
         public Color? Color { get; set; }
 
         /// <summary>
-        /// The color of the component. It supports the theme colors.
+        /// The display variant of the component (e.g., filled, outlined).
         /// </summary>
         [Parameter]
         [Category(CategoryTypes.Chat.Appearance)]
