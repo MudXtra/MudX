@@ -1,0 +1,105 @@
+@page "/docs/chat"
+@using MudX.Docs.Chat
+@using MudX.Docs.Examples
+
+<PageTitle>Chat</PageTitle>
+
+<DocsPage Headline="Chat">
+
+    <ChildContent>
+        <DocsPageHeader>
+            <Description>
+                The <CodeInline>MudXChat</CodeInline> component is used to house one or more MudXChatBubble components, with optional components 
+                such as <CodeInline>MudAvatar</CodeInline>, <CodeInline>MudXChatHeader</CodeInline>, and <CodeInline>MudXChatFooter</CodeInline>.
+            </Description>
+        </DocsPageHeader>
+
+        <DocsPageSection Title="Basic Usage">
+            <Description>
+                MudXChat can be used to display one or more <CodeInline>MudXChatBubble</CodeInline> components. The bubbles can be aligned at the start (left for Left-to-Right, right for Right-to-Left) or at the end.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@ChatBasicExampleCode.Files">
+                    <ChatBasicExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="With Avatar">
+                <Description>
+                    MudXChat can include an avatar, which works seamlessly with the <CodeInline>MudAvatar</CodeInline> component. The avatar will always appear on the first <CodeInline>MudXChatBubble</CodeInline> inside a MudXChat.
+                </Description>
+            <ChildContent>
+                <SectionContent Codes="ChatAvatarExampleCode.Files">
+                    <ChatAvatarExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="With Header and Footer">
+                <Description>
+                    In addition to an avatar, MudXChat can include both a header and a footer. The header can contain optional properties such as Name and Time, or you can nest Child Content. The header is aligned at the top row and will not support multiple headers. 
+                    The footer can include an optional Text property or nested ChildContent, additionally you can include any number of <CodeInline>MudXChatFooter</CodeInline> components within a single <CodeInline>MudXChat</CodeInline>.
+                </Description>
+            <ChildContent>
+                <SectionContent Codes="ChatHeaderFooterExampleCode.Files">
+                    <ChatHeaderFooterExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="ChatBubble OnClick Parameter">
+            <Description>
+                    You can define the OnClick and/or OnContextClick parameter for the <CodeInline>MudXChatBubble</CodeInline> component to handle click events. 
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="ChatClickExampleCode.Files">
+                    <ChatClickExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Additional Chat Bubble Options">
+                <Description>
+                    <CodeInline>MudXChat</CodeInline> can be customized with the following properties:
+                    <ul class="ml-3">
+                        <li><CodeInline Tag="false">Dense</CodeInline>: Reduces the vertical margins of the chat bubbles.</li>
+                        <li><CodeInline Tag="false">Square</CodeInline>: Makes the chat bubbles square.</li>
+                        <li><CodeInline Tag="false">Elevation</CodeInline>: The elevation of the chat bubbles. Defaults to 0.</li>
+                        <li><CodeInline Tag="false">ArrowPosition</CodeInline>: The position of the arrow on the first chat bubble. Defaults to Top.</li>
+                        <li>*<CodeInline Tag="false">Color</CodeInline>: The color of the chat bubbles. Defaults to <CodeInline>Color.Default</CodeInline>.</li>
+                        <li>*<CodeInline Tag="false">Variant</CodeInline>: The variant of the chat bubbles. Defaults to <CodeInline>Variant.Text</CodeInline>.</li>
+                    </ul>
+                    * These properties are passed down to the <CodeInline>MudChatBubble</CodeInline> components, and can be overridden individually.
+                </Description>
+            <ChildContent>
+                <SectionContent Codes="ChatFullExampleCode.Files">
+                    <ChatFullExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Adding a Hover Event">
+                <Description>
+                    <CodeInline>MudXChat</CodeInline> and <CodeInline>MudXChatBubble</CodeInline> can be customized with any html classes, styles, and normal events.
+                    Here is an example of adding a hovering like/reply center.
+                </Description>            
+                <ChildContent>
+                <SectionContent Codes="ChatHoverExampleCode.Files">
+                    <ChatHoverExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+    </ChildContent>
+
+    <ApiContent>
+        <ApiSection ApiJson="MudXChat.api.json" />
+    </ApiContent>
+
+</DocsPage>
+
+@code {
+#pragma warning disable CS0414
+    private static string __title__ = "Chat";
+#pragma warning restore CS0414
+}

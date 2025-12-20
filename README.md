@@ -15,6 +15,7 @@
 
 ## Table of Contents
 - [MudXSecurityCode](#mudxsecuritycode)
+- [MudXChat] (#mudxchat)
 - [MudXOutline](#mudxoutline)
 - [MudXCodeBlock](#mudxcodeblock)
 - [MudXCopyToClipboard](#mudxcopytoclipboard)
@@ -25,6 +26,15 @@
 ---
 
 ## Components
+
+### MudXChat
+![status](https://img.shields.io/badge/status-new-red)
+
+A component for creating a chat interface with customizable MudXChatBubble components and headers and footers.
+![MudXChat Image](https://github.com/MudXtra/Mudx/raw/dev/images/MudXChat.png)
+[Back to top](#table-of-contents)
+
+---
 
 ### MudXSecurityCode
 ![status](https://img.shields.io/badge/status-new-red)

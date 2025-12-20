@@ -1,0 +1,101 @@
+using System.Collections.Generic;
+using MudX;
+
+namespace MudX.Docs.Examples
+{
+    public static class ChatClickExampleCode
+    {
+        public static readonly IEnumerable<CodeFile> Files = new[]
+        {
+            new CodeFile
+            (
+                Title: "ChatClickExample.razor",
+                Code: @"@namespace MudX.Docs.Chat
+@inject ISnackbar Snackbar
+
+@{
+    var orderedGroups = messages
+        .OrderByDescending(m => m.Time)
+        .GroupBy(m => m.Name)
+        .ToList();
+
+    for (int i = 0; i < orderedGroups.Count; i++)
+    {
+        var group = orderedGroups[i];
+        var position = i == 0 ? ChatBubblePosition.Start : ChatBubblePosition.End;
+
+        <MudXChat ChatPosition=""@position"">
+            <MudAvatar>@group.First().Initials</MudAvatar>
+            <MudXChatHeader Name=""@group.Key"" Time=""@group.First().Time"" />
+            @foreach (var message in group.OrderByDescending(m => m.Time))
+            {
+                <MudXChatBubble OnClick=""(MouseEventArgs args) => ClickMessage(args, message)"" 
+                               OnContextClick=""(MouseEventArgs args) => RightClickMessage(args, message)"">
+                    @message.Text
+                </MudXChatBubble>
+            }
+        </MudXChat>
+    }
+}
+
+<MudMenu PositionAtCursor=""true"" @ref=""_contextMenu"" id=""_contextMenu"">
+    <MudMenuItem Icon=""@Icons.Material.Filled.Block"" OnClick=""@BanUser"">
+        Ban @_selectedMessage?.Name
+    </MudMenuItem>
+    <MudMenuItem Icon=""@Icons.Material.Filled.Info"" OnClick=""@ShowHiddenInfo"">
+        View Details for @_selectedMessage?.Name
+    </MudMenuItem>
+</MudMenu>
+
+@code {
+    #nullable enable
+    private List<Message> messages = new();
+    private Message? _selectedMessage;
+    private MudMenu? _contextMenu;
+
+    protected override void OnInitialized()
+    {
+        messages.Add(new Message(""Obi-Wan Kenobi"", ""OK"", ""You were my brother Anakin."", ""2 hours ago""));
+        messages.Add(new Message(""Obi-Wan Kenobi"", ""OK"", ""I loved you."", ""2 hours ago""));
+        messages.Add(new Message(""Anakin Skywalker"", ""AS"", ""I'm sorry."", ""1 hour ago""));
+    }
+
+    private void ShowHiddenInfo()
+    {
+        if (_selectedMessage is not null)
+        {
+            Snackbar.Add($""Hidden information for {_selectedMessage.Name}"", Severity.Info);
+        }
+    }
+
+    private void BanUser()
+    {
+        if (_selectedMessage is not null)
+        {
+            Snackbar.Add($""{_selectedMessage.Name} has been banned!"", Severity.Error);
+        }
+    }
+
+    private async Task RightClickMessage(MouseEventArgs args, Message message)
+    {
+        _selectedMessage = message;
+        if (_contextMenu != null)
+            await _contextMenu.OpenMenuAsync(args);
+    }
+
+    private async Task ClickMessage(MouseEventArgs args, Message message)
+    {
+        _selectedMessage = message;
+        Snackbar.Add(""Message clicked: "" + message.Text, Severity.Info);
+        await Task.CompletedTask;
+    }
+
+
+    private record Message(string Name, string Initials, string Text, string Time);
+}
+",
+                Language: CodeLanguage.Razor
+            )
+        };
+    }
+}
