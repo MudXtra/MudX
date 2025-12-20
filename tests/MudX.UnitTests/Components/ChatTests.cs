@@ -32,12 +32,12 @@ namespace MudX.UnitTests.Components
                 .Add(p => p.Elevation, 2)
                 .Add(p => p.Class, "custom-class"));
 
-            comp.Markup.Should().Contain("mud-chat-end");
+            comp.Markup.Should().Contain("mudx-chat-end");
             comp.Markup.Should().Contain("mud-square");
             comp.Markup.Should().Contain("mud-dense");
             comp.Markup.Should().Contain("mud-elevation-2");
             comp.Markup.Should().Contain("custom-class");
-            comp.Markup.Should().Contain("mud-chat-arrow-middle");
+            comp.Markup.Should().Contain("mudx-chat-arrow-middle");
         }
 
         [Test]
@@ -47,9 +47,9 @@ namespace MudX.UnitTests.Components
                  .Add(p => p.Color, Color.Success)
                  .Add(p => p.Variant, Variant.Outlined));
 
-            comp.Markup.Should().Contain("mud-chat-bubble");
-            comp.Markup.Should().Contain("mud-chat-outlined-success");
-            comp.Markup.Should().Contain("mud-chat-arrow-none");
+            comp.Markup.Should().Contain("mudx-chat-bubble");
+            comp.Markup.Should().Contain("mudx-chat-outlined-success");
+            comp.Markup.Should().Contain("mudx-chat-arrow-none");
         }
 
         [Test]
@@ -69,7 +69,7 @@ namespace MudX.UnitTests.Components
             bubble.Instance.ParentColor.Should().Be(Color.Primary);
             bubble.Instance.ParentVariant.Should().Be(Variant.Filled);
             bubble.Instance.ParentArrowPosition.Should().Be(ChatArrowPosition.Middle);
-            bubble.Markup.Should().Contain("mud-chat-filled-primary");
+            bubble.Markup.Should().Contain("mudx-chat-filled-primary");
         }
 
         [Test]
@@ -95,7 +95,7 @@ namespace MudX.UnitTests.Components
                 }));
 
             var bubble = comp.FindComponent<MudXChatBubble>();
-            bubble.Markup.Should().Contain("mud-chat-outlined-secondary");
+            bubble.Markup.Should().Contain("mudx-chat-outlined-secondary");
         }
 
         [Test]
@@ -121,7 +121,7 @@ namespace MudX.UnitTests.Components
             var comp = Context.RenderComponent<MudXChat>(parameters => parameters
                 .Add(p => p.RightToLeft, true));
 
-            comp.Markup.Should().Contain("mud-chat-rtl");
+            comp.Markup.Should().Contain("mudx-chat-rtl");
         }
 
         [Test]
@@ -143,7 +143,7 @@ namespace MudX.UnitTests.Components
                 .Add(p => p.Time, "12:00 PM")
                 .Add(p => p.Class, "custom-header-class"));
 
-            comp.Markup.Should().Contain("mud-chat-header");
+            comp.Markup.Should().Contain("mudx-chat-header");
             comp.Markup.Should().Contain("John Doe");
             comp.Markup.Should().Contain("12:00 PM");
             comp.Markup.Should().Contain("custom-header-class");
@@ -168,7 +168,7 @@ namespace MudX.UnitTests.Components
                 .Add(p => p.Text, "Typing...")
                 .Add(p => p.Class, "custom-footer-class"));
 
-            comp.Markup.Should().Contain("mud-chat-footer");
+            comp.Markup.Should().Contain("mudx-chat-footer");
             comp.Markup.Should().Contain("Typing...");
             comp.Markup.Should().Contain("custom-footer-class");
         }
