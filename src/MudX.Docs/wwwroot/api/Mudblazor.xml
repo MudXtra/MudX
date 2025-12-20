@@ -137,6 +137,11 @@
             If true, the button will be disabled.
             </summary>
         </member>
+        <member name="P:MudBlazor.MudBaseButton.ClickPropagation">
+            <summary>
+            If true, the click event bubbles up to the containing/parent component.
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudBaseButton.DisableElevation">
             <summary>
             If true, no drop-shadow will be used.
@@ -160,6 +165,12 @@
         <member name="P:MudBlazor.MudBaseButton.OnClick">
             <summary>
             Button click event.
+            </summary>
+        </member>
+        <member name="F:MudBlazor.MudBaseInput`1._validated">
+            <summary>
+            this flag is set to true by validation in order to prevent multiple invocations of validation after a single
+            value change. When the value changes _validated is set back to false.
             </summary>
         </member>
         <member name="P:MudBlazor.MudBaseInput`1.Disabled">
@@ -300,6 +311,11 @@
             <summary>
             The pattern attribute, when specified, is a regular expression which the input's value must match in order for the value to pass constraint validation. It must be a valid JavaScript regular expression
             Not Supported in multline input
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudBaseInput`1.ShrinkLabel">
+            <summary>
+            ShrinkLabel prevents the label from moving down into the field when the field is empty.
             </summary>
         </member>
         <member name="M:MudBlazor.MudBaseInput`1.GetInputType">
@@ -464,6 +480,11 @@
             Command executed when the user clicks on an element.
             </summary>
         </member>
+        <member name="P:MudBlazor.MudBaseSelectItem.OnClick">
+            <summary>
+            Click event. Will not be called if <c>Href</c> is also set.
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudBooleanInput`1.Disabled">
             <summary>
             If true, the input element will be disabled.
@@ -479,9 +500,19 @@
             The state of the component
             </summary>
         </member>
+        <member name="P:MudBlazor.MudBooleanInput`1.Value">
+            <summary>
+            The state of the component
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudBooleanInput`1.StopClickPropagation">
             <summary>
             If true will prevent the click from bubbling up the event tree.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudBooleanInput`1.ValueChanged">
+            <summary>
+            Fired when Value changes.
             </summary>
         </member>
         <member name="P:MudBlazor.MudBooleanInput`1.CheckedChanged">
@@ -528,8 +559,200 @@
         <member name="M:MudBlazor.MudComponentBase.OnAfterRender(System.Boolean)">
             <inheritdoc />
         </member>
+        <member name="M:MudBlazor.MudComponentBase.OnInitialized">
+            <inheritdoc />
+        </member>
+        <member name="M:MudBlazor.MudComponentBase.SetParametersAsync(Microsoft.AspNetCore.Components.ParameterView)">
+            <inheritdoc />
+        </member>
+        <member name="M:MudBlazor.MudComponentBase.OnParametersSet">
+            <inheritdoc />
+        </member>
         <member name="M:MudBlazor.MudComponentBase.MudBlazor#Interfaces#IMudStateHasChanged#StateHasChanged">
             <inheritdoc />
+        </member>
+        <member name="M:MudBlazor.MudComponentBase.RegisterParameter``1(System.String,System.Func{``0},System.Func{Microsoft.AspNetCore.Components.EventCallback{``0}},System.Action,System.Collections.Generic.IEqualityComparer{``0},System.String)">
+            <summary>
+            Register a component Parameter, its EventCallback and a change handler so that the base can manage it as a ParameterState object.
+            It is the new rule in MudBlazor, that parameters must be auto properties.
+            By registering the parameter with a change handler you can still execute code when the parameter value changes.
+            This class is part of MudBlazor's ParameterState framework.
+            <para />
+            <b>NB!</b> This method must be called in the constructor!
+            </summary>
+            <remarks>
+            See CONTRIBUTING.md for a more detailed explanation on why MudBlazor parameters have to registered. 
+            </remarks>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+            <param name="parameterName">The name of the parameter, passed using nameof(...).</param>
+            <param name="getParameterValueFunc">>A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to read the property value.</param>
+            <param name="eventCallbackFunc">A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to get the <see cref="T:Microsoft.AspNetCore.Components.EventCallback"/> of the parameter.</param>
+            <param name="parameterChangedHandler">An action containing code that needs to be executed when the parameter value changes.</param>
+            <param name="comparer">An optional comparer used to determine equality of parameter values.</param>
+            <param name="handlerName">The handler's name. Do not set this value as it's set at compile-time through <see cref="T:System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/>.</param>
+            <returns>The <see cref="T:MudBlazor.State.ParameterState`1"/> object to be stored in a field for accessing the current state value.</returns>
+        </member>
+        <member name="M:MudBlazor.MudComponentBase.RegisterParameter``1(System.String,System.Func{``0},System.Func{Microsoft.AspNetCore.Components.EventCallback{``0}},System.Action{MudBlazor.State.ParameterChangedEventArgs{``0}},System.Collections.Generic.IEqualityComparer{``0},System.String)">
+            <summary>
+            Register a component Parameter, its EventCallback and a change handler so that the base can manage it as a ParameterState object.
+            It is the new rule in MudBlazor, that parameters must be auto properties.
+            By registering the parameter with a change handler you can still execute code when the parameter value changes.
+            This class is part of MudBlazor's ParameterState framework.
+            <para />
+            <b>NB!</b> This method must be called in the constructor!
+            </summary>
+            <remarks>
+            See CONTRIBUTING.md for a more detailed explanation on why MudBlazor parameters have to registered. 
+            </remarks>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+            <param name="parameterName">The name of the parameter, passed using nameof(...).</param>
+            <param name="getParameterValueFunc">>A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to read the property value.</param>
+            <param name="eventCallbackFunc">A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to get the <see cref="T:Microsoft.AspNetCore.Components.EventCallback"/> of the parameter.</param>
+            <param name="parameterChangedHandler">An action containing code that needs to be executed when the parameter value changes.</param>
+            <param name="comparer">An optional comparer used to determine equality of parameter values.</param>
+            <param name="handlerName">The handler's name. Do not set this value as it's set at compile-time through <see cref="T:System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/>.</param>
+            <returns>The <see cref="T:MudBlazor.State.ParameterState`1"/> object to be stored in a field for accessing the current state value.</returns>
+        </member>
+        <member name="M:MudBlazor.MudComponentBase.RegisterParameter``1(System.String,System.Func{``0},System.Func{Microsoft.AspNetCore.Components.EventCallback{``0}},System.Func{System.Threading.Tasks.Task},System.Collections.Generic.IEqualityComparer{``0},System.String)">
+            <summary>
+            Register a component Parameter, its EventCallback and a change handler so that the base can manage it as a ParameterState object.
+            It is the new rule in MudBlazor, that parameters must be auto properties.
+            By registering the parameter with a change handler you can still execute code when the parameter value changes.
+            This class is part of MudBlazor's ParameterState framework.
+            <para />
+            <b>NB!</b> This method must be called in the constructor!
+            </summary>
+            <remarks>
+            See CONTRIBUTING.md for a more detailed explanation on why MudBlazor parameters have to registered. 
+            </remarks>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+            <param name="parameterName">The name of the parameter, passed using nameof(...).</param>
+            <param name="getParameterValueFunc">>A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to read the property value.</param>
+            <param name="eventCallbackFunc">A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to get the <see cref="T:Microsoft.AspNetCore.Components.EventCallback`1"/> of the parameter.</param>
+            <param name="parameterChangedHandler">A function containing code that needs to be executed when the parameter value changes.</param>
+            <param name="comparer">An optional comparer used to determine equality of parameter values.</param>
+            <param name="handlerName">The handler's name. Do not set this value as it's set at compile-time through <see cref="T:System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/>.</param>
+            <returns>The <see cref="T:MudBlazor.State.ParameterState`1"/> object to be stored in a field for accessing the current state value.</returns>
+        </member>
+        <member name="M:MudBlazor.MudComponentBase.RegisterParameter``1(System.String,System.Func{``0},System.Func{Microsoft.AspNetCore.Components.EventCallback{``0}},System.Func{MudBlazor.State.ParameterChangedEventArgs{``0},System.Threading.Tasks.Task},System.Collections.Generic.IEqualityComparer{``0},System.String)">
+            <summary>
+            Register a component Parameter, its EventCallback and a change handler so that the base can manage it as a ParameterState object.
+            It is the new rule in MudBlazor, that parameters must be auto properties.
+            By registering the parameter with a change handler you can still execute code when the parameter value changes.
+            This class is part of MudBlazor's ParameterState framework.
+            <para />
+            <b>NB!</b> This method must be called in the constructor!
+            </summary>
+            <remarks>
+            See CONTRIBUTING.md for a more detailed explanation on why MudBlazor parameters have to registered. 
+            </remarks>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+            <param name="parameterName">The name of the parameter, passed using nameof(...).</param>
+            <param name="getParameterValueFunc">>A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to read the property value.</param>
+            <param name="eventCallbackFunc">A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to get the <see cref="T:Microsoft.AspNetCore.Components.EventCallback`1"/> of the parameter.</param>
+            <param name="parameterChangedHandler">A function containing code that needs to be executed when the parameter value changes.</param>
+            <param name="comparer">An optional comparer used to determine equality of parameter values.</param>
+            <param name="handlerName">The handler's name. Do not set this value as it's set at compile-time through <see cref="T:System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/>.</param>
+            <returns>The <see cref="T:MudBlazor.State.ParameterState`1"/> object to be stored in a field for accessing the current state value.</returns>
+        </member>
+        <member name="M:MudBlazor.MudComponentBase.RegisterParameter``1(System.String,System.Func{``0},System.Func{Microsoft.AspNetCore.Components.EventCallback{``0}},System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Register a component Parameter, its EventCallback and a change handler so that the base can manage it as a ParameterState object.
+            It is the new rule in MudBlazor, that parameters must be auto properties.
+            By registering the parameter with a change handler you can still execute code when the parameter value changes.
+            This class is part of MudBlazor's ParameterState framework.
+            <para />
+            <b>NB!</b> This method must be called in the constructor!
+            </summary>
+            <remarks>
+            See CONTRIBUTING.md for a more detailed explanation on why MudBlazor parameters have to registered. 
+            </remarks>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+            <param name="parameterName">The name of the parameter, passed using nameof(...).</param>
+            <param name="getParameterValueFunc">>A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to read the property value.</param>
+            <param name="eventCallbackFunc">A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to get the <see cref="T:Microsoft.AspNetCore.Components.EventCallback`1"/> of the parameter.</param>
+            <param name="comparer">An optional comparer used to determine equality of parameter values.</param>
+            <returns>The <see cref="T:MudBlazor.State.ParameterState`1"/> object to be stored in a field for accessing the current state value.</returns>
+        </member>
+        <member name="M:MudBlazor.MudComponentBase.RegisterParameter``1(System.String,System.Func{``0},System.Action,System.Collections.Generic.IEqualityComparer{``0},System.String)">
+            <summary>
+            Register a component Parameter and a change handler so that the base can manage it as a ParameterState object.
+            It is the new rule in MudBlazor, that parameters must be auto properties.
+            By registering the parameter with a change handler you can still execute code when the parameter value changes.
+            This class is part of MudBlazor's ParameterState framework.
+            <para />
+            <b>NB!</b> This method must be called in the constructor!
+            </summary>
+            <remarks>
+            See CONTRIBUTING.md for a more detailed explanation on why MudBlazor parameters have to registered. 
+            </remarks>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+            <param name="parameterName">The name of the parameter, passed using nameof(...).</param>
+            <param name="getParameterValueFunc">>A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to read the property value.</param>
+            <param name="parameterChangedHandler">An action containing code that needs to be executed when the parameter value changes.</param>
+            <param name="comparer">An optional comparer used to determine equality of parameter values.</param>
+            <param name="handlerName">The handler's name. Do not set this value as it's set at compile-time through <see cref="T:System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/>.</param>
+            <returns>The <see cref="T:MudBlazor.State.ParameterState`1"/> object to be stored in a field for accessing the current state value.</returns>
+        </member>
+        <member name="M:MudBlazor.MudComponentBase.RegisterParameter``1(System.String,System.Func{``0},System.Action{MudBlazor.State.ParameterChangedEventArgs{``0}},System.Collections.Generic.IEqualityComparer{``0},System.String)">
+            <summary>
+            Register a component Parameter and a change handler so that the base can manage it as a ParameterState object.
+            It is the new rule in MudBlazor, that parameters must be auto properties.
+            By registering the parameter with a change handler you can still execute code when the parameter value changes.
+            This class is part of MudBlazor's ParameterState framework.
+            <para />
+            <b>NB!</b> This method must be called in the constructor!
+            </summary>
+            <remarks>
+            See CONTRIBUTING.md for a more detailed explanation on why MudBlazor parameters have to registered. 
+            </remarks>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+            <param name="parameterName">The name of the parameter, passed using nameof(...).</param>
+            <param name="getParameterValueFunc">>A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to read the property value.</param>
+            <param name="parameterChangedHandler">An action containing code that needs to be executed when the parameter value changes.</param>
+            <param name="comparer">An optional comparer used to determine equality of parameter values.</param>
+            <param name="handlerName">The handler's name. Do not set this value as it's set at compile-time through <see cref="T:System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/>.</param>
+            <returns>The <see cref="T:MudBlazor.State.ParameterState`1"/> object to be stored in a field for accessing the current state value.</returns>
+        </member>
+        <member name="M:MudBlazor.MudComponentBase.RegisterParameter``1(System.String,System.Func{``0},System.Func{System.Threading.Tasks.Task},System.Collections.Generic.IEqualityComparer{``0},System.String)">
+            <summary>
+            Register a component Parameter and a change handler so that the base can manage it as a ParameterState object.
+            It is the new rule in MudBlazor, that parameters must be auto properties.
+            By registering the parameter with a change handler you can still execute code when the parameter value changes.
+            This class is part of MudBlazor's ParameterState framework.
+            <para />
+            <b>NB!</b> This method must be called in the constructor!
+            </summary>
+            <remarks>
+            See CONTRIBUTING.md for a more detailed explanation on why MudBlazor parameters have to registered. 
+            </remarks>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+            <param name="parameterName">The name of the parameter, passed using nameof(...).</param>
+            <param name="getParameterValueFunc">>A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to read the property value.</param>
+            <param name="parameterChangedHandler">A function containing code that needs to be executed when the parameter value changes.</param>
+            <param name="comparer">An optional comparer used to determine equality of parameter values.</param>
+            <param name="handlerName">The handler's name. Do not set this value as it's set at compile-time through <see cref="T:System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/>.</param>
+            <returns>The <see cref="T:MudBlazor.State.ParameterState`1"/> object to be stored in a field for accessing the current state value.</returns>
+        </member>
+        <member name="M:MudBlazor.MudComponentBase.RegisterParameter``1(System.String,System.Func{``0},System.Func{MudBlazor.State.ParameterChangedEventArgs{``0},System.Threading.Tasks.Task},System.Collections.Generic.IEqualityComparer{``0},System.String)">
+            <summary>
+            Register a component Parameter and a change handler so that the base can manage it as a ParameterState object.
+            It is the new rule in MudBlazor, that parameters must be auto properties.
+            By registering the parameter with a change handler you can still execute code when the parameter value changes.
+            This class is part of MudBlazor's ParameterState framework.
+            <para />
+            <b>NB!</b> This method must be called in the constructor!
+            </summary>
+            <remarks>
+            See CONTRIBUTING.md for a more detailed explanation on why MudBlazor parameters have to registered. 
+            </remarks>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+            <param name="parameterName">The name of the parameter, passed using nameof(...).</param>
+            <param name="getParameterValueFunc">>A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to read the property value.</param>
+            <param name="parameterChangedHandler">A function containing code that needs to be executed when the parameter value changes.</param>
+            <param name="comparer">An optional comparer used to determine equality of parameter values.</param>
+            <param name="handlerName">The handler's name. Do not set this value as it's set at compile-time through <see cref="T:System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/>.</param>
+            <returns>The <see cref="T:MudBlazor.State.ParameterState`1"/> object to be stored in a field for accessing the current state value.</returns>
         </member>
         <member name="P:MudBlazor.MudFormComponent`2.SubscribeToParentForm">
             <summary>
@@ -823,6 +1046,11 @@
             User class names for the internal list, separated by space
             </summary>
         </member>
+        <member name="P:MudBlazor.MudAutocomplete`1.ListItemClass">
+            <summary>
+            User class names for the internal list item, separated by space.
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudAutocomplete`1.AnchorOrigin">
             <summary>
             Set the anchor origin point to determen where the popover will open from.
@@ -954,12 +1182,12 @@
         </member>
         <member name="P:MudBlazor.MudAutocomplete`1.BeforeItemsTemplate">
             <summary>
-            Optional presentation template that is always shown at the top of the list
+            Optional presentation template that is shown at the top of the list. If no items are present, the fragment is hidden.
             </summary>
         </member>
         <member name="P:MudBlazor.MudAutocomplete`1.AfterItemsTemplate">
             <summary>
-            Optional presentation template that is always shown at the bottom of the list
+            Optional presentation template that is shown at the bottom of the list. If no items are present, the fragment is hidden.
             </summary>
         </member>
         <member name="P:MudBlazor.MudAutocomplete`1.ProgressIndicatorTemplate">
@@ -1007,6 +1235,15 @@
         <member name="P:MudBlazor.MudAutocomplete`1.OnClearButtonClick">
             <summary>
             Button click event for clear button. Called after text and value has been cleared.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudAutocomplete`1.ReturnedItemsCountChanged">
+            <summary>
+            <para>An event triggered when the number of items returned by the search query has changed.</para>
+            <para>
+            If the number is <c>0</c>, <see cref="P:MudBlazor.MudAutocomplete`1.NoItemsTemplate"/> will be shown.<br />
+            If the number is beyond <see cref="P:MudBlazor.MudAutocomplete`1.MaxItems"/>, <see cref="P:MudBlazor.MudAutocomplete`1.MoreItemsTemplate"/> will be shown.
+            </para>
             </summary>
         </member>
         <member name="P:MudBlazor.MudAutocomplete`1.IsOpen">
@@ -1162,6 +1399,11 @@
         <member name="P:MudBlazor.MudAvatarGroup.MaxAvatarClass">
             <summary>
             Custom class/classes for MaxAvatar
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudAvatarGroup.MaxAvatarsTemplate">
+            <summary>
+            Template that will be rendered when the number of avatars exceeds the maximum (parameter Max).
             </summary>
         </member>
         <member name="P:MudBlazor.MudAvatarGroup.ChildContent">
@@ -1329,6 +1571,14 @@
             Child content of component.
             </summary>
         </member>
+        <member name="M:MudBlazor.MudButton.Microsoft#AspNetCore#Components#IHandleEvent#HandleEventAsync(Microsoft.AspNetCore.Components.EventCallbackWorkItem,System.Object)">
+            <inheritdoc/>
+            <remarks>
+            See: https://github.com/MudBlazor/MudBlazor/issues/8365
+            <para/>
+            Since <see cref="T:MudBlazor.MudButton"/> implements only single <see cref="T:Microsoft.AspNetCore.Components.EventCallback"/> <see cref="P:MudBlazor.MudBaseButton.OnClick"/> this is safe to disable globally within the component.
+            </remarks>
+        </member>
         <member name="P:MudBlazor.MudFab.Color">
             <summary>
             The color of the component. It supports the theme colors.
@@ -1374,6 +1624,14 @@
             Title of the icon used for accessibility.
             </summary>
         </member>
+        <member name="M:MudBlazor.MudFab.Microsoft#AspNetCore#Components#IHandleEvent#HandleEventAsync(Microsoft.AspNetCore.Components.EventCallbackWorkItem,System.Object)">
+            <inheritdoc/>
+            <remarks>
+            See: https://github.com/MudBlazor/MudBlazor/issues/8365
+            <para/>
+            Since <see cref="T:MudBlazor.MudFab"/> implements only single <see cref="T:Microsoft.AspNetCore.Components.EventCallback"/> <see cref="P:MudBlazor.MudBaseButton.OnClick"/> this is safe to disable globally within the component.
+            </remarks>
+        </member>
         <member name="P:MudBlazor.MudIconButton.Icon">
             <summary>
             The Icon that will be used in the component.
@@ -1408,6 +1666,14 @@
             <summary>
             Child content of component, only shows if Icon is null or Empty.
             </summary>
+        </member>
+        <member name="M:MudBlazor.MudIconButton.Microsoft#AspNetCore#Components#IHandleEvent#HandleEventAsync(Microsoft.AspNetCore.Components.EventCallbackWorkItem,System.Object)">
+            <inheritdoc/>
+            <remarks>
+            See: https://github.com/MudBlazor/MudBlazor/issues/8365
+            <para/>
+            Since <see cref="T:MudBlazor.MudIconButton"/> implements only single <see cref="T:Microsoft.AspNetCore.Components.EventCallback"/> <see cref="P:MudBlazor.MudBaseButton.OnClick"/> this is safe to disable globally within the component.
+            </remarks>
         </member>
         <member name="P:MudBlazor.MudToggleIconButton.Toggled">
             <summary>
@@ -1477,6 +1743,16 @@
         <member name="P:MudBlazor.MudToggleIconButton.Variant">
             <summary>
             The variant to use.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleIconButton.DisableElevation">
+            <summary>
+            If true, no drop-shadow will be used.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleIconButton.ClickPropagation">
+            <summary>
+            If true, the click event bubbles up to the containing/parent component.
             </summary>
         </member>
         <member name="P:MudBlazor.MudButtonGroup.OverrideStyles">
@@ -1816,6 +2092,13 @@
         <member name="M:MudBlazor.MudChartBase.GetNormalizedData">
             <summary>
             Scales the input data to the range between 0 and 1
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudChartBase.CanHideSeries">
+            <summary>
+            Indicates whether lines in a LineChart can be individually hidden by the user. 
+            When set to true, the chart provides a checkboxes
+            to toggle the visibility of each line.
             </summary>
         </member>
         <member name="P:MudBlazor.MudCheckBox`1.Color">
@@ -2264,7 +2547,7 @@
         </member>
         <member name="P:MudBlazor.Column`1.Sortable">
             <summary>
-            Determines whether this columns data can be sorted. This overrides the Sortable parameter on the DataGrid.
+            Determines whether this columns data can be sorted. This overrides the SortMode parameter on the DataGrid.
             </summary>
         </member>
         <member name="P:MudBlazor.Column`1.DragAndDropEnabled">
@@ -2336,6 +2619,11 @@
             Callback is called whenever a row is clicked.
             </summary>
         </member>
+        <member name="P:MudBlazor.MudDataGrid`1.RowContextMenuClick">
+            <summary>
+            Callback is called whenever a row is right clicked.
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudDataGrid`1.StartedEditingItem">
             <summary>
             Callback is called when an item has begun to be edited. Returns the item being edited.
@@ -2360,6 +2648,11 @@
         <member name="P:MudBlazor.MudDataGrid`1.FormFieldChanged">
             <summary>
             Callback is called when a field changes in the dialog MudForm. Only works in EditMode.Form
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudDataGrid`1.ColumnsPanelReordering">
+            <summary>
+            If true, the columns in the DataGrid can be reordered via the columns panel.
             </summary>
         </member>
         <member name="P:MudBlazor.MudDataGrid`1.DragDropColumnReordering">
@@ -2662,6 +2955,11 @@
             Note: requires a MudTablePager in PagerContent.
             </summary>
         </member>
+        <member name="P:MudBlazor.MudDataGrid`1.RowsPerPageChanged">
+            <summary>
+            Rows Per Page two-way bindable parameter
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudDataGrid`1.CurrentPage">
             <summary>
             The page index of the currently displayed page (Zero based). Usually called by MudTablePager.
@@ -2824,6 +3122,16 @@
             Opens the filter panel.
             </summary>
         </member>
+        <member name="M:MudBlazor.MudDataGrid`1.ShowColumnsPanel">
+            <summary>
+            Shows a columns panel that lets you show/hide, filter, group, sort and re-arrange columns.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudDataGrid`1.HideColumnsPanel">
+            <summary>
+            Hides the columns panel
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudDataGridPager`1.DisableRowsPerPage">
             <summary>
             Set true to hide the part of the pager which allows to change the page size.
@@ -2855,6 +3163,12 @@
         <member name="T:MudBlazor.PropertyColumn`2">
             <typeparam name="T">The type of data represented by each row in the data grid.</typeparam>
             <typeparam name="TProperty">The type of the value being displayed in the column's cells.</typeparam>
+        </member>
+        <member name="M:MudBlazor.PropertyColumn`2.RecursiveGetSubProperties(System.Linq.Expressions.MemberExpression,System.Object)">
+            <summary>
+            If the Property expression looks like 'x => x.y.z', to set the value of 'z' we need to find the value of 'y', we can dig recursively until we find it.
+            </summary>
+            <exception cref="T:System.NullReferenceException"></exception>
         </member>
         <member name="T:MudBlazor.TemplateColumn`1">
             <typeparam name="T">The type of data represented by each row in the data grid.</typeparam>
@@ -3041,11 +3355,11 @@
             Is set to true to scroll to the actual year after the next render
             </summary>
         </member>
-        <member name="M:MudBlazor.MudBaseDatePicker.GetCalendarYear(System.Int32)">
+        <member name="M:MudBlazor.MudBaseDatePicker.GetCalendarYear(System.DateTime)">
             <summary>
-            Converts gregorian year into whatever year it is in the provided culture
+            Converts gregorian date into whatever year it is in the provided culture
             </summary>
-            <param name="year">Gregorian year</param>
+            <param name="yearDate">Gregorian Date</param>
             <returns>Year according to culture</returns>
         </member>
         <member name="P:MudBlazor.MudDatePicker.DateChanged">
@@ -3162,6 +3476,11 @@
         <member name="P:MudBlazor.MudDialog.DisableSidePadding">
             <summary>
             No padding at the sides
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudDialog.TitleClass">
+            <summary>
+            CSS class that will be applied to the dialog title container
             </summary>
         </member>
         <member name="P:MudBlazor.MudDialog.ClassContent">
@@ -3400,6 +3719,11 @@
             Callback that indicates that an item has been dropped on a drop zone. Should be used to update the "status" of the data item
             </summary>
         </member>
+        <member name="P:MudBlazor.MudDropContainer`1.ItemPicked">
+            <summary>
+            EventHandler that indicates that an item has been picked from a drop zone and transaction has started.
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudDropContainer`1.CanDrop">
             <summary>
             The method is used to determinate if an item can be dropped within a drop zone
@@ -3505,6 +3829,11 @@
             An additional class that is applied to an drop item, when it is dragged
             </summary>
         </member>
+        <member name="P:MudBlazor.MudDropZone`1.ItemsClassSelector">
+            <summary>
+            The method is used to determinate item class to be rendered in a drop zone.
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudDropZone`1.OnlyZone">
             <summary>
             If true, will only act as a droppable zone and not render any items.
@@ -3563,7 +3892,7 @@
             </summary>
             <typeparam name="T">Type of dragged item</typeparam>
             <param name="Item">The dragged item during the transaction</param>
-            <param name="DropZoneIdentifier">Identifier of the zone where the transaction started</param>
+            <param name="DropzoneIdentifier">Identifier of the zone where the transaction started</param>
             <param name="IndexInZone">The index of the item within in the drop zone</param>
         </member>
         <member name="M:MudBlazor.MudItemDropInfo`1.#ctor(`0,System.String,System.Int32)">
@@ -3572,11 +3901,14 @@
             </summary>
             <typeparam name="T">Type of dragged item</typeparam>
             <param name="Item">The dragged item during the transaction</param>
-            <param name="DropZoneIdentifier">Identifier of the zone where the transaction started</param>
+            <param name="DropzoneIdentifier">Identifier of the zone where the transaction started</param>
             <param name="IndexInZone">The index of the item within in the drop zone</param>
         </member>
         <member name="P:MudBlazor.MudItemDropInfo`1.Item">
             <summary>The dragged item during the transaction</summary>
+        </member>
+        <member name="P:MudBlazor.MudItemDropInfo`1.DropzoneIdentifier">
+            <summary>Identifier of the zone where the transaction started</summary>
         </member>
         <member name="P:MudBlazor.MudItemDropInfo`1.IndexInZone">
             <summary>The index of the item within in the drop zone</summary>
@@ -3868,7 +4200,7 @@
             InputFileChangeEventArgs.GetMultipleFiles().
             It does not limit the total number of uploaded files
             when AppendMultipleFiles="true". A limit should be validated manually, for
-            example in the FilesChanged event callback. 
+            example in the FilesChanged event callback.
             </summary>
         </member>
         <member name="P:MudBlazor.MudFileUpload`1.Disabled">
@@ -3998,6 +4330,11 @@
         <member name="M:MudBlazor.MudForm.ResetValidation">
             <summary>
             Reset the validation state but keep the values.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudForm.ResetTouched">
+            <summary>
+            Reset the isTouched property
             </summary>
         </member>
         <member name="P:MudBlazor.MudHidden.Breakpoint">
@@ -4196,6 +4533,17 @@
         <member name="P:MudBlazor.MudInput`1.NumericDownIcon">
             <summary>
             Custom numeric down icon.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudInput`1.AutoGrow">
+            <summary>
+            If true the input element will grow automatically with the text.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudInput`1.MaxLines">
+            <summary>
+            If AutoGrow is set to true, the input element will not grow bigger than MaxLines lines. If MaxLines is set to 0
+            or less, the property will be ignored.
             </summary>
         </member>
         <member name="M:MudBlazor.MudInput`1.GetClearable">
@@ -4429,6 +4777,14 @@
             <summary>
             Link click event.
             </summary>
+        </member>
+        <member name="M:MudBlazor.MudLink.Microsoft#AspNetCore#Components#IHandleEvent#HandleEventAsync(Microsoft.AspNetCore.Components.EventCallbackWorkItem,System.Object)">
+            <inheritdoc/>
+            <remarks>
+            See: https://github.com/MudBlazor/MudBlazor/issues/8365
+            <para/>
+            Since <see cref="T:MudBlazor.MudLink"/> implements only single <see cref="T:Microsoft.AspNetCore.Components.EventCallback"/> <see cref="P:MudBlazor.MudLink.OnClick"/> this is safe to disable globally within the component.
+            </remarks>
         </member>
         <member name="P:MudBlazor.MudList.Color">
             <summary>
@@ -5746,7 +6102,7 @@
         <member name="P:MudBlazor.MudPopoverProvider.MudBlazor#IPopoverObserver#Id">
             <inheritdoc />
         </member>
-        <member name="M:MudBlazor.MudPopoverProvider.MudBlazor#IPopoverObserver#PopoverCollectionUpdatedNotificationAsync(MudBlazor.PopoverHolderContainer)">
+        <member name="M:MudBlazor.MudPopoverProvider.MudBlazor#IPopoverObserver#PopoverCollectionUpdatedNotificationAsync(MudBlazor.PopoverHolderContainer,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="P:MudBlazor.MudProgressCircular.Color">
@@ -5837,6 +6193,11 @@
         <member name="P:MudBlazor.MudRadio`1.Placement">
             <summary>
             The position of the child content.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudRadio`1.Value">
+            <summary>
+            The value to associate to the button.
             </summary>
         </member>
         <member name="P:MudBlazor.MudRadio`1.Option">
@@ -6070,6 +6431,16 @@
         <member name="M:MudBlazor.MudScrollToTop.Dispose">
             <summary>
             Remove the event
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudSelect`1.OuterClass">
+            <summary>
+            The outer div's classnames, seperated by space.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudSelect`1.InputClass">
+            <summary>
+            Input's classnames, seperated by space.
             </summary>
         </member>
         <member name="P:MudBlazor.MudSelect`1.OnOpen">
@@ -6388,6 +6759,19 @@
             Custom close icon.
             </summary>
         </member>
+        <member name="M:MudBlazor.Snackbar.TransitionTo(MudBlazor.SnackbarState,System.Boolean,System.Boolean)">
+            <summary>
+            Transitions the snackbar to the specified state.
+            </summary>
+            <param name="state">The state to transition to</param>
+            <param name="animate">Whether the transition should be animated or instant</param>
+            <param name="cancellable">Whether the transition, if animated, can be cancelled</param>
+        </member>
+        <member name="M:MudBlazor.Snackbar.StartTimer(System.Int32)">
+            <summary>
+            Starts the transition timer that elapses after the specified duration; or return <c>false</c> if the period would be instantaneous.
+            </summary>
+        </member>
         <member name="P:MudBlazor.SnackbarOptions.NormalIcon">
             <summary>
             Custom normal icon.
@@ -6470,6 +6854,11 @@
         <member name="P:MudBlazor.MudStack.AlignItems">
             <summary>
             Defines the spacing between its items.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudStack.Wrap">
+            <summary>
+            Defines the flexbox wrapping behavior of its items.
             </summary>
         </member>
         <member name="P:MudBlazor.MudStack.ChildContent">
@@ -6684,6 +7073,16 @@
             Row click event.
             </summary>
         </member>
+        <member name="P:MudBlazor.MudTable`1.OnRowMouseEnter">
+            <summary>
+            Row hover start event.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudTable`1.OnRowMouseLeave">
+            <summary>
+            Row hover stop event.
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudTable`1.RowClassFunc">
             <summary>
             Returns the class that will get joined with RowClass. Takes the current item and row index.
@@ -6707,6 +7106,12 @@
         <member name="P:MudBlazor.MudTable`1.SelectedItems">
             <summary>
             If MultiSelection is true, this returns the currently selected items. You can bind this property and the initial content of the HashSet you bind it to will cause these rows to be selected initially.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudTable`1.IsCheckedRow(`0)">
+            <summary>
+            Checks if the row is selected.
+            If there is set a Comparer, uses the comparer, otherwise uses a direct contains
             </summary>
         </member>
         <member name="P:MudBlazor.MudTable`1.Comparer">
@@ -6765,6 +7170,10 @@
             Table will await this func and update based on the returned TableData.
             Used only with ServerData
             </summary>
+            <remarks>
+            MudTable will automatically control loading animation visibility if ServerData is set.
+            See <see cref="P:MudBlazor.MudTableBase.Loading"/>.
+            </remarks>
         </member>
         <member name="M:MudBlazor.MudTable`1.ReloadServerData">
             <summary>
@@ -7242,7 +7651,7 @@
         </member>
         <member name="M:MudBlazor.TableContext`1.UpdateRowCheckBoxes(System.Boolean,System.Boolean)">
             <summary>
-            Updates the state of all group- and/or header/footer checkboxs.
+            Updates the state of all checkboxes.
             </summary>
             <remarks>
             Setting checkbox state for Row items and refresh all, is triggered from MudTable OnAfterRenderAsync.
@@ -7604,27 +8013,38 @@
             Note: when Mask is set, TextField will ignore some properties such as Lines, Pattern or HideSpinButtons, OnKeyDown and OnKeyUp, etc.
             </summary>
         </member>
-        <member name="P:MudBlazor.BaseMudThemeProvider.Theme">
+        <member name="P:MudBlazor.MudTextField`1.AutoGrow">
+            <summary>
+            If true the input element will grow automatically with the text.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudTextField`1.MaxLines">
+            <summary>
+            If AutoGrow is set to true, the input element will not grow bigger than MaxLines lines. If MaxLines is set to 0
+            or less, the property will be ignored.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudThemingProvider.Theme">
             <summary>
             The theme used by the application.
             </summary>
         </member>
-        <member name="P:MudBlazor.BaseMudThemeProvider.DefaultScrollbar">
+        <member name="P:MudBlazor.MudThemingProvider.DefaultScrollbar">
             <summary>
              If true, will not apply MudBlazor styled scrollbar and use browser default. 
             </summary>
         </member>
-        <member name="P:MudBlazor.BaseMudThemeProvider.IsDarkMode">
+        <member name="P:MudBlazor.MudThemingProvider.IsDarkMode">
             <summary>
             The active palette of the theme.
             </summary>
         </member>
-        <member name="P:MudBlazor.BaseMudThemeProvider.IsDarkModeChanged">
+        <member name="P:MudBlazor.MudThemingProvider.IsDarkModeChanged">
             <summary>
             Invoked when the dark mode changes.
             </summary>
         </member>
-        <member name="M:MudBlazor.BaseMudThemeProvider.GetSystemPreference">
+        <member name="M:MudBlazor.MudThemingProvider.GetSystemPreference">
             <summary>
             Returns the dark mode preference of the user. True if dark mode is preferred.
             </summary>
@@ -7790,6 +8210,119 @@
             On click for the minute "sticks", sets the minute.
             </summary>
         </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.Value">
+            <summary>
+            The selected value in single- and toggle-selection mode.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.ValueChanged">
+            <summary>
+            Fires when Value changes.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.Values">
+            <summary>
+            The selected values for multi-selection mode.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.ValuesChanged">
+            <summary>
+            Fires when Values change.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.SelectedClass">
+            <summary>
+            Classes (separated by space) to be applied to the selected items only.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.TextClass">
+            <summary>
+            Classes (separated by space) to be applied to the text of all toggle items.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.CheckMarkClass">
+            <summary>
+            Classes (separated by space) to be applied to SelectedIcon/UnselectedIcon of the items (if CheckMark is true).
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.Vertical">
+            <summary>
+            If true, use vertical layout.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.Rounded">
+            <summary>
+            If true, the first and last item will be rounded.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.Outline">
+            <summary>
+            If true, show an outline border. Default is true.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.Delimiters">
+            <summary>
+            If true, show a line delimiter between items. Default is true.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.DisableRipple">
+            <summary>
+            If true, disables the ripple effect.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.Dense">
+            <summary>
+            If true, the component's padding is reduced so it takes up less space.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.SelectionMode">
+            <summary>
+            The selection behavior of the group. SingleSelection (the default) is a radio-button like exclusive collection. 
+            MultiSelection behaves like a group of check boxes. ToggleSelection is an exclusive single selection where
+            you can also select nothing by toggling off the current choice.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.Color">
+            <summary>
+            The color of the component. Affects borders and selection color. Default is Colors.Primary.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.CheckMark">
+            <summary>
+            If true, the items show a check mark next to the text or render fragment. Customize the check mark by setting
+            SelectedIcon and UnselectedIcon 
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleGroup`1.FixedContent">
+            <summary>
+            If true, the check mark is counter balanced with padding on the right side which makes the content stay always
+            centered no matter if the check mark is shown or not. 
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleItem`1.UnselectedIcon">
+            <summary>
+            Icon to show if the item is not selected (if CheckMark is true on the parent group)
+            Leave null to show no check mark (default).
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleItem`1.SelectedIcon">
+            <summary>
+            Icon to show if the item is selected (if CheckMark is true on the parent group)
+            By default this is set to a check mark icon.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleItem`1.Text">
+            <summary>
+            The text to show. You need to set this only if you want a text that differs from the Value. If null,
+            show Value?.ToString().
+            Note: the Text is only shown if you haven't defined your own child content
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudToggleItem`1.ChildContent">
+            <summary>
+            Custom child content which overrides the text. The boolean parameter conveys whether or not the item is selected. 
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudTooltip.Color">
             <summary>
             The color of the component. It supports the theme colors.
@@ -7890,12 +8423,12 @@
         </member>
         <member name="P:MudBlazor.MudTreeView`1.ExpandOnClick">
             <summary>
-            If true, clicking anywhere on the item will expand it, if it has childs.
+            If true, clicking anywhere on the item will expand it, if it has children.
             </summary>
         </member>
         <member name="P:MudBlazor.MudTreeView`1.ExpandOnDoubleClick">
             <summary>
-            If true, double clicking anywhere on the item will expand it, if it has childs.
+            If true, double-clicking anywhere on the item will expand it, if it has children.
             </summary>
         </member>
         <member name="P:MudBlazor.MudTreeView`1.Hover">
@@ -7954,6 +8487,20 @@
             <summary>
             ItemTemplate for rendering children.
             </summary>
+        </member>
+        <member name="P:MudBlazor.MudTreeView`1.Comparer">
+            <summary>
+            Comparer is used to check if two tree items are equal
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.SetSelectedValue(`0)">
+             <summary>
+             Sets the selected value of the tree view.
+             If the value is found, the corresponding item is selected; 
+             otherwise, selected value is set null.
+             If the selected item is valid it sets the corresponding tree item to selected.
+             </summary>
+             <param name="value">The value to be set as the selected value.</param>
         </member>
         <member name="P:MudBlazor.MudTreeViewItem`1.CheckedIcon">
             <summary>
@@ -8171,6 +8718,30 @@
             https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/inputmode
             </summary>
         </member>
+        <member name="T:MudBlazor.Wrap">
+            <summary>
+            The flex-wrap CSS property sets whether flex items are forced onto one line or 
+            can wrap onto multiple lines. If wrapping is allowed, it sets the direction that lines are stacked.
+            </summary>
+        </member>
+        <member name="F:MudBlazor.Wrap.NoWrap">
+            <summary>
+            This is the default value.
+            The flex items are laid out in a single line which may cause the flex container to overflow. 
+            The cross-start is either equivalent to start or before depending on the flex-direction value. 
+            </summary>
+        </member>
+        <member name="F:MudBlazor.Wrap.Wrap">
+            <summary>
+            The flex items break into multiple lines. The cross-start is either equivalent to start or before 
+            depending flex-direction value and the cross-end is the opposite of the specified cross-start.
+            </summary>
+        </member>
+        <member name="F:MudBlazor.Wrap.WrapReverse">
+            <summary>
+            Behaves the same as wrap but cross-start and cross-end are permuted.
+            </summary>
+        </member>
         <member name="M:MudBlazor.Extensions.EnumExtensions.GetSafeEnumValues(System.Type)">
             <summary>
             Universal method that retrieves an array of the values of the constant in specified enumeration, works with nullable and non-nullable enums.
@@ -8189,6 +8760,29 @@
             <summary>
             Returns the display name attribute of the provided field property as a string. If this attribute is missing, the member name will be returned.
             </summary>
+        </member>
+        <member name="M:MudBlazor.ParameterViewExtensions.HasParameterChanged``1(Microsoft.AspNetCore.Components.ParameterView,System.String,``0,System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Checks if a parameter changed.
+            </summary>
+            <typeparam name="T">The value type.</typeparam>
+            <param name="parameters">The parameters.</param>
+            <param name="parameterName">Name of the parameter.</param>
+            <param name="parameterValue">The parameter value.</param>
+            <param name="comparer">An optional comparer used to determine equality of parameter values.</param>
+            <returns><c>true</c> if the parameter value has changed, <c>false</c> otherwise.</returns>
+        </member>
+        <member name="M:MudBlazor.ParameterViewExtensions.HasParameterChanged``1(Microsoft.AspNetCore.Components.ParameterView,System.String,``0,``0@,System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Checks if a parameter changed.
+            </summary>
+            <typeparam name="T">The value type.</typeparam>
+            <param name="parameters">The parameters.</param>
+            <param name="parameterName">Name of the parameter.</param>
+            <param name="parameterValue">The parameter value.</param>
+            <param name="value">Receives the value, if any.</param>
+            <param name="comparer">An optional comparer used to determine equality of parameter values.</param>
+            <returns><c>true</c> if the parameter value has changed, <c>false</c> otherwise.</returns>
         </member>
         <member name="M:MudBlazor.Services.ServiceCollectionExtensions.AddMudBlazorDialog(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>
@@ -8358,6 +8952,23 @@
             Adds the services required for translations.
             </summary>
             <param name="services">IServiceCollection</param>
+        </member>
+        <member name="M:MudBlazor.Services.ServiceCollectionExtensions.AddLocalizationInterceptor``1(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Replaces the default <see cref="T:MudBlazor.ILocalizationInterceptor"/> with custom implementation.
+            </summary>
+            <typeparam name="TInterceptor">Custom <see cref="T:MudBlazor.ILocalizationInterceptor"/> implentation.</typeparam>
+            <param name="services">IServiceCollection</param>
+            <returns>Continues the IServiceCollection chain.</returns>
+        </member>
+        <member name="M:MudBlazor.Services.ServiceCollectionExtensions.AddLocalizationInterceptor``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Func{System.IServiceProvider,``0})">
+            <summary>
+            Replaces the default <see cref="T:MudBlazor.ILocalizationInterceptor"/> with custom implementation.
+            </summary>
+            <typeparam name="TInterceptor">Custom <see cref="T:MudBlazor.ILocalizationInterceptor"/> implentation.</typeparam>
+            <param name="services">IServiceCollection</param>
+            <param name="implementationFactory">A factory to create new instances of the <see cref="T:MudBlazor.ILocalizationInterceptor"/> implementation.</param>
+            <returns>Continues the IServiceCollection chain.</returns>
         </member>
         <member name="M:MudBlazor.Services.ServiceCollectionExtensions.AddMudServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,MudBlazor.Services.MudServicesConfiguration)">
             <summary>
@@ -8917,6 +9528,458 @@
             ValueTask(bool) will be awaited and exceptions will be forwarded to MudBlazorGlobal.UnhandledExceptionHandler.
             </summary>
         </member>
+        <member name="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1">
+            <summary>
+            Represents a thread-safe keyed locker that allows you to lock based on a key (keyed semaphores), only allowing a specified number of concurrent threads that share the same key.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.Index">
+            <summary>
+            Read-only index of objects held by <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/>.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.MaxCount">
+            <summary>
+            The maximum number of requests for the semaphore that can be granted concurrently. Defaults to 1.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1" /> class, sets the <see cref="T:System.Threading.SemaphoreSlim"/> initial count to 1, has the default concurrency level, has the default initial capacity, and uses the default comparer for the key type.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.#ctor(MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1" /> class, uses the specified <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/>, has the default concurrency level, has the default initial capacity, and uses the default comparer for the key type.
+            </summary>
+            <param name="options">The <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/> to use.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Parameter is out of range.</exception>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.#ctor(System.Action{MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1" /> class, uses the specified <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/>, has the default concurrency level, has the default initial capacity, and uses the default comparer for the key type.
+            </summary>
+            <param name="options">The <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/> to use.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Parameter is out of range.</exception>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.#ctor(System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1" /> class, sets the <see cref="T:System.Threading.SemaphoreSlim"/> initial count to 1, has the default concurrency level, has the default initial capacity, and uses the specified <see cref="T:System.Collections.Generic.IEqualityComparer`1"/>.
+            </summary>
+            <param name="comparer">The equality comparison implementation to use when comparing keys.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="comparer"/> is null.</exception>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.#ctor(MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions,System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1" /> class, uses the specified <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/>, has the default concurrency level, has the default initial capacity, and uses the specified <see cref="T:System.Collections.Generic.IEqualityComparer`1"/>.
+            </summary>
+            <param name="options">The <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/> to use.</param>
+            <param name="comparer">The equality comparison implementation to use when comparing keys.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Parameter is out of range.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="comparer"/> is null.</exception>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.#ctor(System.Action{MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions},System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1" /> class, uses the specified <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/>, has the default concurrency level, has the default initial capacity, and uses the specified <see cref="T:System.Collections.Generic.IEqualityComparer`1"/>.
+            </summary>
+            <param name="options">The <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/> to use.</param>
+            <param name="comparer">The equality comparison implementation to use when comparing keys.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Parameter is out of range.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="comparer"/> is null.</exception>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1" /> class, sets the <see cref="T:System.Threading.SemaphoreSlim"/> initial count to 1, has the specified concurrency level and capacity, and uses the default comparer for the key type.
+            </summary>
+            <param name="concurrencyLevel">The estimated number of threads that will update the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> concurrently.</param>
+            <param name="capacity">The initial number of elements that the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> can contain.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Parameter is out of range.</exception>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.#ctor(MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions,System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1" /> class, uses the specified <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/>, has the specified concurrency level and capacity, and uses the default comparer for the key type.
+            </summary>
+            <param name="options">The <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/> to use.</param>
+            <param name="concurrencyLevel">The estimated number of threads that will update the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> concurrently.</param>
+            <param name="capacity">The initial number of elements that the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> can contain.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Parameter is out of range.</exception>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.#ctor(System.Action{MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions},System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1" /> class, uses the specified <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/>, has the specified concurrency level and capacity, and uses the default comparer for the key type.
+            </summary>
+            <param name="options">The <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/> to use.</param>
+            <param name="concurrencyLevel">The estimated number of threads that will update the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> concurrently.</param>
+            <param name="capacity">The initial number of elements that the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> can contain.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Parameter is out of range.</exception>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.#ctor(System.Int32,System.Int32,System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1" /> class, uses the specified <see cref="T:System.Threading.SemaphoreSlim"/> initial count, has the specified concurrency level and capacity, and uses the default comparer for the key type.
+            </summary>
+            <param name="concurrencyLevel">The estimated number of threads that will update the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> concurrently.</param>
+            <param name="capacity">The initial number of elements that the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> can contain.</param>
+            <param name="comparer">The equality comparison implementation to use when comparing keys.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Parameter is out of range.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="comparer"/> is null.</exception>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.#ctor(MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions,System.Int32,System.Int32,System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1" /> class, uses the specified <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/>, has the specified concurrency level and capacity, and uses the default comparer for the key type.
+            </summary>
+            <param name="options">The <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/> to use.</param>
+            <param name="concurrencyLevel">The estimated number of threads that will update the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> concurrently.</param>
+            <param name="capacity">The initial number of elements that the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> can contain.</param>
+            <param name="comparer">The equality comparison implementation to use when comparing keys.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Parameter is out of range.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="comparer"/> is null.</exception>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.#ctor(System.Action{MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions},System.Int32,System.Int32,System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1" /> class, uses the specified <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/>, has the specified concurrency level and capacity, and uses the default comparer for the key type.
+            </summary>
+            <param name="options">The <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions"/> to use.</param>
+            <param name="concurrencyLevel">The estimated number of threads that will update the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> concurrently.</param>
+            <param name="capacity">The initial number of elements that the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> can contain.</param>
+            <param name="comparer">The equality comparison implementation to use when comparing keys.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Parameter is out of range.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="comparer"/> is null.</exception>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.GetOrAdd(`0)">
+            <summary>
+            Provider for <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockReleaser`1"/>
+            </summary>
+            <param name="key">The key for which a releaser should be obtained.</param>
+            <returns>A created or retrieved <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockReleaser`1"/>.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.Lock(`0)">
+            <summary>
+            Synchronously lock based on a key.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <returns>A disposable value.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.Lock(`0,System.Threading.CancellationToken)">
+            <summary>
+            Synchronously lock based on a key, while observing a <see cref="T:System.Threading.CancellationToken"/>.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
+            <returns>A disposable value.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.Lock(`0,System.Int32,System.Boolean@)">
+            <summary>
+            Synchronously lock based on a key, setting a limit for the number of milliseconds to wait.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="millisecondsTimeout">The number of milliseconds to wait, <see cref="F:System.Threading.Timeout.Infinite"/> (-1) to wait indefinitely, or zero to test the state of the wait handle and return immediately.</param>
+            <param name="entered">An out parameter showing whether or not the semaphore was entered.</param>
+            <returns>A disposable value.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.Lock(`0,System.TimeSpan,System.Boolean@)">
+            <summary>
+            Synchronously lock based on a key, setting a limit for the <see cref="T:System.TimeSpan"/> to wait.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="timeout">A <see cref="T:System.TimeSpan"/> that represents the number of milliseconds to wait, a <see cref="T:System.TimeSpan"/> that represents -1 milliseconds to wait indefinitely, or a <see cref="T:System.TimeSpan"/> that represents 0 milliseconds to test the wait handle and return immediately.</param>
+            <param name="entered">An out parameter showing whether or not the semaphore was entered.</param>
+            <returns>A disposable value.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.Lock(`0,System.Int32,System.Threading.CancellationToken,System.Boolean@)">
+            <summary>
+            Synchronously lock based on a key, setting a limit for the number of milliseconds to wait, while observing a <see cref="T:System.Threading.CancellationToken"/>.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="millisecondsTimeout">The number of milliseconds to wait, <see cref="F:System.Threading.Timeout.Infinite"/> (-1) to wait indefinitely, or zero to test the state of the wait handle and return immediately.</param>
+            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
+            <param name="entered">An out parameter showing whether or not the semaphore was entered.</param>
+            <returns>A disposable value.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.Lock(`0,System.TimeSpan,System.Threading.CancellationToken,System.Boolean@)">
+            <summary>
+            Synchronously lock based on a key, setting a limit for the <see cref="T:System.TimeSpan"/> to wait, while observing a <see cref="T:System.Threading.CancellationToken"/>.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="timeout">A <see cref="T:System.TimeSpan"/> that represents the number of milliseconds to wait, a <see cref="T:System.TimeSpan"/> that represents -1 milliseconds to wait indefinitely, or a <see cref="T:System.TimeSpan"/> that represents 0 milliseconds to test the wait handle and return immediately.</param>
+            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
+            <param name="entered">An out parameter showing whether or not the semaphore was entered.</param>
+            <returns>A disposable value.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.TryLock(`0,System.Action,System.Int32)">
+            <summary>
+            Synchronously lock based on a key, setting a limit for the number of milliseconds to wait, and if not timed out, scynchronously execute an action and release.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="action">The synchronous action.</param>
+            <param name="millisecondsTimeout">The number of milliseconds to wait, <see cref="F:System.Threading.Timeout.Infinite"/> (-1) to wait indefinitely, or zero to test the state of the wait handle and return immediately.</param>
+            <returns>False if timed out, true if it successfully entered.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.TryLock(`0,System.Action,System.TimeSpan)">
+            <summary>
+            Synchronously lock based on a key, setting a limit for the <see cref="T:System.TimeSpan"/> to wait, and if not timed out, scynchronously execute an action and release.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="action">The synchronous action.</param>
+            <param name="timeout">A <see cref="T:System.TimeSpan"/> that represents the number of milliseconds to wait, a <see cref="T:System.TimeSpan"/> that represents -1 milliseconds to wait indefinitely, or a <see cref="T:System.TimeSpan"/> that represents 0 milliseconds to test the wait handle and return immediately.</param>
+            <returns>False if timed out, true if it successfully entered.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.TryLock(`0,System.Action,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Synchronously lock based on a key, setting a limit for the number of milliseconds to wait, and if not timed out, scynchronously execute an action and release, while observing a <see cref="T:System.Threading.CancellationToken"/>.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="action">The synchronous action.</param>
+            <param name="millisecondsTimeout">The number of milliseconds to wait, <see cref="F:System.Threading.Timeout.Infinite"/> (-1) to wait indefinitely, or zero to test the state of the wait handle and return immediately.</param>
+            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
+            <returns>False if timed out, true if it successfully entered.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.TryLock(`0,System.Action,System.TimeSpan,System.Threading.CancellationToken)">
+            <summary>
+            Synchronously lock based on a key, setting a limit for the <see cref="T:System.TimeSpan"/> to wait, and if not timed out, scynchronously execute an action and release, while observing a <see cref="T:System.Threading.CancellationToken"/>.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="action">The synchronous action.</param>
+            <param name="timeout">A <see cref="T:System.TimeSpan"/> that represents the number of milliseconds to wait, a <see cref="T:System.TimeSpan"/> that represents -1 milliseconds to wait indefinitely, or a <see cref="T:System.TimeSpan"/> that represents 0 milliseconds to test the wait handle and return immediately.</param>
+            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
+            <returns>False if timed out, true if it successfully entered.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.TryLockAsync(`0,System.Action,System.Int32,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key, setting a limit for the number of milliseconds to wait, and if not timed out, scynchronously execute an action and release.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="action">The synchronous action.</param>
+            <param name="millisecondsTimeout">The number of milliseconds to wait, <see cref="F:System.Threading.Timeout.Infinite"/> (-1) to wait indefinitely, or zero to test the state of the wait handle and return immediately.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>False if timed out, true if it successfully entered.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.TryLockAsync(`0,System.Func{System.Threading.Tasks.Task},System.Int32,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key, setting a limit for the number of milliseconds to wait, and if not timed out, ascynchronously execute a <see cref="T:System.Func`1"/> and release.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="task">The asynchronous task.</param>
+            <param name="millisecondsTimeout">The number of milliseconds to wait, <see cref="F:System.Threading.Timeout.Infinite"/> (-1) to wait indefinitely, or zero to test the state of the wait handle and return immediately.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>False if timed out, true if it successfully entered.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.TryLockAsync(`0,System.Action,System.TimeSpan,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key, setting a limit for the <see cref="T:System.TimeSpan"/> to wait, and if not timed out, scynchronously execute an action and release.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="action">The synchronous action.</param>
+            <param name="timeout">A <see cref="T:System.TimeSpan"/> that represents the number of milliseconds to wait, a <see cref="T:System.TimeSpan"/> that represents -1 milliseconds to wait indefinitely, or a <see cref="T:System.TimeSpan"/> that represents 0 milliseconds to test the wait handle and return immediately.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>False if timed out, true if it successfully entered.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.TryLockAsync(`0,System.Func{System.Threading.Tasks.Task},System.TimeSpan,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key, setting a limit for the <see cref="T:System.TimeSpan"/> to wait, and if not timed out, ascynchronously execute a <see cref="T:System.Func`1"/> and release.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="task">The asynchronous task.</param>
+            <param name="timeout">A <see cref="T:System.TimeSpan"/> that represents the number of milliseconds to wait, a <see cref="T:System.TimeSpan"/> that represents -1 milliseconds to wait indefinitely, or a <see cref="T:System.TimeSpan"/> that represents 0 milliseconds to test the wait handle and return immediately.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>False if timed out, true if it successfully entered.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.TryLockAsync(`0,System.Action,System.Int32,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key, setting a limit for the number of milliseconds to wait, and if not timed out, scynchronously execute an action and release, while observing a <see cref="T:System.Threading.CancellationToken"/>.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="action">The synchronous action.</param>
+            <param name="millisecondsTimeout">The number of milliseconds to wait, <see cref="F:System.Threading.Timeout.Infinite"/> (-1) to wait indefinitely, or zero to test the state of the wait handle and return immediately.</param>
+            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>False if timed out, true if it successfully entered.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.TryLockAsync(`0,System.Func{System.Threading.Tasks.Task},System.Int32,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key, setting a limit for the number of milliseconds to wait, and if not timed out, ascynchronously execute a <see cref="T:System.Func`1"/> and release, while observing a <see cref="T:System.Threading.CancellationToken"/>.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="task">The asynchronous task.</param>
+            <param name="millisecondsTimeout">The number of milliseconds to wait, <see cref="F:System.Threading.Timeout.Infinite"/> (-1) to wait indefinitely, or zero to test the state of the wait handle and return immediately.</param>
+            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>False if timed out, true if it successfully entered.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.TryLockAsync(`0,System.Action,System.TimeSpan,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key, setting a limit for the <see cref="T:System.TimeSpan"/> to wait, and if not timed out, scynchronously execute an action and release, while observing a <see cref="T:System.Threading.CancellationToken"/>.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="action">The synchronous action.</param>
+            <param name="timeout">A <see cref="T:System.TimeSpan"/> that represents the number of milliseconds to wait, a <see cref="T:System.TimeSpan"/> that represents -1 milliseconds to wait indefinitely, or a <see cref="T:System.TimeSpan"/> that represents 0 milliseconds to test the wait handle and return immediately.</param>
+            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>False if timed out, true if it successfully entered.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.TryLockAsync(`0,System.Func{System.Threading.Tasks.Task},System.TimeSpan,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key, setting a limit for the <see cref="T:System.TimeSpan"/> to wait, and if not timed out, ascynchronously execute a <see cref="T:System.Func`1"/> and release, while observing a <see cref="T:System.Threading.CancellationToken"/>.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="task">The asynchronous task.</param>
+            <param name="timeout">A <see cref="T:System.TimeSpan"/> that represents the number of milliseconds to wait, a <see cref="T:System.TimeSpan"/> that represents -1 milliseconds to wait indefinitely, or a <see cref="T:System.TimeSpan"/> that represents 0 milliseconds to test the wait handle and return immediately.</param>
+            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>False if timed out, true if it successfully entered.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.LockAsync(`0,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>A disposable value.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.LockAsync(`0,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key, while observing a <see cref="T:System.Threading.CancellationToken"/>.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>A disposable value.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.LockAsync(`0,System.Int32,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key, setting a limit for the number of milliseconds to wait.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="millisecondsTimeout">The number of milliseconds to wait, <see cref="F:System.Threading.Timeout.Infinite"/> (-1) to wait indefinitely, or zero to test the state of the wait handle and return immediately.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>A disposable value of type <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockTimeoutReleaser`1"/>.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.LockAsync(`0,System.TimeSpan,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key, setting a limit for the <see cref="T:System.TimeSpan"/> to wait.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="timeout">A <see cref="T:System.TimeSpan"/> that represents the number of milliseconds to wait, a <see cref="T:System.TimeSpan"/> that represents -1 milliseconds to wait indefinitely, or a <see cref="T:System.TimeSpan"/> that represents 0 milliseconds to test the wait handle and return immediately.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>A disposable value of type <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockTimeoutReleaser`1"/>.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.LockAsync(`0,System.Int32,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key, setting a limit for the number of milliseconds to wait, while observing a <see cref="T:System.Threading.CancellationToken"/>.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="millisecondsTimeout">The number of milliseconds to wait, <see cref="F:System.Threading.Timeout.Infinite"/> (-1) to wait indefinitely, or zero to test the state of the wait handle and return immediately.</param>
+            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>A disposable value of type <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockTimeoutReleaser`1"/>.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.LockAsync(`0,System.TimeSpan,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            Asynchronously lock based on a key, setting a limit for the <see cref="T:System.TimeSpan"/> to wait, while observing a <see cref="T:System.Threading.CancellationToken"/>.
+            </summary>
+            <param name="key">The key to lock on.</param>
+            <param name="timeout">A <see cref="T:System.TimeSpan"/> that represents the number of milliseconds to wait, a <see cref="T:System.TimeSpan"/> that represents -1 milliseconds to wait indefinitely, or a <see cref="T:System.TimeSpan"/> that represents 0 milliseconds to test the wait handle and return immediately.</param>
+            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
+            <param name="continueOnCapturedContext">true to attempt to marshal the continuation back to the original context captured; otherwise, false. Defaults to false.</param>
+            <returns>A disposable value of type <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockTimeoutReleaser`1"/>.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.IsInUse(`0)">
+            <summary>
+            Checks whether or not there is a thread making use of a keyed lock.
+            </summary>
+            <param name="key">The key requests are locked on.</param>
+            <returns><see langword="true"/> if the key is in use; otherwise, false.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.GetRemainingCount(`0)">
+            <summary>
+            Get the number of requests concurrently locked for a given key.
+            </summary>
+            <param name="key">The key requests are locked on.</param>
+            <returns>The number of requests concurrently locked for a given key.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.GetCurrentCount(`0)">
+            <summary>
+            Get the number of remaining threads that can enter the lock for a given key.
+            </summary>
+            <param name="key">The key requests are locked on.</param>
+            <returns>The number of remaining threads that can enter the lock for a given key.</returns>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1.Dispose">
+            <summary>
+            Disposes the AsyncKeyedLocker.
+            </summary>
+        </member>
+        <member name="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions">
+            <summary>
+            Options for the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> constructors
+            </summary>
+        </member>
+        <member name="P:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions.MaxCount">
+            <summary>
+            The maximum number of requests for the semaphore that can be granted concurrently. Defaults to 1.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions.PoolSize">
+            <summary>
+            The size of the pool to use in order for generated objects to be reused. This is NOT a concurrency limit,
+            but if the pool is empty then a new object will be created rather than waiting for an object to return to
+            the pool. Defaults to 0 (disabled) but strongly recommended to use.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions.PoolInitialFill">
+            <summary>
+            The number of items to fill the pool with during initialization. Defaults to -1 (fill up to pool size).
+            </summary>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockOptions.#ctor(System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Initializes options for the <see cref="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLocker`1"/> constructors
+            </summary>
+            <param name="maxCount">The maximum number of requests for the semaphore that can be granted concurrently. Defaults to 1.</param>
+            <param name="poolSize">The size of the pool to use in order for generated objects to be reused. This is NOT a concurrency limit,
+            but if the pool is empty then a new object will be created rather than waiting for an object to return to
+            the pool. Defaults to 0 (disabled) but strongly recommended to use.</param>
+            <param name="poolInitialFill">The number of items to fill the pool with during initialization. Defaults to -1 (fill up to pool size).</param>
+        </member>
+        <member name="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockReleaser`1">
+            <summary>
+            Represents an <see cref="T:System.IDisposable"/> for AsyncKeyedLock.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockReleaser`1.Key">
+            <summary>
+            The key used for locking.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockReleaser`1.ReferenceCount">
+            <summary>
+            The number of threads processing or waiting to process for the specific <see cref="P:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockReleaser`1.Key"/>.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockReleaser`1.SemaphoreSlim">
+            <summary>
+            The exposed <see cref="P:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockReleaser`1.SemaphoreSlim"/> instance used to limit the number of threads that can access the lock concurrently.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockReleaser`1.Dispose">
+            <summary>
+            Releases the <see cref="P:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockReleaser`1.SemaphoreSlim"/> object once.
+            </summary>
+        </member>
+        <member name="T:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockTimeoutReleaser`1">
+            <summary>
+            Represents an <see cref="T:System.IDisposable"/> for AsyncKeyedLock with timeouts.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockTimeoutReleaser`1.EnteredSemaphore">
+            <summary>
+            True if the timeout was reached, false if not.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.Utilities.AsyncKeyedLock.AsyncKeyedLockTimeoutReleaser`1.Dispose">
+            <summary>
+            Releases the <see cref="T:System.Threading.SemaphoreSlim"/> object once, depending on whether or not the semaphore was entered.
+            </summary>
+        </member>
         <member name="T:MudBlazor.Utilities.Background.BackgroundWorkerBase">
             <summary>
             Base class for implementing a long-running background worker.
@@ -8957,7 +10020,7 @@
             <param name="cancellationToken">Indicates that the shutdown process should no longer be graceful.</param>
             <returns>A <see cref="T:System.Threading.Tasks.Task"/> that represents the asynchronous Stop operation.</returns>
         </member>
-        <member name="M:MudBlazor.Utilities.Background.BackgroundWorkerBase.DisposeAsync">
+        <member name="M:MudBlazor.Utilities.Background.BackgroundWorkerBase.Dispose">
             <inheritdoc/>
         </member>
         <member name="T:MudBlazor.Utilities.Background.Batch.BatchPeriodicQueue`1">
@@ -8966,13 +10029,12 @@
             </summary>
             <typeparam name="T">The type of items in the queue.</typeparam>
         </member>
-        <member name="M:MudBlazor.Utilities.Background.Batch.BatchPeriodicQueue`1.#ctor(MudBlazor.Utilities.Background.Batch.IBatchTimerHandler{`0},System.TimeSpan,System.Boolean)">
+        <member name="M:MudBlazor.Utilities.Background.Batch.BatchPeriodicQueue`1.#ctor(MudBlazor.Utilities.Background.Batch.IBatchTimerHandler{`0},System.TimeSpan)">
             <summary>
             Initializes a new instance of the <see cref="T:MudBlazor.Utilities.Background.Batch.BatchPeriodicQueue`1"/> class with the specified batch timer handler and period.
             </summary>
             <param name="handler">The batch timer handler.</param>
             <param name="period">The time period for triggering batch execution.</param>
-            <param name="tickOnDispose">>Specifies whether to trigger a guaranteed <see cref="M:MudBlazor.Utilities.Background.Batch.IBatchTimerHandler`1.OnBatchTimerElapsedAsync(System.Collections.Generic.IReadOnlyCollection{`0},System.Threading.CancellationToken)"/> when calling <see cref="M:MudBlazor.Utilities.Background.Batch.BatchPeriodicQueue`1.DisposeAsync"/>.</param>
         </member>
         <member name="M:MudBlazor.Utilities.Background.Batch.BatchPeriodicQueue`1.QueueItem(`0)">
             <summary>
@@ -8985,7 +10047,7 @@
             Gets the count of items in the batch queue.
             </summary>
         </member>
-        <member name="M:MudBlazor.Utilities.Background.Batch.BatchPeriodicQueue`1.DisposeAsync">
+        <member name="M:MudBlazor.Utilities.Background.Batch.BatchPeriodicQueue`1.Dispose">
             <inheritdoc/>
         </member>
         <member name="T:MudBlazor.Utilities.Background.Batch.IBatchTimerHandler`1">
@@ -9581,6 +10643,16 @@
               Looks up a localized string similar to is on or before.
             </summary>
         </member>
+        <member name="P:MudBlazor.Resources.LanguageResource.MudDataGrid_MoveDown">
+            <summary>
+              Looks up a localized string similar to Move Down.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.Resources.LanguageResource.MudDataGrid_MoveUp">
+            <summary>
+              Looks up a localized string similar to Move Up.
+            </summary>
+        </member>
         <member name="P:MudBlazor.Resources.LanguageResource.MudDataGrid_not_contains">
             <summary>
               Looks up a localized string similar to not contains.
@@ -9609,6 +10681,11 @@
         <member name="P:MudBlazor.Resources.LanguageResource.MudDataGrid_ShowAll">
             <summary>
               Looks up a localized string similar to Show All.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.Resources.LanguageResource.MudDataGrid_Sort">
+            <summary>
+              Looks up a localized string similar to Sort.
             </summary>
         </member>
         <member name="P:MudBlazor.Resources.LanguageResource.MudDataGrid_starts_with">
@@ -9969,6 +11046,19 @@
             <param name="args">JSON-serializable arguments.</param>
             <returns>A <see cref="T:System.Threading.Tasks.ValueTask"/> that represents the asynchronous invocation operation.</returns>
         </member>
+        <member name="M:MudBlazor.IIJSRuntimeExtentions.InvokeVoidAsyncIgnoreErrors(Microsoft.JSInterop.IJSRuntime,System.String,System.Threading.CancellationToken,System.Object[])">
+            <summary>
+            Invokes the specified JavaScript function asynchronously and catches JSException, JSDisconnectedException and TaskCanceledException
+            </summary>
+            <param name="jsRuntime">The <see cref="T:Microsoft.JSInterop.IJSRuntime"/>.</param>
+            <param name="identifier">An identifier for the function to invoke. For example, the value <c>"someScope.someFunction"</c> will invoke the function <c>window.someScope.someFunction</c>.</param>
+            <param name="cancellationToken">
+            A cancellation token to signal the cancellation of the operation. Specifying this parameter will override any default cancellations such as due to timeouts
+            (<see cref="P:Microsoft.JSInterop.JSRuntime.DefaultAsyncTimeout"/>) from being applied.
+            </param>
+            <param name="args">JSON-serializable arguments.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.ValueTask"/> that represents the asynchronous invocation operation.</returns>
+        </member>
         <member name="M:MudBlazor.IIJSRuntimeExtentions.InvokeVoidAsyncWithErrorHandling(Microsoft.JSInterop.IJSRuntime,System.String,System.Object[])">
             <summary>
             Invokes the specified JavaScript function asynchronously and catches JSException, JSDisconnectedException and TaskCanceledException
@@ -9976,7 +11066,20 @@
             <param name="jsRuntime">The <see cref="T:Microsoft.JSInterop.IJSRuntime"/>.</param>
             <param name="identifier">An identifier for the function to invoke. For example, the value <c>"someScope.someFunction"</c> will invoke the function <c>window.someScope.someFunction</c>.</param>
             <param name="args">JSON-serializable arguments.</param>
-            <returns>A <see cref="T:System.Threading.Tasks.ValueTask"/> that represents the asynchronous invocation operation and resolves to true in case no exception has occured ohterwise false.</returns>
+            <returns>A <see cref="T:System.Threading.Tasks.ValueTask"/> that represents the asynchronous invocation operation and resolves to true in case no exception has occured otherwise false.</returns>
+        </member>
+        <member name="M:MudBlazor.IIJSRuntimeExtentions.InvokeVoidAsyncWithErrorHandling(Microsoft.JSInterop.IJSRuntime,System.String,System.Threading.CancellationToken,System.Object[])">
+            <summary>
+            Invokes the specified JavaScript function asynchronously and catches JSException, JSDisconnectedException and TaskCanceledException
+            </summary>
+            <param name="jsRuntime">The <see cref="T:Microsoft.JSInterop.IJSRuntime"/>.</param>
+            <param name="identifier">An identifier for the function to invoke. For example, the value <c>"someScope.someFunction"</c> will invoke the function <c>window.someScope.someFunction</c>.</param>
+            <param name="cancellationToken">
+            A cancellation token to signal the cancellation of the operation. Specifying this parameter will override any default cancellations such as due to timeouts
+            (<see cref="P:Microsoft.JSInterop.JSRuntime.DefaultAsyncTimeout"/>) from being applied.
+            </param>
+            <param name="args">JSON-serializable arguments.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.ValueTask"/> that represents the asynchronous invocation operation and resolves to true in case no exception has occured otherwise false.</returns>
         </member>
         <member name="M:MudBlazor.IIJSRuntimeExtentions.InvokeAsyncWithErrorHandling``1(Microsoft.JSInterop.IJSRuntime,System.String,System.Object[])">
             <summary>
@@ -9985,6 +11088,20 @@
             <typeparam name="TValue">The JSON-serializable return type.</typeparam>
             <param name="jsRuntime">The <see cref="T:Microsoft.JSInterop.IJSRuntime"/>.</param>
             <param name="identifier">An identifier for the function to invoke. For example, the value <c>"someScope.someFunction"</c> will invoke the function <c>window.someScope.someFunction</c>.</param>
+            <param name="args">JSON-serializable arguments.</param>
+            <returns>An instance of <typeparamref name="TValue"/> obtained by JSON-deserializing the return value into a tuple. The first item (sucess) is true in case where there was no exception, otherwise fall.</returns>
+        </member>
+        <member name="M:MudBlazor.IIJSRuntimeExtentions.InvokeAsyncWithErrorHandling``1(Microsoft.JSInterop.IJSRuntime,System.String,System.Threading.CancellationToken,System.Object[])">
+            <summary>
+            Invokes the specified JavaScript function asynchronously and catches JSException, JSDisconnectedException and TaskCanceledException. In case an exception occured the default value of <typeparamref name="TValue"/> is returned
+            </summary>
+            <typeparam name="TValue">The JSON-serializable return type.</typeparam>
+            <param name="jsRuntime">The <see cref="T:Microsoft.JSInterop.IJSRuntime"/>.</param>
+            <param name="identifier">An identifier for the function to invoke. For example, the value <c>"someScope.someFunction"</c> will invoke the function <c>window.someScope.someFunction</c>.</param>
+            <param name="cancellationToken">
+            A cancellation token to signal the cancellation of the operation. Specifying this parameter will override any default cancellations such as due to timeouts
+            (<see cref="P:Microsoft.JSInterop.JSRuntime.DefaultAsyncTimeout"/>) from being applied.
+            </param>
             <param name="args">JSON-serializable arguments.</param>
             <returns>An instance of <typeparamref name="TValue"/> obtained by JSON-deserializing the return value into a tuple. The first item (sucess) is true in case where there was no exception, otherwise fall.</returns>
         </member>
@@ -9999,36 +11116,157 @@
             <param name="args">JSON-serializable arguments.</param>
             <returns>An instance of <typeparamref name="TValue"/> obtained by JSON-deserializing the return value into a tuple. The first item (sucess) is true in case where there was no exception, otherwise fall.</returns>
         </member>
+        <member name="M:MudBlazor.IIJSRuntimeExtentions.InvokeAsyncWithErrorHandling``1(Microsoft.JSInterop.IJSRuntime,``0,System.String,System.Threading.CancellationToken,System.Object[])">
+            <summary>
+            Invokes the specified JavaScript function asynchronously and catches JSException, JSDisconnectedException and TaskCanceledException
+            </summary>
+            <typeparam name="TValue">The JSON-serializable return type.</typeparam>
+            <param name="jsRuntime">The <see cref="T:Microsoft.JSInterop.IJSRuntime"/>.</param>
+            <param name="fallbackValue">The value that should be returned in case an exception occured</param>
+            <param name="cancellationToken">
+            A cancellation token to signal the cancellation of the operation. Specifying this parameter will override any default cancellations such as due to timeouts
+            (<see cref="P:Microsoft.JSInterop.JSRuntime.DefaultAsyncTimeout"/>) from being applied.
+            </param>
+            <param name="identifier">An identifier for the function to invoke. For example, the value <c>"someScope.someFunction"</c> will invoke the function <c>window.someScope.someFunction</c>.</param>
+            <param name="args">JSON-serializable arguments.</param>
+            <returns>An instance of <typeparamref name="TValue"/> obtained by JSON-deserializing the return value into a tuple. The first item (sucess) is true in case where there was no exception, otherwise fall.</returns>
+        </member>
+        <member name="T:MudBlazor.AbstractLocalizationInterceptor">
+            <summary>
+            Provides a base implementation for <see cref="T:MudBlazor.ILocalizationInterceptor"/>.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.AbstractLocalizationInterceptor.Localizer">
+            <summary>
+            Gets the <see cref="T:Microsoft.Extensions.Localization.IStringLocalizer"/> for internal translations.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.AbstractLocalizationInterceptor.MudLocalizer">
+            <summary>
+            Gets the custom <see cref="T:MudBlazor.MudLocalizer"/> for additional translations, if provided.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.AbstractLocalizationInterceptor.#ctor(Microsoft.Extensions.Logging.ILoggerFactory,MudBlazor.MudLocalizer)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.AbstractLocalizationInterceptor"/> class.
+            This creates an ResX reader for builtin <see cref="T:MudBlazor.Resources.LanguageResource"/> with the default <see cref="T:Microsoft.Extensions.Localization.LocalizationOptions"/>.
+            </summary>
+            <param name="loggerFactory">The logger factory.</param>
+            <param name="mudLocalizer">The optional custom MudLocalizer.</param>
+            <remarks>
+            For more custom options use <see cref="M:MudBlazor.AbstractLocalizationInterceptor.#ctor(Microsoft.Extensions.Localization.IStringLocalizer,MudBlazor.MudLocalizer)"/> constuctor.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.AbstractLocalizationInterceptor.#ctor(Microsoft.Extensions.Localization.IStringLocalizer,MudBlazor.MudLocalizer)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.AbstractLocalizationInterceptor"/> class.
+            </summary>
+            <param name="localizer">The instance of <see cref="T:Microsoft.Extensions.Localization.IStringLocalizer"/>.</param>
+            <param name="mudLocalizer">The optional custom MudLocalizer.</param>
+        </member>
+        <member name="M:MudBlazor.AbstractLocalizationInterceptor.Handle(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="T:MudBlazor.DefaultLocalizationInterceptor">
+            <summary>
+            The <see cref="T:MudBlazor.DefaultLocalizationInterceptor"/> manages translations, incorporating English as the default language,
+            facilitating the addition of custom translations without imposing limitations on their implementation.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.DefaultLocalizationInterceptor.IgnoreDefaultEnglish">
+            <summary>
+            Gets or sets a value indicating whether to ignore default English translations.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.DefaultLocalizationInterceptor.#ctor(Microsoft.Extensions.Logging.ILoggerFactory,MudBlazor.MudLocalizer)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.DefaultLocalizationInterceptor"/> class.
+            </summary>
+            <param name="loggerFactory">The logger factory.</param>
+            <param name="mudLocalizer">The optional custom <see cref="T:MudBlazor.MudLocalizer"/>.</param>
+        </member>
+        <member name="M:MudBlazor.DefaultLocalizationInterceptor.Handle(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:MudBlazor.DefaultLocalizationInterceptor.TranslationWithFallback(System.String)">
+            <summary>
+            Gets the string resource with the given name.
+            </summary>
+            <param name="key">The name of the string resource</param>
+            <returns>The string resource as a <see cref="T:Microsoft.Extensions.Localization.LocalizedString" />.</returns>
+            <remarks>
+            This method is called when the default English translation is ignored or unavailable, and a custom MudLocalizer service implementation is registered.
+            It attempts to use user-provided languages, falling back to the internal English translation if MudLocalizer is missing or no resource is found.
+            </remarks>
+        </member>
+        <member name="T:MudBlazor.ILocalizationInterceptor">
+            <summary>
+            This customizable localization interceptor enables users to tailor existing localizations,
+            incorporating features such as logging missing translations or completely redefining the localization selection process.
+            Users can register custom implementations using the syntax:
+            <para/>
+            <see cref="M:MudBlazor.Services.ServiceCollectionExtensions.AddLocalizationInterceptor``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Func{System.IServiceProvider,``0})"/>
+            <para/>
+            <see cref="M:MudBlazor.Services.ServiceCollectionExtensions.AddLocalizationInterceptor``1(Microsoft.Extensions.DependencyInjection.IServiceCollection)"/>.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.ILocalizationInterceptor.Handle(System.String)">
+            <summary>
+            Retrieves the translation corresponding to the provided translation key.
+            </summary>
+            <param name="key">The name of the string resource.</param>
+            <remarks>
+            The value of  <see cref="P:Microsoft.Extensions.Localization.LocalizedString.ResourceNotFound"/> should be <c>true</c> if no translation is available for the specified key.
+            </remarks>
+            <returns>The string resource as a <see cref="T:Microsoft.Extensions.Localization.LocalizedString" />.</returns>
+        </member>
         <member name="T:MudBlazor.InternalMudLocalizer">
             <summary>
-            The <see cref="T:MudBlazor.InternalMudLocalizer"/> service handles translations, providing english as an included default language,
-            while allowing users to add custom translations without restricting how they can be implemented.
+            The <see cref="T:MudBlazor.InternalMudLocalizer"/> service forwards translations to the <see cref="T:MudBlazor.ILocalizationInterceptor"/> service.
+            By default, the <see cref="T:MudBlazor.DefaultLocalizationInterceptor"/> is used, though custom implementations can be provided.
             </summary>
+        </member>
+        <member name="M:MudBlazor.InternalMudLocalizer.#ctor(MudBlazor.ILocalizationInterceptor)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.InternalMudLocalizer"/> class with the specified <paramref name="interceptor"/>.
+            </summary>
+            <param name="interceptor">The localization interceptor to use for handling translations.</param>
         </member>
         <member name="P:MudBlazor.InternalMudLocalizer.Item(System.String)">
             <summary>
-            Gets the translation for the given translation key.
+            Gets the string resource with the given name.
             </summary>
-            <param name="key">the translation key to look up</param>
-            <returns>The string resource as a <see cref="T:Microsoft.Extensions.Localization.LocalizedString"/>.</returns>
+            <param name="key">The name of the string resource.</param>
+            <returns>The string resource as a <see cref="T:Microsoft.Extensions.Localization.LocalizedString" />.</returns>
         </member>
         <member name="T:MudBlazor.MudLocalizer">
             <summary>
-            Customizable localizer service which can be implemented by users to provide custom translations for MudBlazor components.
-            Custom implementations can be registered like this (scope depends on the implementation):
+            This customizable localizer service allows users to supply custom translations for MudBlazor components.
+            Users can register custom implementations using the following syntax, where the scope depends on the implementation:
             <code>services.Add{scope}Transient&lt;MudLocalizer, CustomMudLocalizerImpl&gt;()</code>
             or
             <code>services.TryAdd{scope}Transient&lt;MudLocalizer, CustomMudLocalizerImpl&gt;()</code>
-            Though 
             </summary>
         </member>
         <member name="P:MudBlazor.MudLocalizer.Item(System.String)">
             <summary>
-            Gets the translation for the given translation key.
-            Override this method to provide your custom translations.
+            Retrieves the translation for the specified translation key.
+            <para/>
+            <b>NB!</b> Override this method to supply custom translations.
             </summary>
-            <param name="key">the translation key to look up</param>
-            <returns><see cref="T:Microsoft.Extensions.Localization.LocalizedString"/> with the custom translation. <see cref="P:Microsoft.Extensions.Localization.LocalizedString.ResourceNotFound"/> should be <c>true</c> if no custom translation is provided for some translation key</returns>
+            <param name="key">The name of the string resource.</param>
+            <remarks>
+            The value of  <see cref="P:Microsoft.Extensions.Localization.LocalizedString.ResourceNotFound"/> should be <c>true</c> if no translation is available for the specified key.
+            </remarks>
+            <returns>The string resource as a <see cref="T:Microsoft.Extensions.Localization.LocalizedString" />.</returns>
+        </member>
+        <member name="P:MudBlazor.MudGlobal.MenuItemDebounceInterval">
+            <summary>
+            Minimum time between OnAction calls for MenuItem
+            </summary>
+            <remarks>
+            The OnAction event will not be fired again if it has already been fired less than this TimeSpan ago.
+            </remarks>
         </member>
         <member name="P:MudBlazor.MudGlobal.UnhandledExceptionHandler">
             <summary>
@@ -10046,7 +11284,7 @@
         </member>
         <member name="T:MudBlazor.IMudPopoverHolder">
             <summary>
-            This interface serves as a container for the values of an <see cref="T:MudBlazor.IPopover"/> and is used by the <see cref="T:MudBlazor.MudPopoverProvider"/> to render the popover.
+            This interface serves as a container for the values of a <see cref="T:MudBlazor.IPopover"/> and is used by the <see cref="T:MudBlazor.MudPopoverProvider"/> to render the popover.
             </summary>
         </member>
         <member name="P:MudBlazor.IMudPopoverHolder.Id">
@@ -10124,12 +11362,13 @@
             Gets the unique identifier of the observer.
             </summary>
         </member>
-        <member name="M:MudBlazor.IPopoverObserver.PopoverCollectionUpdatedNotificationAsync(MudBlazor.PopoverHolderContainer)">
+        <member name="M:MudBlazor.IPopoverObserver.PopoverCollectionUpdatedNotificationAsync(MudBlazor.PopoverHolderContainer,System.Threading.CancellationToken)">
             <summary>
             Notifies the observer of a popover collection update in <see cref="P:MudBlazor.IPopoverService.ActivePopovers"/>.
             This notification is triggered only when <see cref="M:MudBlazor.IPopoverService.CreatePopoverAsync(MudBlazor.IPopover)"/>, <see cref="M:MudBlazor.IPopoverService.UpdatePopoverAsync(MudBlazor.IPopover)"/> or <see cref="M:MudBlazor.IPopoverService.DestroyPopoverAsync(MudBlazor.IPopover)"/> is called.
             </summary>
             <param name="container">The container holding the collection of updated popover holders and the corresponding operation.</param>
+            <param name="cancellationToken">Indicates that the process has been aborted.</param>
             <returns>A task representing the asynchronous notification operation.</returns>
             /// <remarks>
             Please note that this notification will not be triggered if <see cref="M:MudBlazor.IPopoverService.UpdatePopoverAsync(MudBlazor.IPopover)"/>, <see cref="M:MudBlazor.IPopoverService.DestroyPopoverAsync(MudBlazor.IPopover)"/> return <c>false</c>.
@@ -10381,6 +11620,30 @@
             for backward compatibility.
             </remarks>
         </member>
+        <member name="P:MudBlazor.PopoverOptions.PoolSize">
+            <summary>
+            The size of the pool to use in order for generated objects to be reused. This is NOT a concurrency limit,
+            but if the pool is empty then a new object will be created rather than waiting for an object to return to
+            the pool.
+            Defaults to 3000.
+            <para/>
+            <b>NB!</b> This setting is ignored in <see cref="F:MudBlazor.PopoverMode.Default"/>.
+            </summary>
+            <remarks>
+            For more info please visit: <see href="https://github.com/MarkCiliaVincenti/AsyncKeyedLock/wiki/How-to-use-AsyncKeyedLocker#pooling">AsyncKeyedLocker</see>.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.PopoverOptions.PoolInitialFill">
+            <summary>
+            The number of items to fill the pool with during initialization.
+            Defaults to 100.
+            <para/>
+            <b>NB!</b> This setting is ignored in <see cref="F:MudBlazor.PopoverMode.Default"/>.
+            </summary>
+            <remarks>
+            For more info please visit: <see href="https://github.com/MarkCiliaVincenti/AsyncKeyedLock/wiki/How-to-use-AsyncKeyedLocker#pooling">AsyncKeyedLocker</see>.
+            </remarks>
+        </member>
         <member name="T:MudBlazor.PopoverService">
             <summary>
             Represents a service for managing popovers.
@@ -10437,11 +11700,16 @@
         <member name="M:MudBlazor.PopoverService.GetProviderCountAsync">
             <inheritdoc />
         </member>
+        <member name="M:MudBlazor.PopoverService.OnBatchTimerElapsedAsync(System.Collections.Generic.IReadOnlyCollection{MudBlazor.MudPopoverHolder},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="M:MudBlazor.PopoverService.DisposeAsync">
             <inheritdoc />
         </member>
-        <member name="M:MudBlazor.PopoverService.OnBatchTimerElapsedAsync(System.Collections.Generic.IReadOnlyCollection{MudBlazor.MudPopoverHolder},System.Threading.CancellationToken)">
-            <inheritdoc />
+        <member name="M:MudBlazor.PopoverService.DisposeAsyncCore">
+            <summary>
+            Disposes the current <see cref="T:MudBlazor.PopoverService"/> instance.
+            </summary>
         </member>
         <member name="P:MudBlazor.ScrollEventArgs.FirstChildBoundingClientRect">
             <summary>
@@ -10589,6 +11857,504 @@
             <summary>
             Get the current position of the centered section
             </summary>
+        </member>
+        <member name="T:MudBlazor.State.Builder.ParameterAttachBuilder">
+            <summary>
+            Helper class for creating instances of <see cref="T:MudBlazor.State.Builder.ParameterAttachBuilder`1"/>.
+            </summary>
+            <remarks>
+            You don't need to create this object directly.
+            Instead, use the "MudComponentBase.RegisterParameter" method from within the component's constructor.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.State.Builder.ParameterAttachBuilder.Create``1">
+            <summary>
+            Creates a new instance of the <see cref="T:MudBlazor.State.Builder.ParameterAttachBuilder`1"/>.
+            </summary>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+            <returns>A new instance of <see cref="T:MudBlazor.State.Builder.ParameterAttachBuilder`1"/>.</returns>
+        </member>
+        <member name="T:MudBlazor.State.Builder.ParameterAttachBuilder`1">
+            <summary>
+            Builder class for constructing instances of <see cref="T:MudBlazor.State.ParameterState`1"/>.
+            </summary>
+            <remarks>
+            You don't need to create this object directly.
+            Instead, use the "MudComponentBase.RegisterParameter" method from within the component's constructor.
+            </remarks>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+        </member>
+        <member name="M:MudBlazor.State.Builder.ParameterAttachBuilder`1.WithMetadata(MudBlazor.State.ParameterMetadata)">
+            <summary>
+            Sets the metadata for the parameter.
+            </summary>
+            <param name="metadata">The metadata for the parameter.</param>
+            <returns>The current instance of the builder.</returns>
+        </member>
+        <member name="M:MudBlazor.State.Builder.ParameterAttachBuilder`1.WithGetParameterValueFunc(System.Func{`0})">
+            <summary>
+            Sets the function to get the parameter value.
+            </summary>
+            <param name="getParameterValueFunc">The function to get the parameter value.</param>
+            <returns>The current instance of the builder.</returns>
+        </member>
+        <member name="M:MudBlazor.State.Builder.ParameterAttachBuilder`1.WithEventCallbackFunc(System.Func{Microsoft.AspNetCore.Components.EventCallback{`0}})">
+            <summary>
+            Sets the function to create the event callback for the parameter.
+            </summary>
+            <param name="eventCallbackFunc">The function to create the event callback.</param>
+            <returns>The current instance of the builder.</returns>
+        </member>
+        <member name="M:MudBlazor.State.Builder.ParameterAttachBuilder`1.WithParameterChangedHandler(MudBlazor.State.IParameterChangedHandler{`0})">
+            <summary>
+            Sets the parameter changed handler for the parameter.
+            </summary>
+            <param name="parameterChangedHandler">The parameter changed handler.</param>
+            <returns>The current instance of the builder.</returns>
+        </member>
+        <member name="M:MudBlazor.State.Builder.ParameterAttachBuilder`1.WithParameterChangedHandler(System.Func{MudBlazor.State.ParameterChangedEventArgs{`0},System.Threading.Tasks.Task})">
+            <summary>
+            Sets the parameter changed handler for the parameter.
+            </summary>
+            <param name="parameterChangedHandler">The parameter changed handler.</param>
+            <returns>The current instance of the builder.</returns>
+        </member>
+        <member name="M:MudBlazor.State.Builder.ParameterAttachBuilder`1.WithParameterChangedHandler(System.Func{System.Threading.Tasks.Task})">
+            <summary>
+            Sets the parameter changed handler for the parameter.
+            </summary>
+            <param name="parameterChangedHandler">The parameter changed handler.</param>
+            <returns>The current instance of the builder.</returns>
+        </member>
+        <member name="M:MudBlazor.State.Builder.ParameterAttachBuilder`1.WithParameterChangedHandler(System.Action)">
+            <summary>
+            Sets the parameter changed handler for the parameter.
+            </summary>
+            <param name="parameterChangedHandler">The parameter changed handler.</param>
+            <returns>The current instance of the builder.</returns>
+        </member>
+        <member name="M:MudBlazor.State.Builder.ParameterAttachBuilder`1.WithParameterChangedHandler(System.Action{MudBlazor.State.ParameterChangedEventArgs{`0}})">
+            <summary>
+            Sets the parameter changed handler for the parameter.
+            </summary>
+            <param name="parameterChangedHandler">The parameter changed handler.</param>
+            <returns>The current instance of the builder.</returns>
+        </member>
+        <member name="M:MudBlazor.State.Builder.ParameterAttachBuilder`1.WithComparer(System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+            Sets the comparer for the parameter.
+            </summary>
+            <param name="comparer">The comparer for the parameter.</param>
+            <returns>The current instance of the builder.</returns>
+        </member>
+        <member name="M:MudBlazor.State.Builder.ParameterAttachBuilder`1.Attach">
+            <summary>
+            Constructs a new instance of <see cref="T:MudBlazor.State.ParameterState`1"/> using the provided settings.
+            </summary>
+            <returns>A new instance of <see cref="T:MudBlazor.State.ParameterState`1"/>.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when required parameters are not provided.</exception>
+        </member>
+        <member name="T:MudBlazor.State.IParameterChangedHandler`1">
+            <summary>
+            Represents an interface for handling parameter change.
+            </summary>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+        </member>
+        <member name="M:MudBlazor.State.IParameterChangedHandler`1.HandleAsync(MudBlazor.State.ParameterChangedEventArgs{`0})">
+            <summary>
+            Handles parameter changes asynchronously.
+            </summary>
+            <param name="parameterChangedEventArgs">The <see cref="T:MudBlazor.State.ParameterChangedEventArgs`1"/> containing the information about the last and current values of a parameter.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous operation.</returns>
+        </member>
+        <member name="T:MudBlazor.State.IParameterComponentLifeCycle">
+            <summary>
+            Represents the lifecycle methods for Blazor component parameters used by the ParameterState framework.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.State.IParameterComponentLifeCycle.Metadata">
+            <summary>
+            Gets metadata associated with the parameter, including its name, handler name etc.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.State.IParameterComponentLifeCycle.HasHandler">
+            <summary>
+            Indicates whether a <see cref="T:MudBlazor.State.IParameterChangedHandler`1"/> is supplied for handling parameter changes.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.State.IParameterComponentLifeCycle.HasParameterChanged(Microsoft.AspNetCore.Components.ParameterView)">
+            <summary>
+            Determines whether the parameter has changed by comparing it with the provided parameters.
+            </summary>
+            <param name="parameters">The parameter view containing the parameters to compare with.</param>
+            <returns><c>true</c> if the parameter value has changed, <c>false</c> otherwise.</returns>
+        </member>
+        <member name="M:MudBlazor.State.IParameterComponentLifeCycle.ParameterChangeHandleAsync">
+            <summary>
+            Called by the <see cref="T:MudBlazor.State.ParameterState`1"/> framework when <see cref="T:MudBlazor.State.IParameterChangedHandler`1"/> is supplied.
+            </summary>
+            <remarks>
+            This method is intended for internal use and is controlled by the <see cref="T:MudBlazor.MudComponentBase"/> and <see cref="T:MudBlazor.State.ParameterSet"/>.
+            It should only be invoked after <see cref="M:MudBlazor.State.IParameterComponentLifeCycle.HasParameterChanged(Microsoft.AspNetCore.Components.ParameterView)"/> has been called.
+            Direct invocation of this method by external code is discouraged.
+            </remarks>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous operation.</returns>
+        </member>
+        <member name="M:MudBlazor.State.IParameterComponentLifeCycle.OnInitialized">
+            <summary>
+            Invoked when <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnInitialized"/> is called, used to set the initial parameter value.
+            </summary>
+            <remarks>
+            This method is intended for internal use and is controlled by the <see cref="T:MudBlazor.MudComponentBase"/> and <see cref="T:MudBlazor.State.ParameterSet"/>.
+            Direct invocation of this method by external code is discouraged.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.State.IParameterComponentLifeCycle.OnParametersSet">
+            <summary>
+            Invoked when <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnParametersSet"/> is called, used to synchronize the parameter value when Blazor updates the parameters.
+            </summary>
+            <remarks>
+            This method is intended for internal use and is controlled by the <see cref="T:MudBlazor.MudComponentBase"/> and <see cref="T:MudBlazor.State.ParameterSet"/>.
+            Direct invocation of this method by external code is discouraged.
+            </remarks>
+        </member>
+        <member name="T:MudBlazor.State.IParameterState`1">
+            <summary>
+            The <see cref="T:MudBlazor.State.ParameterState`1"/> automatically manages parameter value changes for <see cref="T:Microsoft.AspNetCore.Components.ParameterAttribute"/> as part of
+            MudBlazor's ParameterState framework. For details and usage please read CONTRIBUTING.md
+            </summary>
+            <remarks>
+            You don't need to create this object directly.
+            Instead, use the "MudComponentBase.RegisterParameter" method from within the component's constructor.
+            </remarks>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+        </member>
+        <member name="P:MudBlazor.State.IParameterState`1.Value">
+            <summary>
+            Gets the current value.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.State.IParameterState`1.SetValueAsync(`0)">
+            <summary>
+            Set the parameter's value. 
+            </summary>
+            <remarks>
+            Note: you should never set the parameter's property directly from within the component.
+            Instead, use SetValueAsync on the ParameterState object.
+            </remarks>
+            <param name="value">New parameter's value.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous operation.</returns>
+        </member>
+        <member name="T:MudBlazor.State.ParameterChangedEventArgs`1">
+            <summary>
+            Represents event arguments containing the last and current values of a parameter.
+            </summary>
+            <typeparam name="T">The type of the parameter value.</typeparam>
+        </member>
+        <member name="P:MudBlazor.State.ParameterChangedEventArgs`1.ParameterName">
+            <summary>
+            Gets the associated parameter name of the component's <see cref="T:Microsoft.AspNetCore.Components.ParameterAttribute"/>.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.State.ParameterChangedEventArgs`1.LastValue">
+            <summary>
+            Gets the last value of the parameter.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.State.ParameterChangedEventArgs`1.Value">
+            <summary>
+            Gets the current value of the parameter.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.State.ParameterChangedEventArgs`1.#ctor(System.String,`0,`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.State.ParameterChangedEventArgs`1"/> class with the specified last and current values.
+            </summary>
+            <param name="parameterName">The name of the parameter.</param>
+            <param name="lastValue">The last value of the parameter.</param>
+            <param name="value">The current value of the parameter.</param>
+        </member>
+        <member name="T:MudBlazor.State.ParameterChangedLambdaArgsHandler`1">
+            <summary>
+            Represents a wrapper class for implementing the <see cref="T:MudBlazor.State.IParameterChangedHandler`1"/> interface 
+            using an Action lambda expression instead of directly implementing the interface.
+            </summary>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+        </member>
+        <member name="M:MudBlazor.State.ParameterChangedLambdaArgsHandler`1.#ctor(System.Action{MudBlazor.State.ParameterChangedEventArgs{`0}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.State.ParameterChangedLambdaHandler`1"/> class with the specified lambda expression.
+            </summary>
+            <param name="lambda">The Action lambda expression to be executed when handling parameter change.</param>
+        </member>
+        <member name="M:MudBlazor.State.ParameterChangedLambdaArgsHandler`1.HandleAsync(MudBlazor.State.ParameterChangedEventArgs{`0})">
+            <summary>
+            Invokes the specified lambda expression when handling parameter change.
+            </summary>
+            <param name="parameterChangedEventArgs">The <see cref="T:MudBlazor.State.ParameterChangedEventArgs`1"/> containing the information about the last and current values of a parameter.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous operation.</returns>
+        </member>
+        <member name="T:MudBlazor.State.ParameterChangedLambdaArgsTaskHandler`1">
+            <summary>
+            Represents a wrapper class for implementing the <see cref="T:MudBlazor.State.IParameterChangedHandler`1"/> interface
+            using a Func&lt;Task&gt; lambda expression instead of directly implementing the interface.
+            </summary>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+        </member>
+        <member name="M:MudBlazor.State.ParameterChangedLambdaArgsTaskHandler`1.#ctor(System.Func{MudBlazor.State.ParameterChangedEventArgs{`0},System.Threading.Tasks.Task})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.State.ParameterChangedLambdaTaskHandler`1"/> class with the specified lambda expression.
+            </summary>
+            <param name="lambda">The Func&lt;ParameterChangedEventArgs&lt;T&gt;, Task&gt; lambda expression to be executed when handling parameter changes.</param>
+        </member>
+        <member name="M:MudBlazor.State.ParameterChangedLambdaArgsTaskHandler`1.HandleAsync(MudBlazor.State.ParameterChangedEventArgs{`0})">
+            <summary>
+            Invokes the specified lambda expression when handling parameter changes.
+            </summary>
+            <param name="parameterChangedEventArgs">The <see cref="T:MudBlazor.State.ParameterChangedEventArgs`1"/> containing the information about the last and current values of a parameter.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous operation.</returns>
+        </member>
+        <member name="T:MudBlazor.State.ParameterChangedLambdaHandler`1">
+            <summary>
+            Represents a wrapper class for implementing the <see cref="T:MudBlazor.State.IParameterChangedHandler`1"/> interface 
+            using an Action lambda expression instead of directly implementing the interface.
+            </summary>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+        </member>
+        <member name="M:MudBlazor.State.ParameterChangedLambdaHandler`1.#ctor(System.Action)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.State.ParameterChangedLambdaHandler`1"/> class with the specified lambda expression.
+            </summary>
+            <param name="lambda">The Action lambda expression to be executed when handling parameter change.</param>
+        </member>
+        <member name="M:MudBlazor.State.ParameterChangedLambdaHandler`1.HandleAsync(MudBlazor.State.ParameterChangedEventArgs{`0})">
+            <summary>
+            Invokes the specified lambda expression when handling parameter change.
+            </summary>
+            <param name="parameterChangedEventArgs">The <see cref="T:MudBlazor.State.ParameterChangedEventArgs`1"/> containing the information about the last and current values of a parameter.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous operation.</returns>
+        </member>
+        <member name="T:MudBlazor.State.ParameterChangedLambdaTaskHandler`1">
+            <summary>
+            Represents a wrapper class for implementing the <see cref="T:MudBlazor.State.IParameterChangedHandler`1"/> interface
+            using a Func&lt;Task&gt; lambda expression instead of directly implementing the interface.
+            </summary>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+        </member>
+        <member name="M:MudBlazor.State.ParameterChangedLambdaTaskHandler`1.#ctor(System.Func{System.Threading.Tasks.Task})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.State.ParameterChangedLambdaTaskHandler`1"/> class with the specified lambda expression.
+            </summary>
+            <param name="lambda">The Func&lt;Task&gt; lambda expression to be executed when handling parameter changes.</param>
+        </member>
+        <member name="M:MudBlazor.State.ParameterChangedLambdaTaskHandler`1.HandleAsync(MudBlazor.State.ParameterChangedEventArgs{`0})">
+            <summary>
+            Invokes the specified lambda expression when handling parameter changes.
+            </summary>
+            <param name="parameterChangedEventArgs">The <see cref="T:MudBlazor.State.ParameterChangedEventArgs`1"/> containing the information about the last and current values of a parameter.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous operation.</returns>
+        </member>
+        <member name="T:MudBlazor.State.ParameterHandlerUniquenessComparer">
+            <summary>
+            Provides functionality to compare instances of <see cref="T:MudBlazor.State.ParameterMetadata"/> or <see cref="P:MudBlazor.State.IParameterComponentLifeCycle.Metadata"/> for equality.
+            </summary>
+            <remarks>
+            This checks only uniqueness of <see cref="P:MudBlazor.State.ParameterMetadata.HandlerName"/>.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.State.ParameterHandlerUniquenessComparer.Equals(MudBlazor.State.ParameterMetadata,MudBlazor.State.ParameterMetadata)">
+            <inheritdoc />
+        </member>
+        <member name="M:MudBlazor.State.ParameterHandlerUniquenessComparer.Equals(MudBlazor.State.IParameterComponentLifeCycle,MudBlazor.State.IParameterComponentLifeCycle)">
+            <inheritdoc />
+        </member>
+        <member name="M:MudBlazor.State.ParameterHandlerUniquenessComparer.GetHashCode(MudBlazor.State.ParameterMetadata)">
+            <inheritdoc />
+        </member>
+        <member name="M:MudBlazor.State.ParameterHandlerUniquenessComparer.GetHashCode(MudBlazor.State.IParameterComponentLifeCycle)">
+            <inheritdoc />
+        </member>
+        <member name="F:MudBlazor.State.ParameterHandlerUniquenessComparer.Default">
+            <summary>
+            Gets the default instance of <see cref="T:MudBlazor.State.ParameterHandlerUniquenessComparer"/>.
+            </summary>
+        </member>
+        <member name="T:MudBlazor.State.ParameterMetadata">
+            <summary>
+            Represents information about a parameter.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.State.ParameterMetadata.ParameterName">
+            <summary>
+            Gets the associated parameter name of the component's <see cref="T:Microsoft.AspNetCore.Components.ParameterAttribute"/>.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.State.ParameterMetadata.HandlerName">
+            <summary>
+            Gets the unique name of the handler.
+            </summary>
+            <remarks>
+            This is used to identify the handler uniquely.
+            A <c>null</c> value indicates that the handler is always unique and typically means the usage of an anonymous function (lambda expression) as the handler instead of a method group.
+            If two handlers have the same name, they are considered identical; otherwise, they are considered distinct.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.State.ParameterMetadata.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.State.ParameterMetadata"/> class with the specified handler name.
+            </summary>
+            <param name="parameterName">The name of the parameter, passed using nameof(...).</param>
+            <param name="handlerName">The handler's name.</param>
+        </member>
+        <member name="M:MudBlazor.State.ParameterMetadata.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.State.ParameterMetadata"/> class with the specified handler name.
+            </summary>
+            <param name="parameterName">The name of the parameter, passed using nameof(...).</param>
+        </member>
+        <member name="T:MudBlazor.State.ParameterSet">
+            <summary>
+            Represents a collection of registered parameters.
+            This class is part of MudBlazor's ParameterState framework.
+            </summary>
+            <remarks>
+            For details and usage please read CONTRIBUTING.md
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.State.ParameterSet.Add(MudBlazor.State.IParameterComponentLifeCycle)">
+            <summary>
+            Adds a parameter to the parameter set.
+            </summary>
+            <param name="parameter">The parameter to add.</param>
+            <exception cref="T:System.InvalidOperationException">Thrown when the parameter is already registered.</exception>
+        </member>
+        <member name="M:MudBlazor.State.ParameterSet.OnInitialized">
+            <summary>
+            Executes <see cref="M:MudBlazor.State.IParameterComponentLifeCycle.OnInitialized"/> for all registered parameters.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.State.ParameterSet.OnParametersSet">
+            <summary>
+            Executes <see cref="M:MudBlazor.State.IParameterComponentLifeCycle.OnParametersSet"/> for all registered parameters.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.State.ParameterSet.SetParametersAsync(System.Func{Microsoft.AspNetCore.Components.ParameterView,System.Threading.Tasks.Task},Microsoft.AspNetCore.Components.ParameterView)">
+            <summary>
+            Determines which <see cref="T:MudBlazor.State.ParameterState`1"/> have been changed and calls their respective change handler.
+            </summary>
+            <param name="baseSetParametersAsync">A func to call the base class' <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.SetParametersAsync(Microsoft.AspNetCore.Components.ParameterView)"/>.</param>
+            <param name="parameters">The ParameterView coming from Blazor's  <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.SetParametersAsync(Microsoft.AspNetCore.Components.ParameterView)"/>.</param>
+        </member>
+        <member name="M:MudBlazor.State.ParameterSet.GetEnumerator">
+            <inheritdoc/>
+        </member>
+        <member name="M:MudBlazor.State.ParameterSet.System#Collections#IEnumerable#GetEnumerator">
+            <inheritdoc/>
+        </member>
+        <member name="T:MudBlazor.State.ParameterState`1">
+            <summary>
+            The <see cref="T:MudBlazor.State.ParameterState`1"/> automatically manages parameter value changes for <see cref="T:Microsoft.AspNetCore.Components.ParameterAttribute"/> as part of
+            MudBlazor's ParameterState framework. For details and usage please read CONTRIBUTING.md
+            </summary>
+            <remarks>
+            You don't need to create this object directly.
+            Instead, use the "MudComponentBase.RegisterParameter" method from within the component's constructor.
+            </remarks>
+            <typeparam name="T">The type of the component's property value.</typeparam>
+        </member>
+        <member name="P:MudBlazor.State.ParameterState`1.Metadata">
+            <inheritdoc />
+        </member>
+        <member name="P:MudBlazor.State.ParameterState`1.HasHandler">
+            <inheritdoc />
+        </member>
+        <member name="P:MudBlazor.State.ParameterState`1.IsInitialized">
+            <summary>
+            Gets a value indicating whether the object is initialized.
+            </summary>
+            <remarks>
+            This property is <c>true</c> once the <see cref="M:MudBlazor.State.ParameterState`1.OnInitialized"/> method is called; otherwise, <c>false</c>.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.State.ParameterState`1.Value">
+            <inheritdoc/>
+        </member>
+        <member name="M:MudBlazor.State.ParameterState`1.SetValueAsync(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MudBlazor.State.ParameterState`1.OnInitialized">
+            <inheritdoc />
+        </member>
+        <member name="M:MudBlazor.State.ParameterState`1.OnParametersSet">
+            <inheritdoc />
+        </member>
+        <member name="M:MudBlazor.State.ParameterState`1.ParameterChangeHandleAsync">
+            <inheritdoc />
+        </member>
+        <member name="M:MudBlazor.State.ParameterState`1.HasParameterChanged(Microsoft.AspNetCore.Components.ParameterView)">
+            <inheritdoc />
+        </member>
+        <member name="M:MudBlazor.State.ParameterState`1.Attach(MudBlazor.State.ParameterMetadata,System.Func{`0},System.Func{Microsoft.AspNetCore.Components.EventCallback{`0}},MudBlazor.State.IParameterChangedHandler{`0},System.Collections.Generic.IEqualityComparer{`0})">
+             <summary>
+             Creates a <see cref="T:MudBlazor.State.ParameterState`1"/> object which automatically manages parameter value changes as part of MudBlazor's ParameterState framework.
+            <para />
+             <b>NB!</b> Usually you don't need to call this directly. Instead, use the RegisterParameter method (<see cref="T:MudBlazor.MudComponentBase"/>) from within the
+             component's constructor.  
+             </summary>
+             <param name="metadata">The parameter's metadata.</param>
+             <param name="getParameterValueFunc">A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to read the property value.</param>
+             <param name="eventCallbackFunc">A function that allows <see cref="T:MudBlazor.State.ParameterState`1"/> to get the <see cref="T:Microsoft.AspNetCore.Components.EventCallback`1"/> of the parameter.</param>
+             <param name="parameterChangedHandler">A change handler containing code that needs to be executed when the parameter value changes/</param>
+             <param name="comparer">An optional comparer used to determine equality of parameter values.</param>
+             <remarks>
+             For details and usage please read CONTRIBUTING.md
+             </remarks>
+             <returns>The <see cref="T:MudBlazor.State.ParameterState`1"/> object to be stored in a field for accessing the current state value.</returns>
+        </member>
+        <member name="M:MudBlazor.State.ParameterState`1.Equals(MudBlazor.State.ParameterState{`0})">
+            <inheritdoc />
+        </member>
+        <member name="M:MudBlazor.State.ParameterState`1.Equals(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:MudBlazor.State.ParameterState`1.GetHashCode">
+            <inheritdoc />
+        </member>
+        <member name="T:MudBlazor.State.Rule.Exclusion.IExclusion">
+            <summary>
+            Represents an exclusion logic for <seealso cref="T:MudBlazor.State.ParameterMetadata"/>.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.State.Rule.Exclusion.IExclusion.IsExclusion(MudBlazor.State.ParameterMetadata,MudBlazor.State.ParameterMetadata@)">
+            <summary>
+            Determines if the current metadata is excluded.
+            </summary>
+            <param name="currentMetadata">The current parameter metadata to be evaluated.</param>
+            <param name="newMetadata">When this method returns, contains the new parameter metadata, if the current metadata is excluded; otherwise, contains the unchanged current metadata.</param>
+            <returns><c>true</c> if the current metadata is excluded; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="T:MudBlazor.State.Rule.Exclusion.LambdaExclusion">
+            <summary>
+            Represents an exclusion rule based on the <see cref="T:MudBlazor.State.ParameterMetadata"/>.
+            </summary>
+            <remarks>
+            If the <see cref="P:MudBlazor.State.ParameterMetadata.HandlerName"/> property contains a lambda expression ("=>"), the <see cref="T:MudBlazor.State.ParameterMetadata"/> is considered to have an exclusion.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.State.Rule.Exclusion.LambdaExclusion.IsExclusion(MudBlazor.State.ParameterMetadata,MudBlazor.State.ParameterMetadata@)">
+            <inheritdoc />
+        </member>
+        <member name="T:MudBlazor.State.Rule.ParameterMetadataRules">
+            <summary>
+            Provides rules for processing <see cref="T:MudBlazor.State.ParameterMetadata"/>.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.State.Rule.ParameterMetadataRules.Morph(MudBlazor.State.ParameterMetadata)">
+            <summary>
+            Modifies the provided <see cref="T:MudBlazor.State.ParameterMetadata"/> based on defined exclusion rules.
+            </summary>
+            <param name="originalMetadata">The original <see cref="T:MudBlazor.State.ParameterMetadata"/> to be evaluated and possibly modified.</param>
+            <returns>The modified <see cref="T:MudBlazor.State.ParameterMetadata"/> after applying exclusion rules, or the <see cref="T:MudBlazor.State.ParameterMetadata"/> if no exclusion rule is triggered.</returns>
         </member>
         <member name="T:MudBlazor.Breakpoints">
             <summary>
@@ -11513,6 +13279,42 @@
              Note: currently not in use. Should we ever use it, remove
              the  [ExcludeFromCodeCoverage] attribute
              </summary>
+        </member>
+        <member name="T:MudBlazor.DoubleEpsilonEqualityComparer">
+            <summary>
+            Provides a comparer for <see cref="T:System.Double"/> values with an epsilon tolerance.
+            </summary>
+        </member>
+        <member name="F:MudBlazor.DoubleEpsilonEqualityComparer.DoubleMinNormal">
+            <summary>
+            A constant holding the smallest positive normal value of type double.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.DoubleEpsilonEqualityComparer.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.DoubleEpsilonEqualityComparer"/> class with the default epsilon value.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.DoubleEpsilonEqualityComparer.#ctor(System.Double)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.DoubleEpsilonEqualityComparer"/> class with the specified epsilon value.
+            </summary>
+            <param name="epsilon">The tolerance value for comparison.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="epsilon"/> is not within the valid range.</exception>
+        </member>
+        <member name="M:MudBlazor.DoubleEpsilonEqualityComparer.Equals(System.Double,System.Double)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MudBlazor.DoubleEpsilonEqualityComparer.GetHashCode(System.Double)">
+            <inheritdoc/>
+            <remarks>
+            Same as <see cref="M:System.Double.GetHashCode"/>.
+            </remarks>
+        </member>
+        <member name="F:MudBlazor.DoubleEpsilonEqualityComparer.Default">
+            <summary>
+            Gets the default instance of <see cref="T:MudBlazor.DoubleEpsilonEqualityComparer"/>.
+            </summary>
         </member>
         <member name="T:MudBlazor.EventUtil">
             <summary>
@@ -12452,6 +14254,17 @@
             If no description attribute was found the default ToString method will be used.
             </summary>
         </member>
+        <member name="T:MudBlazor.SelectionModeMudEnumExtensions">
+            <summary>
+            Extension methods for <see cref="T:MudBlazor.SelectionMode"/> enum.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.SelectionModeMudEnumExtensions.ToDescriptionString(MudBlazor.SelectionMode)">
+            <summary>
+            Returns the value of the <see cref="T:System.ComponentModel.DescriptionAttribute"/> attribute.
+            If no description attribute was found the default ToString method will be used.
+            </summary>
+        </member>
         <member name="T:MudBlazor.SeverityMudEnumExtensions">
             <summary>
             Extension methods for <see cref="T:MudBlazor.Severity"/> enum.
@@ -12612,6 +14425,17 @@
             </summary>
         </member>
         <member name="M:MudBlazor.WidthMudEnumExtensions.ToDescriptionString(MudBlazor.Width)">
+            <summary>
+            Returns the value of the <see cref="T:System.ComponentModel.DescriptionAttribute"/> attribute.
+            If no description attribute was found the default ToString method will be used.
+            </summary>
+        </member>
+        <member name="T:MudBlazor.WrapMudEnumExtensions">
+            <summary>
+            Extension methods for <see cref="T:MudBlazor.Wrap"/> enum.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.WrapMudEnumExtensions.ToDescriptionString(MudBlazor.Wrap)">
             <summary>
             Returns the value of the <see cref="T:System.ComponentModel.DescriptionAttribute"/> attribute.
             If no description attribute was found the default ToString method will be used.
@@ -12835,7 +14659,7 @@
         </member>
         <member name="P:MudBlazor.MudTreeViewItemToggleButton.Expanded">
             <summary>
-            Determens when to flip the expanded icon.
+            Determines when to flip the expanded icon.
             </summary>
         </member>
         <member name="P:MudBlazor.MudTreeViewItemToggleButton.Loading">
