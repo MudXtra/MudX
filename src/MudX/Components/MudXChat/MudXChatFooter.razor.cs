@@ -15,7 +15,7 @@ namespace MudX
             .Build();
 
         /// <summary>
-        /// The time to display within this header.
+        /// The time to display within this footer.
         /// </summary>
         [Parameter]
         [Category(CategoryTypes.Chat.Appearance)]
