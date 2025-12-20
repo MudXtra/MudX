@@ -929,7 +929,7 @@ div[mudsheet] {
 
 /* palette: error */
 .mudx-chat-text-error {
-    color: var(--mud-palette-error-darken);    
+    color: var(--mud-palette-error-darken);
     --mud-ripple-color: var(--mud-palette-error-darken);
 }
 
