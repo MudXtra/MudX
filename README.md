@@ -15,7 +15,7 @@
 
 ## Table of Contents
 - [MudXSecurityCode](#mudxsecuritycode)
-- [MudXChat] (#mudxchat)
+- [MudXChat](#mudxchat)
 - [MudXOutline](#mudxoutline)
 - [MudXCodeBlock](#mudxcodeblock)
 - [MudXCopyToClipboard](#mudxcopytoclipboard)
