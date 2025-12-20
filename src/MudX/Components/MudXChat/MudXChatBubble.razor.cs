@@ -6,7 +6,7 @@ using MudBlazor.Utilities;
 namespace MudX
 {
     /// <summary>
-    /// Represents the content displayed within a <see cref="MudChat"/>.
+    /// Represents the content displayed within a <see cref="MudXChat"/>.
     /// </summary>
     public partial class MudXChatBubble : MudComponentBase
     {
