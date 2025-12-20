@@ -5,7 +5,7 @@ using MudBlazor.Utilities;
 namespace MudX
 {
     /// <summary>
-    /// Represents the header of a <see cref="MudChat"/>.
+    /// Represents the header of a <see cref="MudXChat"/>.
     /// </summary>
     public partial class MudXChatHeader : MudComponentBase
     {
