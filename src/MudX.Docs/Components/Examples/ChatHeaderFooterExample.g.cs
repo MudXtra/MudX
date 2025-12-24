@@ -12,13 +12,13 @@ namespace MudX.Docs.Examples
                 Title: "ChatHeaderFooterExample.razor",
                 Code: @"@namespace MudX.Docs.Chat
 
-<MudXChat ChatPosition=""ChatBubblePosition.Start"">
+<MudXChat ChatPosition=""MudX.ChatBubblePosition.Start"">
     <MudXChatHeader Name=""Obi-Wan Kenobi"" Time=""2 hours ago"" />
     <MudXChatBubble>You were my brother Anakin.</MudXChatBubble>
     <MudXChatFooter Text=""Seen"" />
 </MudXChat>
 
-<MudXChat Class=""mt-2"" ChatPosition=""ChatBubblePosition.Start"">
+<MudXChat Class=""mt-2"" ChatPosition=""MudX.ChatBubblePosition.Start"">
     <MudXChatHeader>
         <MudAlert Severity=""Severity.Info"" Dense=""true"">Obi-Wan Kenobi</MudAlert>
     </MudXChatHeader>

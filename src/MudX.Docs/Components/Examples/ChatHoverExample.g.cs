@@ -23,7 +23,7 @@ namespace MudX.Docs.Examples
     for (int i = 0; i < orderedGroups.Count; i++)
     {
         var group = orderedGroups[i];
-        var position = i == 0 ? ChatBubblePosition.Start : ChatBubblePosition.End;
+        var position = i == 0 ? MudX.ChatBubblePosition.Start : MudX.ChatBubblePosition.End;
 
         <MudXChat ChatPosition=""@position"">
             <MudAvatar>@group.First().Initials</MudAvatar>

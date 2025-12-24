@@ -95,7 +95,7 @@ namespace MudX.Docs.Examples
     private int _borderRadius = 16;
     private string _ariaLabel = string.Empty;
 
-    private string AriaLabelValue => string.IsNullOrWhiteSpace(_ariaLabel) ? null : _ariaLabel;
+    private string? AriaLabelValue => string.IsNullOrWhiteSpace(_ariaLabel) ? null : _ariaLabel;
 
     /// <summary>
     /// Gets a cascading value indicating whether the layout and text direction are rendered in a right-to-left format.

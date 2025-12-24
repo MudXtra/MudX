@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
 using MudBlazor.Utilities;
+using MudX.Extensions;
 
 namespace MudX
 {
@@ -17,7 +18,7 @@ namespace MudX
         protected string Classname => new CssBuilder("mudx-chat-bubble")
             .AddClass($"mudx-chat-{GetBubbleVariant.ToDescriptionString()}")
             .AddClass($"mudx-chat-{GetBubbleVariant.ToDescriptionString()}-{GetBubbleColor.ToDescriptionString()}")
-            .AddClass($"mudx-chat-arrow-{ParentArrowPosition.ToDescriptionString()}")
+            .AddClass($"mudx-chat-arrow-{ParentArrowPosition.ToDescription()}")
             .AddClass("mudx-chat-bubble-clickable", OnClick.HasDelegate || OnContextClick.HasDelegate)
             .AddClass("mud-ripple", OnClick.HasDelegate || OnContextClick.HasDelegate)
             .AddClass(Class)

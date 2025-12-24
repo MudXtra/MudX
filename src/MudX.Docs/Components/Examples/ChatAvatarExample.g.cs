@@ -11,8 +11,9 @@ namespace MudX.Docs.Examples
             (
                 Title: "ChatAvatarExample.razor",
                 Code: @"@namespace MudX.Docs.Chat
+@using MudX
 
-<MudXChat ChatPosition=""ChatBubblePosition.Start"">
+<MudXChat ChatPosition=""MudX.ChatBubblePosition.Start"">
     <MudAvatar>OK</MudAvatar>
     <MudXChatBubble>
         It was said that you would, destroy the Sith, not join them.
@@ -22,7 +23,7 @@ namespace MudX.Docs.Examples
     </MudXChatBubble>
 </MudXChat>
 
-<MudXChat ChatPosition=""ChatBubblePosition.Start"">
+<MudXChat ChatPosition=""MudX.ChatBubblePosition.Start"">
     <MudAvatar>
         <MudImage Src=""./_content/MudX.Docs/images/jonny.jpg"" />
     </MudAvatar>
