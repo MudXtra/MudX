@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using MudBlazor.Utilities;
+using MudX.Extensions;
 
 namespace MudX
 {
@@ -11,8 +12,8 @@ namespace MudX
     {
         /// <inheritdoc />
         protected string Classname => new CssBuilder("mudx-chat")
-            .AddClass($"mudx-chat-{ChatPosition.ToDescriptionString()}")
-            .AddClass($"mudx-chat-arrow-{ArrowPosition.ToDescriptionString()}")
+            .AddClass($"mudx-chat-{ChatPosition.ToDescription()}")
+            .AddClass($"mudx-chat-arrow-{ArrowPosition.ToDescription()}")
             .AddClass($"mud-square", Square)
             .AddClass($"mudx-chat-rtl", RightToLeft)
             .AddClass($"mud-dense", Dense)

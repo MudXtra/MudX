@@ -12,7 +12,7 @@ namespace MudX.Docs.Examples
                 Title: "ChatBasicExample.razor",
                 Code: @"@namespace MudX.Docs.Chat
 
-<MudXChat ChatPosition=""ChatBubblePosition.Start"">
+<MudXChat ChatPosition=""MudX.ChatBubblePosition.Start"">
     <MudXChatBubble>
         It's over Anakin
     </MudXChatBubble>
@@ -20,7 +20,7 @@ namespace MudX.Docs.Examples
         I have the high ground.
     </MudXChatBubble>
 </MudXChat>
-<MudXChat ChatPosition=""ChatBubblePosition.End"">
+<MudXChat ChatPosition=""MudX.ChatBubblePosition.End"">
     <MudXChatBubble>
         You underestimate my power!
     </MudXChatBubble>

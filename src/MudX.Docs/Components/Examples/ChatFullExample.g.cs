@@ -31,8 +31,8 @@ namespace MudX.Docs.Examples
                         <MudSelectItem Value=""@color"">@color.ToString()</MudSelectItem>
                     }
                 </MudSelect>
-                <MudSelect T=""MudBlazor.ChatArrowPosition"" Label=""Chat Arrow"" @bind-Value=""_selectedArrowPosition"">
-                    @foreach (MudBlazor.ChatArrowPosition pos in Enum.GetValues(typeof(MudBlazor.ChatArrowPosition)))
+                <MudSelect T=""MudX.ChatArrowPosition"" Label=""Chat Arrow"" @bind-Value=""_selectedArrowPosition"">
+                    @foreach (MudX.ChatArrowPosition pos in Enum.GetValues(typeof(MudX.ChatArrowPosition)))
                     {
                         <MudSelectItem Value=""@pos"">@pos.ToString()</MudSelectItem>
                     }
@@ -43,7 +43,7 @@ namespace MudX.Docs.Examples
     </MudItem>
 </MudGrid>
 
-<MudXChat Color=""_selectedColor"" Dense=""@_dense"" Elevation=""@_elevation"" Variant=""@_variant"" Square=""_square"" ArrowPosition=""_selectedArrowPosition"" ChatPosition=""ChatBubblePosition.Start"">
+<MudXChat Color=""_selectedColor"" Dense=""@_dense"" Elevation=""@_elevation"" Variant=""@_variant"" Square=""_square"" ArrowPosition=""_selectedArrowPosition"" ChatPosition=""MudX.ChatBubblePosition.Start"">
     <MudXChatHeader Name=""Anakin"" Time=""12:46"" />
     <MudAvatar Size=""@(_dense? Size.Small: Size.Medium)"">
         <MudImage Src=""_content/MudX.Docs/images/toiletvisit.jpg"" />
@@ -54,7 +54,7 @@ namespace MudX.Docs.Examples
     <MudXChatFooter Text=""Seen at 12:46"" />
 </MudXChat>
 
-<MudXChat Color=""_selectedColor"" Dense=""@_dense"" Elevation=""@_elevation"" Variant=""@_variant"" Square=""_square"" ArrowPosition=""_selectedArrowPosition"" ChatPosition=""ChatBubblePosition.End"">
+<MudXChat Color=""_selectedColor"" Dense=""@_dense"" Elevation=""@_elevation"" Variant=""@_variant"" Square=""_square"" ArrowPosition=""_selectedArrowPosition"" ChatPosition=""MudX.ChatBubblePosition.End"">
     <MudXChatHeader Name=""Obi-Wan Kenobi"" Time=""12:45"" />
     <MudAvatar Size=""@(_dense? Size.Small: Size.Medium)"">
         <MudImage Src=""./_content/MudX.Docs/images/jonny.jpg"" />
@@ -70,7 +70,7 @@ namespace MudX.Docs.Examples
     private int _elevation = 5;
     private Variant _variant = Variant.Text;
     private Color _selectedColor = Color.Default;
-    private ChatArrowPosition _selectedArrowPosition = ChatArrowPosition.Top;
+    private MudX.ChatArrowPosition _selectedArrowPosition = MudX.ChatArrowPosition.Top;
 }",
                 Language: CodeLanguage.Razor
             )
