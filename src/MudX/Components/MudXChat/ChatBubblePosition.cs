@@ -3,7 +3,7 @@
 namespace MudX;
 
 /// <summary>
-/// The position where the chat buble will appear, marked as Start or End which will change based on language direction. 
+/// The position where the chat bubble will appear, marked as Start or End which will change based on language direction. 
 /// </summary>
 public enum ChatBubblePosition
 {
