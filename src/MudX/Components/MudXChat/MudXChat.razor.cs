@@ -68,7 +68,6 @@ namespace MudX
         /// Defaults to <c>0</c>.  A higher number creates a heavier drop shadow.  Use a value of <c>0</c> for no shadow.
         /// </remarks>
         [Parameter]
-        [Category(CategoryTypes.Alert.Appearance)]
         public int Elevation { set; get; } = 0;
 
         /// <summary>
@@ -78,7 +77,6 @@ namespace MudX
         /// Defaults to <c>false</c>.
         /// </remarks>
         [Parameter]
-        [Category(CategoryTypes.Alert.Appearance)]
         public bool Square { get; set; } = false;
 
         /// <summary>
@@ -88,7 +86,6 @@ namespace MudX
         /// Defaults to <c>false</c>.
         /// </remarks>
         [Parameter]
-        [Category(CategoryTypes.Alert.Appearance)]
         public bool Dense { get; set; }
     }
 }
