@@ -11,7 +11,11 @@ namespace MudX
 {
     /// <summary>
     /// A splitter component for allowing users to resize two adjacent panels. Can be oriented horizontally or vertically and nested within each other.
+    /// <remarks>
+    /// <b>Note:</b> This component is obsolete and will be removed in a future version. Please use MudSplitPanel instead.
+    /// </remarks>
     /// </summary>
+    [Obsolete("This component is competing against a component inside MudBlazor and will be removed, use MudSplitPanel (https://mudblazor.com/components/splitpanel).")]
     public partial class MudXSplitter : MudComponentBase, IAsyncDisposable
     {
         internal record struct DragPoints(double XDown, double YDown, int StartSize);
