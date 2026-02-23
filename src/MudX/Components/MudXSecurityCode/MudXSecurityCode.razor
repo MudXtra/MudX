@@ -17,7 +17,6 @@
                               @bind-Value="@item.Value"
                               @bind-Value:after="@(() => OnAfterChange(item.Index))"
                               Immediate="true"
-                              TextUpdateSuppression="false"
                               Validation="@((string val) => CharPatternValidator(item.Index, val))"
                               UserAttributes="@_attributes"
                               InputType="@(item.IsEditable && Password ? InputType.Password : InputType.Text)"
