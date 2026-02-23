@@ -1,0 +1,23 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build and Test MudX",
+			"type": "shell",
+			"command": "dotnet test",
+			"args": [],
+			"problemMatcher": [
+				"$msCompile"
+			]
+		},
+		{
+			"label": "Rebuild and Test MudX",
+			"type": "shell",
+			"command": "dotnet test",
+			"args": [],
+			"problemMatcher": [
+				"$msCompile"
+			]
+		}
+	]
+}
