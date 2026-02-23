@@ -49,7 +49,7 @@
         <MudXOutputPath>$(ProjectRoot)\wwwroot</MudXOutputPath>
         <StampsFilePath>$(MudXOutputPath)\modules\__stamp__.txt</StampsFilePath>
         <ScriptsDirectory>$(ProjectRoot)\Scripts</ScriptsDirectory>
-        <Title>MudX Extensions for MudBlazor</Title>
+        <Title>MudX Extensions for MudBlazor</Title>mudblazor
     </PropertyGroup>
 
     <ItemGroup>
@@ -75,7 +75,7 @@
       <None Include="wwwroot\prism\prism.js" />
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="MudBlazor" Version="8.15.0" />
+      <PackageReference Include="MudBlazor" Version="9.0.0" />
     </ItemGroup>
    
     <!-- Create item with filename and timestamp metadata -->
