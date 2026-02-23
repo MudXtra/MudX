@@ -753,7 +753,6 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
             await JSRuntime.InvokeVoidAsync("window.mudsheetHelper.cancelDrag", _handleRef);
         }
         // Dispose of any resources if necessary
-        IsJSRuntimeAvailable = false;
         GC.SuppressFinalize(this);
     }
 }
