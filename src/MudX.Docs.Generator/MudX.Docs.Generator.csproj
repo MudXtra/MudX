@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <Target Name="CleanLockedFiles" BeforeTargets="Build">
-      <Delete Files="obj\Debug\net8.0\rpswa.dswa.cache.json" ContinueOnError="true" />
+      <Delete Files="obj\Debug\$(TargetFramework)\rpswa.dswa.cache.json" ContinueOnError="true" />
   </Target>    
 
   <Target Name="EnsureMudXGenerated" BeforeTargets="Build" Inputs="$(MSBuildThisFileDirectory)..\MudX\Scripts\**\*.js" Outputs="$(MSBuildThisFileDirectory)..\MudX\wwwroot\modules\__stamp__.txt">

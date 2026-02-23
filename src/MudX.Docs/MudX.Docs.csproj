@@ -19,7 +19,7 @@
   </ItemGroup>
 
     <Target Name="CleanLockedFiles" BeforeTargets="Build">
-        <Delete Files="obj\Debug\net9.0\rpswa.dswa.cache.json" ContinueOnError="true" />
+        <Delete Files="obj\Debug\$(TargetFramework)\rpswa.dswa.cache.json" ContinueOnError="true" />
     </Target>    
     
     <!-- Ensure MudX Generators are run when MudX.Docs is built -->
