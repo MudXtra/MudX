@@ -64,7 +64,7 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
     /// </summary>
     protected string Classname =>
         new CssBuilder("mud-sheet-container")
-            .AddClass($"mud-sheet-position-{Positioning.ToDescriptionString()}")
+            .AddClass($"mud-sheet-position-{Positioning.ToDescription()}")
             .AddClass($"mud-sheet-borderradius-{BorderRadius}", BorderRadius != null)
             .AddClass($"mud-elevation-{Elevation}", !_dragging && Elevation > 0)
             .AddClass("mud-sheet-dragging", _dragging)
@@ -84,7 +84,7 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
     /// </summary>
     protected string PopoverClassname =>
         new CssBuilder("mud-sheet-popover")
-            .AddClass($"mud-sheet-position-{Positioning.ToDescriptionString()}")
+            .AddClass($"mud-sheet-position-{Positioning.ToDescription()}")
             .AddClass("mud-popover-position-override")
             .AddClass($"mud-sheet-cover-appbar",
                 // If value has been set then use it
@@ -340,7 +340,7 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
     {
         get
         {
-            var ariaLabel = $"{CultureInfo.InvariantCulture.TextInfo.ToTitleCase(Positioning.ToDescriptionString())} Sheet";
+            var ariaLabel = $"{CultureInfo.InvariantCulture.TextInfo.ToTitleCase(Positioning.ToDescription())} Sheet";
             // Update AriaAttributes based on the sheet's properties
             AriaAttributes.Clear();
             // Ensure the container is outside of the tab order
