@@ -49,7 +49,7 @@
         <MudXOutputPath>$(ProjectRoot)\wwwroot</MudXOutputPath>
         <StampsFilePath>$(MudXOutputPath)\modules\__stamp__.txt</StampsFilePath>
         <ScriptsDirectory>$(ProjectRoot)\Scripts</ScriptsDirectory>
-        <Title>MudX Extensions for MudBlazor</Title>mudblazor
+        <Title>MudX Extensions for MudBlazor</Title>
     </PropertyGroup>
 
     <ItemGroup>
