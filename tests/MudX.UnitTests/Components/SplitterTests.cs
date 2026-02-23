@@ -1,4 +1,5 @@
-﻿using AwesomeAssertions;
+﻿#pragma warning disable
+using AwesomeAssertions;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
