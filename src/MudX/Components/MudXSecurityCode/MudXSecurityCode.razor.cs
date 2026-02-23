@@ -273,7 +273,7 @@ namespace MudX
             }
             var textFieldRef = CodeItems[index].TextFieldRef;
             if (textFieldRef != null && index < CodeItems.Count - 1)
-                await textFieldRef.Validate();
+                await textFieldRef.ValidateAsync();
             else
             {
                 _form?.Validate().CatchAndLog();
