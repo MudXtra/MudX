@@ -40,14 +40,12 @@ namespace MudX
         /// Defaults to <see cref="Variant.Text" />. The variant changes the appearance of the chat bubbles, such as <c>Text</c>, <c>Outlined</c>, or <c>Filled</c>.
         /// </remarks>
         [Parameter]
-        [Category(CategoryTypes.Alert.Appearance)]
         public Variant Variant { get; set; } = Variant.Text;
 
         /// <summary>
         /// Chat bubble position.
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Appearance)]
         public ChatBubblePosition ChatPosition { get; set; } = ChatBubblePosition.Start;
 
         /// <summary>
@@ -55,14 +53,12 @@ namespace MudX
         /// </summary>
         /// <remarks>Defaults to Top</remarks>
         [Parameter]
-        [Category(CategoryTypes.Chat.Appearance)]
         public ChatArrowPosition ArrowPosition { get; set; } = ChatArrowPosition.Top;
 
         /// <summary>
         /// Child content of component.
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Behavior)]
         public RenderFragment? ChildContent { get; set; }
 
         /// <summary>

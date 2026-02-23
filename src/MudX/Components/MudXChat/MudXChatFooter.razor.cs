@@ -18,14 +18,12 @@ namespace MudX
         /// The time to display within this footer.
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Appearance)]
         public string? Text { get; set; }
 
         /// <summary>
         /// Child content of component.
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Behavior)]
         public RenderFragment? ChildContent { get; set; }
     }
 }
