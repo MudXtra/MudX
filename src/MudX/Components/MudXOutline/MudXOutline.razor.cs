@@ -77,7 +77,7 @@ namespace MudX
         /// color.
         /// </summary>
         protected string CardClassname => new CssBuilder("mudx-toc-nav-popovers")
-            .AddClass($"mud-theme-{Color.ToDescriptionString()}")
+            .AddClass($"mud-theme-{Color.ToDescription()}")
             .Build();
 
         /// <summary>
