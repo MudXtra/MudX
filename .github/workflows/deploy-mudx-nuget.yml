@@ -53,12 +53,13 @@ jobs:
           dotnet-version: |
             8.0.x
             9.0.x
+            10.0.x
 
       - name: Run Generator for StaticAssets
         run: |
-          dotnet build ./src/MudX.Generator --configuration Release --framework net8.0
-          dotnet run --project ./src/MudX.Generator --configuration Release --framework net8.0 -- ./src/MudX/wwwroot ./src/MudX/Scripts
-        
+          dotnet build ./src/MudX.Generator --configuration Release --framework net10.0
+          dotnet run --project ./src/MudX.Generator --configuration Release --framework net10.0 -- ./src/MudX/wwwroot ./src/MudX/Scripts
+
       - name: Pack NuGet package
         run: dotnet pack -c Release --output nupkgs /p:Version=${{ env.VERSION }} /p:PackageId=MudX.MudBlazor.Extension
         working-directory: ./src/MudX
