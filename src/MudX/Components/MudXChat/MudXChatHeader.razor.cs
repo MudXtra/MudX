@@ -18,21 +18,18 @@ namespace MudX
         /// The name to display within this header.
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Appearance)]
         public string? Name { get; set; }
 
         /// <summary>
         /// The time to display within this header.
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Appearance)]
         public string? Time { get; set; }
 
         /// <summary>
         /// Child content of component.
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Behavior)]
         public RenderFragment? ChildContent { get; set; }
     }
 }

@@ -1,5 +1,4 @@
-﻿
-<style>
+﻿<style>
     .sticky-search {
       position: sticky;
       top: 0;
@@ -154,7 +153,7 @@
         public TreeItemPresenter(string text, string icon) : base(text) { Text = text; Icon = icon; }
     }
 
-    private Task<bool> MatchesText(TreeItemData<string> item)
+    private Task<bool> MatchesText(MudBlazor.ITreeItemData<string> item)
     {
         if (string.IsNullOrWhiteSpace(item.Text))
             return Task.FromResult(false);

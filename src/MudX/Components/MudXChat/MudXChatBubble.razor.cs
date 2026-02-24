@@ -16,8 +16,8 @@ namespace MudX
 
         /// <inheritdoc />
         protected string Classname => new CssBuilder("mudx-chat-bubble")
-            .AddClass($"mudx-chat-{GetBubbleVariant.ToDescriptionString()}")
-            .AddClass($"mudx-chat-{GetBubbleVariant.ToDescriptionString()}-{GetBubbleColor.ToDescriptionString()}")
+            .AddClass($"mudx-chat-{GetBubbleVariant.ToDescription()}")
+            .AddClass($"mudx-chat-{GetBubbleVariant.ToDescription()}-{GetBubbleColor.ToDescription()}")
             .AddClass($"mudx-chat-arrow-{ParentArrowPosition.ToDescription()}")
             .AddClass("mudx-chat-bubble-clickable", OnClick.HasDelegate || OnContextClick.HasDelegate)
             .AddClass("mud-ripple", OnClick.HasDelegate || OnContextClick.HasDelegate)
@@ -51,35 +51,30 @@ namespace MudX
         /// The color of the component. It supports the theme colors.
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Appearance)]
         public Color? Color { get; set; }
 
         /// <summary>
         /// The display variant of the component (e.g., filled, outlined).
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Appearance)]
         public Variant? Variant { get; set; }
 
         /// <summary>
         /// Child content of component.
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Behavior)]
         public RenderFragment? ChildContent { get; set; }
 
         /// <summary>
         /// Occurs when the chat bubble has been clicked.
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Behavior)]
         public EventCallback<MouseEventArgs> OnClick { get; set; }
 
         /// <summary>
         /// Occurs when the chat bubble has been right-clicked.
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Behavior)]
         public EventCallback<MouseEventArgs> OnContextClick { get; set; }
 
         /// <summary>

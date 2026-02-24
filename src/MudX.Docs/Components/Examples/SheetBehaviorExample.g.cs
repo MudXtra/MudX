@@ -63,8 +63,11 @@ namespace MudX.Docs.Examples
                         Immediate=""true"" Clearable=""true"" />
         <MudTreeView Items=""@_treeItemData"" @ref=""_treeView"" FilterFunc=""MatchesText"" @bind-SelectedValues=""@_selectedTreeValues"">
             <ItemTemplate>
-                <MudTreeViewItem @bind-Expanded=""@context.Expanded"" Items=""@context.Children"" Value=""@context.Value""
-                                    Icon=""@context.Icon"" Text=""@context.Text"" Visible=""@context.Visible"" />
+                <MudTreeViewItem Value=""@context.Value"" Icon=""@context.Icon"" CanExpand=""@context.Expandable"" @bind-Expanded=""@context.Expanded"">
+                    <BodyContent Context=""viewItem"">
+                        <MudText>@context.Text</MudText>
+                    </BodyContent>
+                </MudTreeViewItem>
             </ItemTemplate>
         </MudTreeView>
     </MudStack>
@@ -168,7 +171,7 @@ namespace MudX.Docs.Examples
         public TreeItemPresenter(string text) : base(text) { Text = text; }
     }
 
-    private Task<bool> MatchesText(TreeItemData<string> item)
+    private Task<bool> MatchesText(MudBlazor.ITreeItemData<string> item)
     {
         if (string.IsNullOrWhiteSpace(item.Text))
             return Task.FromResult(false);

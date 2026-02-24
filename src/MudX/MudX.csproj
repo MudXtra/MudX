@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <Version>8.15.2</Version>
@@ -75,7 +75,7 @@
       <None Include="wwwroot\prism\prism.js" />
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="MudBlazor" Version="8.15.0" />
+      <PackageReference Include="MudBlazor" Version="9.0.0" />
     </ItemGroup>
    
     <!-- Create item with filename and timestamp metadata -->

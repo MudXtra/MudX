@@ -40,14 +40,12 @@ namespace MudX
         /// Defaults to <see cref="Variant.Text" />. The variant changes the appearance of the chat bubbles, such as <c>Text</c>, <c>Outlined</c>, or <c>Filled</c>.
         /// </remarks>
         [Parameter]
-        [Category(CategoryTypes.Alert.Appearance)]
         public Variant Variant { get; set; } = Variant.Text;
 
         /// <summary>
         /// Chat bubble position.
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Appearance)]
         public ChatBubblePosition ChatPosition { get; set; } = ChatBubblePosition.Start;
 
         /// <summary>
@@ -55,14 +53,12 @@ namespace MudX
         /// </summary>
         /// <remarks>Defaults to Top</remarks>
         [Parameter]
-        [Category(CategoryTypes.Chat.Appearance)]
         public ChatArrowPosition ArrowPosition { get; set; } = ChatArrowPosition.Top;
 
         /// <summary>
         /// Child content of component.
         /// </summary>
         [Parameter]
-        [Category(CategoryTypes.Chat.Behavior)]
         public RenderFragment? ChildContent { get; set; }
 
         /// <summary>
@@ -72,7 +68,6 @@ namespace MudX
         /// Defaults to <c>0</c>.  A higher number creates a heavier drop shadow.  Use a value of <c>0</c> for no shadow.
         /// </remarks>
         [Parameter]
-        [Category(CategoryTypes.Alert.Appearance)]
         public int Elevation { set; get; } = 0;
 
         /// <summary>
@@ -82,7 +77,6 @@ namespace MudX
         /// Defaults to <c>false</c>.
         /// </remarks>
         [Parameter]
-        [Category(CategoryTypes.Alert.Appearance)]
         public bool Square { get; set; } = false;
 
         /// <summary>
@@ -92,7 +86,6 @@ namespace MudX
         /// Defaults to <c>false</c>.
         /// </remarks>
         [Parameter]
-        [Category(CategoryTypes.Alert.Appearance)]
         public bool Dense { get; set; }
     }
 }

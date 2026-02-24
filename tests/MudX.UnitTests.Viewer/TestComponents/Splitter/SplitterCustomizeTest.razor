@@ -1,5 +1,4 @@
-﻿
-<style>
+﻿<style>
     .mudx-splitter-separator:hover {
         outline: dashed 1px orange;
     }
@@ -14,6 +13,7 @@
         }
     </style>
 }
+#pragma warning disable
 <MudGrid>
     <MudItem xs="12" md="6" lg="3">
         <MudSwitch @bind-Value="_overrideCss" Label="Override CSS" />
@@ -68,6 +68,7 @@
         </MudPaper>
     </MudItem>
 </MudGrid>
+#pragma warning restore
 
 @code {
     public static string __description__ = "Customize Separator";
