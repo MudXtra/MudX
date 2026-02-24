@@ -222,6 +222,11 @@
             </summary>
             <remarks>Refer to <see cref="T:Blazor.Lottie.Player.LottieAnimationOptions"/> for defaults.</remarks>
         </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.TotalAnimationFrames">
+            <summary>
+            The total number of frames in the animation. This is set when the animation is loaded and ready for playback.
+            </summary>
+        </member>
         <member name="P:Blazor.Lottie.Player.LottiePlayer.CurrentAnimationFrame">
             <summary>
             Gets the current animation frame as a double-precision value. This is updated during playback by the EventCallback of CurrentFrameChanged.
@@ -326,6 +331,16 @@
             </summary>
             <param name="js">An active IJSRuntime</param>
             <param name="elementRef">The reference to the HTML element that the Lottie animation will be rendered in.</param>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayerModule.CurrentFrame">
+            <summary>
+            The current time/frame as reported back after EventFrame events.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayerModule.TotalFrames">
+            <summary>
+            The total number of frames in the animation as returned by AnimationReady
+            </summary>
         </member>
         <member name="M:Blazor.Lottie.Player.LottiePlayerModule.InitializeAsync(Blazor.Lottie.Player.LottiePlaybackOptions)">
             <summary>
