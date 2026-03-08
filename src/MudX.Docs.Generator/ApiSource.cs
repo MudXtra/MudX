@@ -202,8 +202,7 @@ namespace MudX.Docs.Generator
                 }
                 var jsonPath = Path.Combine(outputDir, $"{type.Name}.api.json");
                 var serialized = JsonSerializer.Serialize(doc, jsonOptions);
-                var normalized = NormalizeJson(serialized);
-                WriteIfDifferent(jsonPath, normalized);
+                WriteIfDifferent(jsonPath, serialized);
             }
 
             return true;
@@ -367,8 +366,7 @@ namespace MudX.Docs.Generator
                     return "lottie-[auto-generated]";
 
                 object? instance = null;
-                if (type != null)
-                    instance = Activator.CreateInstance(type);
+                instance = Activator.CreateInstance(type);
                 var value = field.GetValue(instance);
                 return value?.ToString();
             }
