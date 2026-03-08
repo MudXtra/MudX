@@ -357,7 +357,6 @@ namespace MudX.Docs.Generator
         private static string? GetDefaultValue(FieldInfo field)
         {
             var type = field.DeclaringType;
-
             if (type == null || type.IsAbstract)
                 return null;
 
@@ -367,7 +366,9 @@ namespace MudX.Docs.Generator
                 if (type != null && type.FullName == "Blazor.Lottie.Player.LottiePlayer" && field.Name == "ElementId")
                     return "lottie-[auto-generated]";
 
-                var instance = Activator.CreateInstance(type);
+                object? instance = null;
+                if (type != null)
+                    instance = Activator.CreateInstance(type);
                 var value = field.GetValue(instance);
                 return value?.ToString();
             }
@@ -380,13 +381,14 @@ namespace MudX.Docs.Generator
         private static string? GetDefaultValue(PropertyInfo property)
         {
             var type = property.DeclaringType;
-
             if (type == null || type.IsAbstract)
                 return null;
 
             try
             {
-                var instance = Activator.CreateInstance(type);
+                object? instance = null;
+                if (type != null)
+                    instance = Activator.CreateInstance(type);
                 var value = property.GetValue(instance);
 
                 if (value == null)
