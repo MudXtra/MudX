@@ -13,7 +13,7 @@ This file is the project-specific instruction manual for AI coding agents. Follo
 - Use `CssBuilder` for classes/styles and CSS variables (no hard-coded colors)
 - Use `ParameterState<T>` for parameter updates and change handlers
 - Keep `MudX/Scripts/mudx.js` in sync with related script files
-- Any component level java script should be added as a module in the `MudX/Scripts/Modules/` folder and imported in the component (See MudXCodeBlock.razor.cs).
+- Any component level JavaScript should be added as a module in the `MudX/Scripts/Modules/` folder and imported in the component (See MudXCodeBlock.razor.cs).
 
 ### Don't
 - Do not add new heavy dependencies or packages without approval
