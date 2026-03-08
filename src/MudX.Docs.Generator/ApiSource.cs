@@ -120,6 +120,9 @@ namespace MudX.Docs.Generator
                     .Where(t => t.Namespace?.Contains("Blazor.Lottie.Player") == true));
 
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+            // Ensure deterministic property order
+            jsonOptions.PropertyNamingPolicy = null;
+            jsonOptions.DictionaryKeyPolicy = null;
 
             foreach (var type in components)
             {
@@ -199,7 +202,8 @@ namespace MudX.Docs.Generator
                 }
                 var jsonPath = Path.Combine(outputDir, $"{type.Name}.api.json");
                 var serialized = JsonSerializer.Serialize(doc, jsonOptions);
-                WriteIfDifferent(jsonPath, serialized);
+                var normalized = NormalizeJson(serialized);
+                WriteIfDifferent(jsonPath, normalized);
             }
 
             return true;
@@ -209,19 +213,24 @@ namespace MudX.Docs.Generator
         {
             try
             {
+                var normalizedContents = NormalizeJson(contents);
                 if (!File.Exists(outFile))
                 {
-                    File.WriteAllText(outFile, contents);
+                    File.WriteAllText(outFile, normalizedContents);
                     Console.WriteLine($"MudX.Docs.Generator: API Doc Created: {outFile}");
-                }
-                else if (File.ReadAllText(outFile) != contents)
-                {
-                    File.WriteAllText(outFile, contents);
-                    Console.WriteLine($"MudX.Docs.Generator: API Doc Updated: {outFile}");
                 }
                 else
                 {
-                    Console.WriteLine($"MudX.Docs.Generator: No API changes: {outFile}");
+                    var existing = NormalizeJson(File.ReadAllText(outFile));
+                    if (existing != normalizedContents)
+                    {
+                        File.WriteAllText(outFile, normalizedContents);
+                        Console.WriteLine($"MudX.Docs.Generator: API Doc Updated: {outFile}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"MudX.Docs.Generator: No API changes: {outFile}");
+                    }
                 }
             }
             catch
@@ -229,6 +238,13 @@ namespace MudX.Docs.Generator
                 File.WriteAllText(outFile, contents);
                 Console.WriteLine($"MudX.Docs.Generator: API Doc Override: {outFile}");
             }
+        }
+
+        private static string NormalizeJson(string json)
+        {
+            // Normalize line endings to LF and trim trailing whitespace
+            var lines = json.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n');
+            return string.Join("\n", lines.Select(l => l.TrimEnd()));
         }
 
         private static void CopyIfDifferent(string sourcePath, string destinationPath)
@@ -347,6 +363,10 @@ namespace MudX.Docs.Generator
 
             try
             {
+                // Special case: LottiePlayer.ElementId should always be 'auto-generated'
+                if (type != null && type.FullName == "Blazor.Lottie.Player.LottiePlayer" && field.Name == "ElementId")
+                    return "lottie-[auto-generated]";
+
                 var instance = Activator.CreateInstance(type);
                 var value = field.GetValue(instance);
                 return value?.ToString();
