@@ -13,7 +13,7 @@ namespace MudX.Docs.Examples
                 Code: @"@namespace MudX.Docs.Chat
 @using MudX
 
-<MudXChat ChatPosition=""MudX.ChatBubblePosition.Start"">
+<MudXChat Class=""avatar-test"" ChatPosition=""MudX.ChatBubblePosition.Start"">
     <MudAvatar>OK</MudAvatar>
     <MudXChatBubble>
         It was said that you would, destroy the Sith, not join them.
@@ -23,7 +23,7 @@ namespace MudX.Docs.Examples
     </MudXChatBubble>
 </MudXChat>
 
-<MudXChat ChatPosition=""MudX.ChatBubblePosition.Start"">
+<MudXChat Class=""avatar-test"" ChatPosition=""MudX.ChatBubblePosition.Start"">
     <MudAvatar>
         <MudImage Src=""./_content/MudX.Docs/images/jonny.jpg"" />
     </MudAvatar>
@@ -31,6 +31,12 @@ namespace MudX.Docs.Examples
         Not leave it in Darkness
     </MudXChatBubble>
 </MudXChat>
+
+<style>
+    .avatar-test .mudx-chat-text {
+        background-color: #d4d7dc;
+    }
+</style>
 ",
                 Language: CodeLanguage.Razor
             )

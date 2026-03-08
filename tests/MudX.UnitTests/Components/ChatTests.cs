@@ -184,5 +184,6 @@ namespace MudX.UnitTests.Components
 
             comp.Markup.Should().Contain("Custom Footer Content");
         }
+
     }
 }
