@@ -4,6 +4,18 @@
   "Description": null,
   "Parameters": [
     {
+      "Name": "Class",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+    },
+    {
+      "Name": "ExpanderIcon",
+      "Type": "String",
+      "Default": "\u003Cpath d=\u0022M0 0h24v24H0z\u0022 fill=\u0022none\u0022/\u003E\u003Cpath d=\u0022M7.77 6.76L6.23 5.48.82 12l5.41 6.52 1.54-1.28L3.42 12l4.35-5.24zM7 13h2v-2H7v2zm10-2h-2v2h2v-2zm-6 2h2v-2h-2v2zm6.77-7.52l-1.54 1.28L20.58 12l-4.35 5.24 1.54 1.28L23.18 12l-5.41-6.52z\u0022/\u003E",
+      "Description": "The icon to display when items are collapsed.\nRemarks: Defaults to . Displays when and the number of items exceeds ."
+    },
+    {
       "Name": "HomeText",
       "Type": "String",
       "Default": "Home",
@@ -16,58 +28,46 @@
       "Description": "Event callback for HomeText changes."
     },
     {
-      "Name": "Separator",
-      "Type": "String",
-      "Default": "/",
-      "Description": "Specifies the separator between the items."
-    },
-    {
-      "Name": "SeparatorTemplate",
-      "Type": "RenderFragment",
-      "Default": "null",
-      "Description": "Specifies a RenderFragment to use as the separator."
-    },
-    {
       "Name": "ItemTemplate",
       "Type": "RenderFragment\u003CBreadcrumbItem\u003E",
       "Default": "null",
-      "Description": "Specifies a RenderFragment to use as the items\u0027 contents."
+      "Description": "The custom template used to display items."
     },
     {
       "Name": "MaxItems",
       "Type": "Nullable\u003CByte\u003E",
       "Default": "null",
-      "Description": "Controls when (and if) the breadcrumbs will automatically collapse."
+      "Description": "The maximum number of items to display.\nRemarks: Defaults to null. If is true and the number of items exceeds this value, the breadcrumbs will automatically collapse."
     },
     {
-      "Name": "ExpanderIcon",
+      "Name": "Separator",
       "Type": "String",
-      "Default": "\u003Cpath d=\u0022M0 0h24v24H0z\u0022 fill=\u0022none\u0022/\u003E\u003Cpath d=\u0022M7.77 6.76L6.23 5.48.82 12l5.41 6.52 1.54-1.28L3.42 12l4.35-5.24zM7 13h2v-2H7v2zm10-2h-2v2h2v-2zm-6 2h2v-2h-2v2zm6.77-7.52l-1.54 1.28L20.58 12l-4.35 5.24 1.54 1.28L23.18 12l-5.41-6.52z\u0022/\u003E",
-      "Description": "Custom expander icon."
+      "Default": "/",
+      "Description": "The separator shown between items.\nRemarks: Defaults to /. Will not be shown if is set."
     },
     {
-      "Name": "Class",
-      "Type": "String",
-      "Default": null,
-      "Description": "User class names, separated by space."
+      "Name": "SeparatorTemplate",
+      "Type": "RenderFragment",
+      "Default": "null",
+      "Description": "The content shown between items."
     },
     {
       "Name": "Style",
       "Type": "String",
       "Default": null,
-      "Description": "User styles, applied on top of the component\u0027s own classes and styles."
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
     },
     {
       "Name": "Tag",
       "Type": "Object",
       "Default": null,
-      "Description": "Use Tag to attach any user data object to the component for your convenience."
+      "Description": "The arbitrary object to link to this component.\nRemarks: This property is typically used to associate additional information with this component, such as a model containing data for this component."
     },
     {
       "Name": "UserAttributes",
       "Type": "Dictionary\u003CString, Object\u003E",
       "Default": null,
-      "Description": "UserAttributes carries all attributes you add to the component that don\u0027t match any of its parameters. They will be splatted onto the underlying HTML tag."
+      "Description": "The additional HTML attributes to apply to this component.\nRemarks: This property is typically used to provide additional HTML attributes during rendering such as ARIA accessibility tags or a custom ID."
     }
   ],
   "Events": [],

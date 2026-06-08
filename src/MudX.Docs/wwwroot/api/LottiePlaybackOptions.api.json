@@ -6,24 +6,9 @@
   "Events": [],
   "PublicProperties": [
     {
-      "Name": "Path",
-      "Type": "String",
-      "Description": "The source or path to the lottie animation JSON file.\nRemarks: This can be a URL or a local path relative to the web root. e.g. \u0022./_content/Blazor.Lottie.Player/loading.json\u0022 or \u0022https://example.com/path/to/animation.json\u0022."
-    },
-    {
       "Name": "AutoPlay",
       "Type": "Boolean",
       "Description": "Gets or sets whether the animation should start playing automatically.\nRemarks: Default is true."
-    },
-    {
-      "Name": "Renderer",
-      "Type": "String",
-      "Description": "Gets or sets the type of Lottie animation to render.\nRemarks: Default is SVG for best feature support."
-    },
-    {
-      "Name": "Loop",
-      "Type": "Object",
-      "Description": "Gets or sets the loop behavior for the animation.\nRemarks: Can be true (infinite loop), false (no loop), or a positive integer for a specific number of loops."
     },
     {
       "Name": "Direction",
@@ -31,14 +16,19 @@
       "Description": "Gets or sets the playback direction.\nRemarks: 1 for forward, -1 for reverse. Default is 1."
     },
     {
-      "Name": "Speed",
-      "Type": "Double",
-      "Description": "Gets or sets the playback speed multiplier.\nRemarks: 1.0 is normal speed, 2.0 is double speed, 0.5 is half speed. Default is 1.0."
+      "Name": "EnterFrameEvent",
+      "Type": "Boolean",
+      "Description": "Whether to enable the enterFrame event.\nRemarks: If CurrentFrameChangedFunc is null this should be false."
     },
     {
-      "Name": "SetSubFrame",
-      "Type": "Boolean",
-      "Description": "Gets or sets whether to enable smooth frame interpolation for high refresh rate displays.\nRemarks: Default is true for smooth animations."
+      "Name": "Loop",
+      "Type": "Object",
+      "Description": "Gets or sets the loop behavior for the animation.\nRemarks: Can be true (infinite loop), false (no loop), or a positive integer for a specific number of loops."
+    },
+    {
+      "Name": "Path",
+      "Type": "String",
+      "Description": "The source or path to the lottie animation JSON file.\nRemarks: This can be a URL or a local path relative to the web root. e.g. \u0022./_content/Blazor.Lottie.Player/loading.json\u0022 or \u0022https://example.com/path/to/animation.json\u0022."
     },
     {
       "Name": "Quality",
@@ -46,9 +36,19 @@
       "Description": "Gets or sets the rendering quality level.\nRemarks: Default is High."
     },
     {
-      "Name": "EnterFrameEvent",
+      "Name": "Renderer",
+      "Type": "String",
+      "Description": "Gets or sets the type of Lottie animation to render.\nRemarks: Default is SVG for best feature support."
+    },
+    {
+      "Name": "SetSubFrame",
       "Type": "Boolean",
-      "Description": "Whether to enable the enterFrame event.\nRemarks: If CurrentFrameChangedFunc is null this should be false."
+      "Description": "Gets or sets whether to enable smooth frame interpolation for high refresh rate displays.\nRemarks: Default is true for smooth animations."
+    },
+    {
+      "Name": "Speed",
+      "Type": "Double",
+      "Description": "Gets or sets the playback speed multiplier.\nRemarks: 1.0 is normal speed, 2.0 is double speed, 0.5 is half speed. Default is 1.0."
     }
   ],
   "PublicFields": [],

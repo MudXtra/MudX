@@ -35,7 +35,7 @@
             Gets or sets the loop behavior for the animation.
             </summary>
             <remarks>
-            Can be true (infinite loop), false (no loop), or a positive integer 
+            Can be true (infinite loop), false (no loop), or a positive integer
             for a specific number of loops.
             </remarks>
         </member>
@@ -176,7 +176,7 @@
             </summary>
             <remarks>
             Defaults to 1.0 (normal speed).<br/>
-            Changing this property after initialization will not change the speed of the animation, use <see cref="M:Blazor.Lottie.Player.LottiePlayer.SetSpeedAsync(System.Double)"/>   
+            Changing this property after initialization will not change the speed of the animation, use <see cref="M:Blazor.Lottie.Player.LottiePlayer.SetSpeedAsync(System.Double)"/>
             </remarks>
         </member>
         <member name="P:Blazor.Lottie.Player.LottiePlayer.CurrentFrameChangeFunc">
@@ -221,6 +221,11 @@
             Additional Less Used Animation Options.
             </summary>
             <remarks>Refer to <see cref="T:Blazor.Lottie.Player.LottieAnimationOptions"/> for defaults.</remarks>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayer.TotalAnimationFrames">
+            <summary>
+            The total number of frames in the animation. This is set when the animation is loaded and ready for playback.
+            </summary>
         </member>
         <member name="P:Blazor.Lottie.Player.LottiePlayer.CurrentAnimationFrame">
             <summary>
@@ -307,7 +312,7 @@
         </member>
         <member name="T:Blazor.Lottie.Player.LottiePlayerModule">
             <summary>
-            Provides functionality to control and manage a Lottie animation player in a Blazor application. 
+            Provides functionality to control and manage a Lottie animation player in a Blazor application.
             </summary>
             <remarks>
             This class interacts with a JavaScript module to initialize, play, pause, and stop Lottie animations
@@ -326,6 +331,16 @@
             </summary>
             <param name="js">An active IJSRuntime</param>
             <param name="elementRef">The reference to the HTML element that the Lottie animation will be rendered in.</param>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayerModule.CurrentFrame">
+            <summary>
+            The current time/frame as reported back after EventFrame events.
+            </summary>
+        </member>
+        <member name="P:Blazor.Lottie.Player.LottiePlayerModule.TotalFrames">
+            <summary>
+            The total number of frames in the animation as returned by AnimationReady
+            </summary>
         </member>
         <member name="M:Blazor.Lottie.Player.LottiePlayerModule.InitializeAsync(Blazor.Lottie.Player.LottiePlaybackOptions)">
             <summary>
@@ -380,6 +395,14 @@
             </summary>
             <param name="direction">The direction to play the animation. It can be forward or backward.</param>
         </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.ExecuteActionAsync(System.String,System.Object[])">
+            <summary>
+            Executes javascript directly from the Lottie animation reference. So you can call any method that is available on the Lottie animation object.
+            </summary>
+            <param name="action"></param>
+            <param name="args"></param>
+            <returns></returns>
+        </member>
         <member name="E:Blazor.Lottie.Player.LottiePlayerModule.OnAnimationReady">
             <summary>
             Triggers when the Lottie animation is ready to be played and loaded by the DOM.
@@ -399,6 +422,9 @@
             <summary>
             Triggers when the Lottie animation completes playing.
             </summary>
+            <remarks>
+            If an animation is set to loop indefinitely, this event will not be triggered.
+            </remarks>
         </member>
         <member name="E:Blazor.Lottie.Player.LottiePlayerModule.OnLoopComplete">
             <summary>
@@ -462,10 +488,10 @@
             Gets or sets whether to enable smooth frame interpolation for high refresh rate displays.
             </summary>
             <remarks>
-            <para>When <c>true</c> (default), the animation will interpolate between keyframes to create 
+            <para>When <c>true</c> (default), the animation will interpolate between keyframes to create
             smooth motion that adapts to your display's refresh rate (60Hz, 120Hz, etc.).</para>
-            <para>When <c>false</c>, the animation will only update on the original After Effects keyframes, 
-            which may appear choppy on high refresh displays but offers better performance and 
+            <para>When <c>false</c>, the animation will only update on the original After Effects keyframes,
+            which may appear choppy on high refresh displays but offers better performance and
             pixel-perfect reproduction of the original animation timing.</para>
             </remarks>
         </member>
@@ -509,7 +535,7 @@
             </summary>
             <remarks>
             Quality affects the precision of curve calculations and overall visual fidelity.
-            Higher quality settings provide smoother curves and better visual accuracy but 
+            Higher quality settings provide smoother curves and better visual accuracy but
             require more computational resources.
             </remarks>
         </member>

@@ -1,0 +1,86 @@
+{
+  "Component": "MudXChatBubble",
+  "Namespace": "MudX",
+  "Description": "Represents the content displayed within a .",
+  "Parameters": [
+    {
+      "Name": "ChildContent",
+      "Type": "RenderFragment",
+      "Default": "null",
+      "Description": "Child content of component."
+    },
+    {
+      "Name": "Class",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+    },
+    {
+      "Name": "Color",
+      "Type": "Nullable\u003CColor\u003E",
+      "Default": "null",
+      "Description": "The color of the component. It supports the theme colors."
+    },
+    {
+      "Name": "OnClick",
+      "Type": "EventCallback\u003CMouseEventArgs\u003E",
+      "Default": "",
+      "Description": "Occurs when the chat bubble has been clicked."
+    },
+    {
+      "Name": "OnContextClick",
+      "Type": "EventCallback\u003CMouseEventArgs\u003E",
+      "Default": "",
+      "Description": "Occurs when the chat bubble has been right-clicked."
+    },
+    {
+      "Name": "Style",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
+    },
+    {
+      "Name": "Tag",
+      "Type": "Object",
+      "Default": null,
+      "Description": "The arbitrary object to link to this component.\nRemarks: This property is typically used to associate additional information with this component, such as a model containing data for this component."
+    },
+    {
+      "Name": "UserAttributes",
+      "Type": "Dictionary\u003CString, Object\u003E",
+      "Default": null,
+      "Description": "The additional HTML attributes to apply to this component.\nRemarks: This property is typically used to provide additional HTML attributes during rendering such as ARIA accessibility tags or a custom ID."
+    },
+    {
+      "Name": "Variant",
+      "Type": "Nullable\u003CVariant\u003E",
+      "Default": "null",
+      "Description": "The display variant of the component (e.g., filled, outlined)."
+    }
+  ],
+  "Events": [],
+  "PublicProperties": [
+    {
+      "Name": "ElementReference",
+      "Type": "ElementReference",
+      "Description": "The containing div Element Reference"
+    },
+    {
+      "Name": "ParentArrowPosition",
+      "Type": "ChatArrowPosition",
+      "Description": "The arrow position provided by the component."
+    },
+    {
+      "Name": "ParentColor",
+      "Type": "Color",
+      "Description": "The color provided by the component."
+    },
+    {
+      "Name": "ParentVariant",
+      "Type": "Variant",
+      "Description": "The variant provided by the component."
+    }
+  ],
+  "PublicFields": [],
+  "Methods": []
+}

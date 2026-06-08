@@ -1,0 +1,95 @@
+{
+  "Component": "MudXSplitter",
+  "Namespace": "MudX",
+  "Description": "A splitter component for allowing users to resize two adjacent panels. Can be oriented horizontally or vertically and nested within each other. Note: This component is obsolete and will be removed in a future version. Please use MudSplitPanel instead.",
+  "Parameters": [
+    {
+      "Name": "Class",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+    },
+    {
+      "Name": "Direction",
+      "Type": "SplitterDirection",
+      "Default": "Horizontal",
+      "Description": "The orientation for the splitter.\nRemarks: Defaults to ."
+    },
+    {
+      "Name": "EndMinimumSize",
+      "Type": "Int32",
+      "Default": "0",
+      "Description": "The minimum percentage the will go.\nRemarks: Defaults to 0."
+    },
+    {
+      "Name": "EndSplitter",
+      "Type": "RenderFragment",
+      "Default": "null",
+      "Description": "Sets the content in the right panel region when in horizontal mode, or the bottom panel region when in vertical mode."
+    },
+    {
+      "Name": "Height",
+      "Type": "String",
+      "Default": "100%",
+      "Description": "Sets the height value for the splitter container.\nRemarks: Defaults to 100%"
+    },
+    {
+      "Name": "SeparatorTemplate",
+      "Type": "RenderFragment",
+      "Default": "null",
+      "Description": "The template for the separator, always in horizontal orientation. When used in vertical mode, the separator is rotated 90 degrees."
+    },
+    {
+      "Name": "StartMinimumSize",
+      "Type": "Int32",
+      "Default": "0",
+      "Description": "The minimum percentage the will go.\nRemarks: Defaults to 0."
+    },
+    {
+      "Name": "StartSize",
+      "Type": "Int32",
+      "Default": "50",
+      "Description": "Sets or gets the starting size of the .\nRemarks: Defaults to 50."
+    },
+    {
+      "Name": "StartSizeChanged",
+      "Type": "EventCallback\u003CInt32\u003E",
+      "Default": "",
+      "Description": "Event callback for when the changes."
+    },
+    {
+      "Name": "StartSplitter",
+      "Type": "RenderFragment",
+      "Default": "null",
+      "Description": "Sets the content in the left panel region when in horizontal mode, or the top panel region when in vertical mode."
+    },
+    {
+      "Name": "Style",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
+    },
+    {
+      "Name": "Tag",
+      "Type": "Object",
+      "Default": null,
+      "Description": "The arbitrary object to link to this component.\nRemarks: This property is typically used to associate additional information with this component, such as a model containing data for this component."
+    },
+    {
+      "Name": "UserAttributes",
+      "Type": "Dictionary\u003CString, Object\u003E",
+      "Default": null,
+      "Description": "The additional HTML attributes to apply to this component.\nRemarks: This property is typically used to provide additional HTML attributes during rendering such as ARIA accessibility tags or a custom ID."
+    },
+    {
+      "Name": "Width",
+      "Type": "String",
+      "Default": "100%",
+      "Description": "Sets the width value for the splitter container. Can be any valid CSS unit.\nRemarks: Defaults to 100%"
+    }
+  ],
+  "Events": [],
+  "PublicProperties": [],
+  "PublicFields": [],
+  "Methods": []
+}

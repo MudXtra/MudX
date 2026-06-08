@@ -1,0 +1,47 @@
+{
+  "Component": "MudXChatFooter",
+  "Namespace": "MudX",
+  "Description": "Represents the footer of a .",
+  "Parameters": [
+    {
+      "Name": "ChildContent",
+      "Type": "RenderFragment",
+      "Default": "null",
+      "Description": "Child content of component."
+    },
+    {
+      "Name": "Class",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+    },
+    {
+      "Name": "Style",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
+    },
+    {
+      "Name": "Tag",
+      "Type": "Object",
+      "Default": null,
+      "Description": "The arbitrary object to link to this component.\nRemarks: This property is typically used to associate additional information with this component, such as a model containing data for this component."
+    },
+    {
+      "Name": "Text",
+      "Type": "String",
+      "Default": "null",
+      "Description": "The time to display within this footer."
+    },
+    {
+      "Name": "UserAttributes",
+      "Type": "Dictionary\u003CString, Object\u003E",
+      "Default": null,
+      "Description": "The additional HTML attributes to apply to this component.\nRemarks: This property is typically used to provide additional HTML attributes during rendering such as ARIA accessibility tags or a custom ID."
+    }
+  ],
+  "Events": [],
+  "PublicProperties": [],
+  "PublicFields": [],
+  "Methods": []
+}

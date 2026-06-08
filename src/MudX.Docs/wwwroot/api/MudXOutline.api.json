@@ -4,46 +4,10 @@
   "Description": "Represents a Table of Contents (TOC) component that provides navigation links to sections within a document.\nRemarks: The component allows users to navigate through sections of a document or page. It supports features such as customizable styling, scroll spying, and dynamic section registration. The TOC can be positioned on the left or right side of the viewport and includes options for rendering additional content above or below the section links.",
   "Parameters": [
     {
-      "Name": "ContentDrawerOpen",
-      "Type": "Boolean",
-      "Default": "true",
-      "Description": "Whether the Table of Contents drawer is open or closed\nRemarks: Defaults to"
-    },
-    {
-      "Name": "Width",
-      "Type": "Int32",
-      "Default": "200",
-      "Description": "The width of the Table of Contents drawer in pixels.\nRemarks: Defaults to 200. Values such as 200 or 300 become 200px or 300px respectively."
-    },
-    {
-      "Name": "Color",
-      "Type": "Color",
-      "Default": "Transparent",
-      "Description": "The color of the Table of Contents drawer\nRemarks: Defaults to"
-    },
-    {
-      "Name": "Headline",
-      "Type": "String",
-      "Default": "Contents",
-      "Description": "The text displayed above the section links, this will display at the top of the MudDrawer if there is at least one section.\nRemarks: Defaults to \u0022Contents\u0022"
-    },
-    {
-      "Name": "ZIndex",
-      "Type": "Int32",
-      "Default": "999",
-      "Description": "The z-index of the Table of Contents drawer\nRemarks: Defaults to 999."
-    },
-    {
-      "Name": "UnderlineActiveSections",
-      "Type": "Boolean",
-      "Default": "true",
-      "Description": "Whether to underline the active section\nRemarks: Defaults to"
-    },
-    {
-      "Name": "ScrollToTopVisible",
-      "Type": "Boolean",
-      "Default": "true",
-      "Description": "Whether the scroll to top button is visible\nRemarks: Defaults to"
+      "Name": "Anchor",
+      "Type": "Anchor",
+      "Default": "Right",
+      "Description": "Where you want the Table of Contents to be rendered\nRemarks: Defaults to . Only Valid values are and ."
     },
     {
       "Name": "ChildContent",
@@ -52,10 +16,22 @@
       "Description": "The content of the Table of Contents Document"
     },
     {
-      "Name": "HeaderIndexContent",
-      "Type": "RenderFragment",
-      "Default": "null",
-      "Description": "Option content above the table of contents"
+      "Name": "Class",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+    },
+    {
+      "Name": "Color",
+      "Type": "Color",
+      "Default": "Transparent",
+      "Description": "The color of the Table of Contents drawer\nRemarks: Defaults to"
+    },
+    {
+      "Name": "ContentDrawerOpen",
+      "Type": "Boolean",
+      "Default": "true",
+      "Description": "Whether the Table of Contents drawer is open or closed\nRemarks: Defaults to"
     },
     {
       "Name": "FooterIndexContent",
@@ -64,10 +40,16 @@
       "Description": "Option content below the table of contents"
     },
     {
-      "Name": "Anchor",
-      "Type": "Anchor",
-      "Default": "Right",
-      "Description": "Where you want the Table of Contents to be rendered\nRemarks: Defaults to . Only Valid values are and ."
+      "Name": "HeaderIndexContent",
+      "Type": "RenderFragment",
+      "Default": "null",
+      "Description": "Option content above the table of contents"
+    },
+    {
+      "Name": "Headline",
+      "Type": "String",
+      "Default": "Contents",
+      "Description": "The text displayed above the section links, this will display at the top of the MudDrawer if there is at least one section.\nRemarks: Defaults to \u0022Contents\u0022"
     },
     {
       "Name": "ScrollContainerSelector",
@@ -76,10 +58,22 @@
       "Description": "The CSS selector used to identify the scroll container, if using an element id use \u0022#\u0022 first and ensure the element starts with a letter. If using an element class use \u0022.\u0022 first.\nRemarks: Defaults to \u0022html\u0022, if this is empty or null html will be used"
     },
     {
+      "Name": "ScrollToTopVisible",
+      "Type": "Boolean",
+      "Default": "true",
+      "Description": "Whether the scroll to top button is visible\nRemarks: Defaults to"
+    },
+    {
       "Name": "SectionClassSelector",
       "Type": "String",
       "Default": "mudx-toc-section",
       "Description": "The class name to identify the HTML elements that should be observed for viewport changes inside the .\nRemarks: Defaults to \u0022mudx-toc-section\u0022"
+    },
+    {
+      "Name": "Style",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
     },
     {
       "Name": "StyleVariant",
@@ -94,41 +88,47 @@
       "Description": "The Breakpoint at which to hide the Table of Contents\nRemarks: Defaults to"
     },
     {
-      "Name": "Class",
-      "Type": "String",
-      "Default": null,
-      "Description": "User class names, separated by space."
-    },
-    {
-      "Name": "Style",
-      "Type": "String",
-      "Default": null,
-      "Description": "User styles, applied on top of the component\u0027s own classes and styles."
-    },
-    {
       "Name": "Tag",
       "Type": "Object",
       "Default": null,
-      "Description": "Use Tag to attach any user data object to the component for your convenience."
+      "Description": "The arbitrary object to link to this component.\nRemarks: This property is typically used to associate additional information with this component, such as a model containing data for this component."
+    },
+    {
+      "Name": "UnderlineActiveSections",
+      "Type": "Boolean",
+      "Default": "true",
+      "Description": "Whether to underline the active section\nRemarks: Defaults to"
     },
     {
       "Name": "UserAttributes",
       "Type": "Dictionary\u003CString, Object\u003E",
       "Default": null,
-      "Description": "UserAttributes carries all attributes you add to the component that don\u0027t match any of its parameters. They will be splatted onto the underlying HTML tag."
+      "Description": "The additional HTML attributes to apply to this component.\nRemarks: This property is typically used to provide additional HTML attributes during rendering such as ARIA accessibility tags or a custom ID."
+    },
+    {
+      "Name": "Width",
+      "Type": "Int32",
+      "Default": "200",
+      "Description": "The width of the Table of Contents drawer in pixels.\nRemarks: Defaults to 200. Values such as 200 or 300 become 200px or 300px respectively."
+    },
+    {
+      "Name": "ZIndex",
+      "Type": "Int32",
+      "Default": "999",
+      "Description": "The z-index of the Table of Contents drawer\nRemarks: Defaults to 999."
     }
   ],
   "Events": [],
   "PublicProperties": [
     {
-      "Name": "Sections",
-      "Type": "List\u003CMudXOutlineSection\u003E",
-      "Description": "The sections of the Table of Contents, this includes _subSections"
-    },
-    {
       "Name": "Level",
       "Type": "Int32",
       "Description": "Gets the current level of the object."
+    },
+    {
+      "Name": "Sections",
+      "Type": "List\u003CMudXOutlineSection\u003E",
+      "Description": "The sections of the Table of Contents, this includes _subSections"
     }
   ],
   "PublicFields": [],
