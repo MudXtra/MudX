@@ -55,25 +55,25 @@
       "Name": "Class",
       "Type": "String",
       "Default": null,
-      "Description": "User class names, separated by space."
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
     },
     {
       "Name": "Style",
       "Type": "String",
       "Default": null,
-      "Description": "User styles, applied on top of the component\u0027s own classes and styles."
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
     },
     {
       "Name": "Tag",
       "Type": "Object",
       "Default": null,
-      "Description": "Use Tag to attach any user data object to the component for your convenience."
+      "Description": "The arbitrary object to link to this component.\nRemarks: This property is typically used to associate additional information with this component, such as a model containing data for this component."
     },
     {
       "Name": "UserAttributes",
       "Type": "Dictionary\u003CString, Object\u003E",
       "Default": null,
-      "Description": "UserAttributes carries all attributes you add to the component that don\u0027t match any of its parameters. They will be splatted onto the underlying HTML tag."
+      "Description": "The additional HTML attributes to apply to this component.\nRemarks: This property is typically used to provide additional HTML attributes during rendering such as ARIA accessibility tags or a custom ID."
     }
   ],
   "Events": [],

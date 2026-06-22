@@ -395,6 +395,14 @@
             </summary>
             <param name="direction">The direction to play the animation. It can be forward or backward.</param>
         </member>
+        <member name="M:Blazor.Lottie.Player.LottiePlayerModule.ExecuteActionAsync(System.String,System.Object[])">
+            <summary>
+            Executes javascript directly from the Lottie animation reference. So you can call any method that is available on the Lottie animation object.
+            </summary>
+            <param name="action"></param>
+            <param name="args"></param>
+            <returns></returns>
+        </member>
         <member name="E:Blazor.Lottie.Player.LottiePlayerModule.OnAnimationReady">
             <summary>
             Triggers when the Lottie animation is ready to be played and loaded by the DOM.
@@ -414,6 +422,9 @@
             <summary>
             Triggers when the Lottie animation completes playing.
             </summary>
+            <remarks>
+            If an animation is set to loop indefinitely, this event will not be triggered.
+            </remarks>
         </member>
         <member name="E:Blazor.Lottie.Player.LottiePlayerModule.OnLoopComplete">
             <summary>
