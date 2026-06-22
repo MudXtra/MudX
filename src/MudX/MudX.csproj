@@ -75,7 +75,7 @@
       <None Include="wwwroot\prism\prism.js" />
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="MudBlazor" Version="9.0.0" />
+      <PackageReference Include="MudBlazor" Version="9.5.0" />
     </ItemGroup>
    
     <!-- Create item with filename and timestamp metadata -->

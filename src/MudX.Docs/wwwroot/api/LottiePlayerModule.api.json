@@ -112,7 +112,7 @@
           "Type": "Object[]"
         }
       ],
-      "Description": null
+      "Description": "Executes javascript directly from the Lottie animation reference. So you can call any method that is available on the Lottie animation object."
     },
     {
       "Name": "AnimationReadyEvent",
