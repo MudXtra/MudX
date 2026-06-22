@@ -37,13 +37,13 @@
       "Name": "CopyOrigin",
       "Type": "Nullable\u003COrigin\u003E",
       "Default": "TopRight",
-      "Description": "The Copy Button Origin, nullable field indicating where the copy button should be placed. If null no button will be rendered.\nRemarks: Defaults to"
+      "Description": "The Copy Button Origin, nullable field indicating where the copy button should be placed. If null no button will be rendered.\nRemarks: Defaults to TopRight"
     },
     {
       "Name": "CopyIcon",
       "Type": "String",
       "Default": "\u003Cpath d=\u0022M0 0h24v24H0z\u0022 fill=\u0022none\u0022/\u003E\u003Cpath d=\u0022M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z\u0022/\u003E",
-      "Description": "The Copy Button Icon\nRemarks: Defaults to"
+      "Description": "The Copy Button Icon\nRemarks: Defaults to ContentCopy"
     },
     {
       "Name": "CopyButtonClassname",
@@ -55,13 +55,13 @@
       "Name": "Class",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
     },
     {
       "Name": "Style",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the Class property to apply CSS classes."
     },
     {
       "Name": "Tag",
