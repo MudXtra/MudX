@@ -306,6 +306,10 @@ namespace MudX.Docs.Generator
             if (string.IsNullOrWhiteSpace(cref))
                 return GetXmlDocElementText(element);
 
+            var innerText = GetXmlDocElementText(element);
+            if (!string.IsNullOrWhiteSpace(innerText))
+                return innerText;
+
             var memberName = cref.Contains(':') ? cref[(cref.IndexOf(':') + 1)..] : cref;
             var parametersStart = memberName.IndexOf('(');
             if (parametersStart >= 0)
