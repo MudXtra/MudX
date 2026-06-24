@@ -317,7 +317,7 @@ dotnet_diagnostic.CA2012.severity = suggestion
 dotnet_diagnostic.CA2211.severity = suggestion
 # CA1806: Do not ignore method results
 dotnet_diagnostic.CA1806.severity = suggestion
-[MudX/**/*.{cs,razor}]
+[src/MudX/**/*.{cs,razor}]
 dotnet_style_namespace_match_folder = false
 resharper_check_namespace_highlighting = none
 [*]

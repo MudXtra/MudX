@@ -12,8 +12,8 @@ This file is the project-specific instruction manual for AI coding agents. Follo
 - Reuse MudBlazor utilities, styles, and classes whenever possible before creating new ones
 - Use `CssBuilder` for classes/styles and CSS variables (no hard-coded colors)
 - Use `ParameterState<T>` for parameter updates and change handlers
-- Keep `MudX/Scripts/mudx.js` in sync with related script files
-- Any component level JavaScript should be added as a module in the `MudX/Scripts/Modules/` folder and imported in the component (See MudXCodeBlock.razor.cs).
+- Keep `src/MudX/Scripts/mudx.js` in sync with related script files
+- Any component level JavaScript should be added as a module in the `src/MudX/Scripts/Modules/` folder and imported in the component (See MudXCodeBlock.razor.cs).
 
 ### Don't
 - Do not add new heavy dependencies or packages without approval
@@ -27,20 +27,20 @@ This file is the project-specific instruction manual for AI coding agents. Follo
 
 ```
 MudX/
-- Components/                  Core library (components, styles, scripts)
-- Docs/                        Documentation site
-- Docs.Compiler/               Docs generator
-- Docs.WasmHost/               Docs preview host
-- UnitTests/                   bUnit tests
-- UnitTests.Viewer/            Visual test runner
-- Analyzers/                   Roslyn analyzers
-- SourceGenerator/             Source generators
+- src/MudX/                    Core library (components, styles, scripts)
+- src/MudX.Docs/               Documentation site
+- src/MudX.Docs.Generator/     Docs generator
+- src/MudX.Docs.Server/        Docs server host
+- src/MudX.Docs.Hybrid/        Hybrid docs hosts
+- src/MudX.Generator/          Static asset generator
+- tests/MudX.UnitTests/        bUnit tests
+- tests/MudX.UnitTests.Viewer/ Visual test runner
 ```
 
 Key config:
 - `.editorconfig` (code style, file headers)
-- `MudX/Directory.Build.props` (warnings as errors)
-- `.github/workflows/build-test-mudx.yml` (CI)
+- `src/MudX.slnx` (solution)
+- `.github/workflows/Build_And_Test.yml` (CI)
 
 ## Prerequisites
 
@@ -50,15 +50,15 @@ Key config:
 ## Commands (Scoped)
 
 Target specific projects only:
-- Components: `MudX/Components/MudX.csproj` + `MudX/UnitTests/MudX.UnitTests.csproj`
-- Docs: `MudX/Docs.Compiler/MudX.Docs.Compiler.csproj` + `MudX/Docs/MudX.Docs.csproj`
-- Analyzers: `MudX/Analyzers/MudX.Analyzers.csproj` or `MudX/SourceGenerator/MudX.SourceGenerator.csproj`
+- Components: `src/MudX/MudX.csproj` + `tests/MudX.UnitTests/MudX.UnitTests.csproj`
+- Docs: `src/MudX.Docs.Generator/MudX.Docs.Generator.csproj` + `src/MudX.Docs/MudX.Docs.csproj`
+- Static assets: `src/MudX.Generator/MudX.Generator.csproj`
 
 Build/Test:
 ```bash
 dotnet clean <project.csproj>
 dotnet build <project.csproj> --nologo
-dotnet test MudX/UnitTests/MudX.UnitTests.csproj --filter "FullyQualifiedName~MudXChat" --no-build --nologo --blame-hang --blame-hang-timeout 30s
+dotnet test tests/MudX.UnitTests/MudX.UnitTests.csproj --filter "FullyQualifiedName~MudXChat" --no-build --nologo --blame-hang --blame-hang-timeout 30s
 ```
 
 C#-only builds (skip Bun for JS/SCSS):
@@ -74,9 +74,9 @@ dotnet format <project.csproj> --include <path/to/changed/files>
 
 Run locally:
 ```bash
-dotnet run --project MudX/Docs.WasmHost/MudX.Docs.WasmHost.csproj
-dotnet run --project MudX/Docs.Server/MudX.Docs.Server.csproj
-dotnet run --project MudX.UnitTests.Viewer/MudX.UnitTests.Viewer.csproj
+dotnet run --project src/MudX.Docs/MudX.Docs.csproj
+dotnet run --project src/MudX.Docs.Server/MudX.Docs.Server.csproj
+dotnet run --project tests/MudX.UnitTests.Viewer/MudX.UnitTests.Viewer.csproj
 ```
 
 ## Component Rules
@@ -87,7 +87,7 @@ dotnet run --project MudX.UnitTests.Viewer/MudX.UnitTests.Viewer.csproj
 - RTL support: add `[CascadingParameter] public bool RightToLeft { get; set; }` when layout depends on direction.
 - Use `CssBuilder` for classes/styles and CSS variables (no hard-coded colors).
 - Add XML `<summary>` for all public properties and use the file header template from `.editorconfig`.
-- Components with logic require bUnit tests and a docs page: `MudX/Docs/Components/<ComponentName>.razor`.
+- Components with logic require bUnit tests and a docs page: `src/MudX.Docs/Components/Docs/<ComponentName>/`.
 - Follow best ARIA practices.
 - Ensure keyboard navigation works for interactive components.
 - Provide accessible names for interactive controls (label, `aria-label`, or `aria-labelledby`).
@@ -114,8 +114,8 @@ dotnet run --project MudX.UnitTests.Viewer/MudX.UnitTests.Viewer.csproj
 - Keep tests isolated for parallel execution; rework tests to run in parallel instead of using `[NonParallelizable]` when possible.
 - Prefer `TimeProvider`/`FakeTimeProvider` over `Task.Delay`.
 - Test logic, not full HTML snapshots; use focused assertions.
-- Test components live in `MudX.UnitTests.Viewer/TestComponents/<ComponentName>/`.
-- Tests live in `MudX.UnitTests/Components/<ComponentName>Tests.cs`.
+- Test components live in `tests/MudX.UnitTests.Viewer/TestComponents/<ComponentName>/`.
+- Tests live in `tests/MudX.UnitTests/Components/<ComponentName>Tests.cs`.
 - Test naming: no `Test`/`Async` suffixes, no `Test_` in the middle, no trailing underscores.
 
 ## Code Style and Analyzers
