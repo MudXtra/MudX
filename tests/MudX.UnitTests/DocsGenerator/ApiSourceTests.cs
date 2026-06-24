@@ -22,7 +22,7 @@ public class ApiSourceTests
 
         try
         {
-            var apiSourceType = Assembly.Load("MudX.Docs.Generator")
+            var apiSourceType = Assembly.LoadFrom(GetDocsGeneratorAssemblyPath())
                 .GetType("MudX.Docs.Generator.ApiSource", throwOnError: true)!;
             var loadXmlDocumentation = apiSourceType.GetMethod(
                 "LoadXmlDocumentation",
@@ -37,5 +37,41 @@ public class ApiSourceTests
         {
             File.Delete(xmlPath);
         }
+    }
+
+    private static string GetDocsGeneratorAssemblyPath()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var testConfiguration = new DirectoryInfo(AppContext.BaseDirectory).Parent?.Name ?? "Debug";
+
+        return Path.Combine(
+            repositoryRoot.FullName,
+            "src",
+            "MudX.Docs.Generator",
+            "bin",
+            testConfiguration,
+            "net10.0",
+            "MudX.Docs.Generator.dll");
+    }
+
+    private static DirectoryInfo FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null)
+        {
+            if (File.Exists(Path.Combine(
+                    directory.FullName,
+                    "src",
+                    "MudX.Docs.Generator",
+                    "MudX.Docs.Generator.csproj")))
+            {
+                return directory;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate the MudX repository root.");
     }
 }

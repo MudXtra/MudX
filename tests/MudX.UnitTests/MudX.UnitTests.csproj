@@ -30,7 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\MudX\MudX.csproj" />
-    <ProjectReference Include="..\..\src\MudX.Docs.Generator\MudX.Docs.Generator.csproj" />
+    <ProjectReference Include="..\..\src\MudX.Docs.Generator\MudX.Docs.Generator.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\MudX.UnitTests.Viewer\MudX.UnitTests.Viewer.csproj" />
   </ItemGroup>
 
