@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using System.Text.Json;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Components;
@@ -120,8 +119,14 @@ namespace MudX.Docs.Generator
                     .Where(t => t.Namespace?.Contains("Blazor.Lottie.Player") == true));
 
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+            // Ensure deterministic property order
+            jsonOptions.PropertyNamingPolicy = null;
+            jsonOptions.DictionaryKeyPolicy = null;
 
-            foreach (var type in components)
+            foreach (var type in components
+                         .Where(t => !t.Name.StartsWith("<") && !t.Name.StartsWith("_") &&
+                                     !t.Name.StartsWith("EnumExtensi") && !t.Name.StartsWith("Identif"))
+                         .OrderBy(t => t.FullName, StringComparer.Ordinal))
             {
                 var componentDescription = GetSummaryFromXml(type);
 
@@ -138,6 +143,7 @@ namespace MudX.Docs.Generator
 
                     Parameters = type.GetProperties()
                         .Where(p => p.IsDefined(typeof(ParameterAttribute), true))
+                        .OrderBy(p => p.Name, StringComparer.Ordinal)
                         .Select(p => new
                         {
                             p.Name,
@@ -149,6 +155,7 @@ namespace MudX.Docs.Generator
                     Events = type.GetProperties()
                         .Where(p => typeof(MulticastDelegate).IsAssignableFrom(p.PropertyType)
                                && !p.IsDefined(typeof(ParameterAttribute), inherit: true))
+                        .OrderBy(p => p.Name, StringComparer.Ordinal)
                         .Select(p => new
                         {
                             p.Name,
@@ -159,6 +166,7 @@ namespace MudX.Docs.Generator
                     PublicProperties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
                         .Where(p => !p.IsDefined(typeof(ParameterAttribute), true)
                                     && !typeof(MulticastDelegate).IsAssignableFrom(p.PropertyType))
+                        .OrderBy(p => p.Name, StringComparer.Ordinal)
                         .Select(p => new
                         {
                             p.Name,
@@ -167,6 +175,7 @@ namespace MudX.Docs.Generator
                         }),
 
                     PublicFields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+                        .OrderBy(f => f.Name, StringComparer.Ordinal)
                         .Select(f => new
                         {
                             f.Name,
@@ -178,6 +187,8 @@ namespace MudX.Docs.Generator
                     Methods = type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
                         .Where(m => !m.IsSpecialName && !m.IsDefined(typeof(CompilerGeneratedAttribute), false)
                                && !excludedNames.Contains(m.Name, StringComparer.CurrentCultureIgnoreCase))
+                        .OrderBy(m => m.Name, StringComparer.Ordinal)
+                        .ThenBy(m => string.Join(",", m.GetParameters().Select(p => p.ParameterType.FullName)), StringComparer.Ordinal)
                         .Select(m => new
                         {
                             m.Name,
@@ -191,12 +202,6 @@ namespace MudX.Docs.Generator
                         })
                 };
 
-                if (type.Name.StartsWith("<") || type.Name.StartsWith("_") ||
-                    type.Name.StartsWith("EnumExtensi") || type.Name.StartsWith("Identif"))
-                {
-                    // Skip compiler-generated types (e.g., lambda expressions, async methods)
-                    continue;
-                }
                 var jsonPath = Path.Combine(outputDir, $"{type.Name}.api.json");
                 var serialized = JsonSerializer.Serialize(doc, jsonOptions);
                 WriteIfDifferent(jsonPath, serialized);
@@ -209,19 +214,24 @@ namespace MudX.Docs.Generator
         {
             try
             {
+                var normalizedContents = NormalizeGeneratedText(contents);
                 if (!File.Exists(outFile))
                 {
-                    File.WriteAllText(outFile, contents);
+                    File.WriteAllText(outFile, normalizedContents);
                     Console.WriteLine($"MudX.Docs.Generator: API Doc Created: {outFile}");
-                }
-                else if (File.ReadAllText(outFile) != contents)
-                {
-                    File.WriteAllText(outFile, contents);
-                    Console.WriteLine($"MudX.Docs.Generator: API Doc Updated: {outFile}");
                 }
                 else
                 {
-                    Console.WriteLine($"MudX.Docs.Generator: No API changes: {outFile}");
+                    var existing = NormalizeGeneratedText(File.ReadAllText(outFile));
+                    if (existing != normalizedContents)
+                    {
+                        File.WriteAllText(outFile, normalizedContents);
+                        Console.WriteLine($"MudX.Docs.Generator: API Doc Updated: {outFile}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"MudX.Docs.Generator: No API changes: {outFile}");
+                    }
                 }
             }
             catch
@@ -231,26 +241,22 @@ namespace MudX.Docs.Generator
             }
         }
 
+        private static string NormalizeGeneratedText(string text)
+        {
+            // Normalize line endings to LF and trim trailing whitespace
+            var lines = text.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n');
+            return string.Join("\n", lines.Select(l => l.TrimEnd()));
+        }
+
         private static void CopyIfDifferent(string sourcePath, string destinationPath)
         {
-            bool shouldCopy = true;
+            var source = NormalizeGeneratedText(File.ReadAllText(sourcePath));
+            var destination = File.Exists(destinationPath)
+                ? File.ReadAllText(destinationPath)
+                : null;
 
-            if (File.Exists(destinationPath))
-            {
-                using var sourceStream = File.OpenRead(sourcePath);
-                using var destinationStream = File.OpenRead(destinationPath);
-                using var sha256 = SHA256.Create();
-
-                var sourceHash = sha256.ComputeHash(sourceStream);
-                var destinationHash = sha256.ComputeHash(destinationStream);
-
-                shouldCopy = !sourceHash.SequenceEqual(destinationHash);
-            }
-
-            if (shouldCopy)
-            {
-                File.Copy(sourcePath, destinationPath, true);
-            }
+            if (source != destination)
+                File.WriteAllText(destinationPath, source);
         }
 
         private static Dictionary<string, string> LoadXmlDocumentation(string xmlPath)
@@ -392,13 +398,16 @@ namespace MudX.Docs.Generator
         private static string? GetDefaultValue(FieldInfo field)
         {
             var type = field.DeclaringType;
-
             if (type == null || type.IsAbstract)
                 return null;
 
             try
             {
-                var instance = Activator.CreateInstance(type);
+                // Special case: LottiePlayer.ElementId should always be 'auto-generated'
+                if (type.FullName == "Blazor.Lottie.Player.LottiePlayer" && field.Name == "ElementId")
+                    return "lottie-[auto-generated]";
+
+                object? instance = Activator.CreateInstance(type);
                 var value = field.GetValue(instance);
                 return value?.ToString();
             }
@@ -411,13 +420,12 @@ namespace MudX.Docs.Generator
         private static string? GetDefaultValue(PropertyInfo property)
         {
             var type = property.DeclaringType;
-
             if (type == null || type.IsAbstract)
                 return null;
 
             try
             {
-                var instance = Activator.CreateInstance(type);
+                object? instance = Activator.CreateInstance(type);
                 var value = property.GetValue(instance);
 
                 if (value == null)

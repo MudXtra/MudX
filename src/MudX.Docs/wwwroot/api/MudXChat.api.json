@@ -1,0 +1,89 @@
+{
+  "Component": "MudXChat",
+  "Namespace": "MudX",
+  "Description": "The MudXChat component is used to house one or more MudChatBubble components, with optional components such as MudAvatar, MudChatHeader, and MudChatFooter.",
+  "Parameters": [
+    {
+      "Name": "ArrowPosition",
+      "Type": "ChatArrowPosition",
+      "Default": "Top",
+      "Description": "The Chat Bubble Arrow Position.\nRemarks: Defaults to Top"
+    },
+    {
+      "Name": "ChatPosition",
+      "Type": "ChatBubblePosition",
+      "Default": "Start",
+      "Description": "Chat bubble position."
+    },
+    {
+      "Name": "ChildContent",
+      "Type": "RenderFragment",
+      "Default": "null",
+      "Description": "Child content of component."
+    },
+    {
+      "Name": "Class",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
+    },
+    {
+      "Name": "Color",
+      "Type": "Color",
+      "Default": "Default",
+      "Description": "Child chat bubbles default color, can be overridden by bubble."
+    },
+    {
+      "Name": "Dense",
+      "Type": "Boolean",
+      "Default": "false",
+      "Description": "Gets or sets whether compact padding will be used.\nRemarks: Defaults to false."
+    },
+    {
+      "Name": "Elevation",
+      "Type": "Int32",
+      "Default": "0",
+      "Description": "Size of the drop shadow.\nRemarks: Defaults to 0. A higher number creates a heavier drop shadow. Use a value of 0 for no shadow."
+    },
+    {
+      "Name": "Square",
+      "Type": "Boolean",
+      "Default": "false",
+      "Description": "Gets or sets whether rounded corners are disabled.\nRemarks: Defaults to false."
+    },
+    {
+      "Name": "Style",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the Class property to apply CSS classes."
+    },
+    {
+      "Name": "Tag",
+      "Type": "Object",
+      "Default": null,
+      "Description": "The arbitrary object to link to this component.\nRemarks: This property is typically used to associate additional information with this component, such as a model containing data for this component."
+    },
+    {
+      "Name": "UserAttributes",
+      "Type": "Dictionary\u003CString, Object\u003E",
+      "Default": null,
+      "Description": "The additional HTML attributes to apply to this component.\nRemarks: This property is typically used to provide additional HTML attributes during rendering such as ARIA accessibility tags or a custom ID."
+    },
+    {
+      "Name": "Variant",
+      "Type": "Variant",
+      "Default": "Text",
+      "Description": "Display variant to use.\nRemarks: Defaults to Text. The variant changes the appearance of the chat bubbles, such as Text, Outlined, or Filled."
+    }
+  ],
+  "Events": [],
+  "PublicProperties": [
+    {
+      "Name": "RightToLeft",
+      "Type": "Boolean",
+      "Description": "Whether or not to use Right To Left"
+    }
+  ],
+  "PublicFields": [],
+  "Methods": []
+}

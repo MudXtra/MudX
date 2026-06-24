@@ -19,33 +19,58 @@
   "PublicFields": [],
   "Methods": [
     {
-      "Name": "InitializeAsync",
-      "ReturnType": "Task\u00601",
+      "Name": "AnimationReadyEvent",
+      "ReturnType": "Task",
       "Parameters": [
         {
-          "Name": "lottiePlaybackOptions",
-          "Type": "LottiePlaybackOptions"
+          "Name": "args",
+          "Type": "LottiePlayerLoadedEventArgs"
         }
       ],
-      "Description": "Initializes the Lottie player with the specified playback options.\nRemarks: This method imports the required JavaScript module and invokes the initialization logic for the Lottie player. It also ensures that the instance is not disposing and that the JavaScript runtime is available before loading the module."
+      "Description": "Invokes the OnAnimationReady event when the animation is ready. (DOMLoaded)"
     },
     {
-      "Name": "PlayAsync",
-      "ReturnType": "ValueTask",
+      "Name": "CompleteEvent",
+      "ReturnType": "Task",
       "Parameters": [],
-      "Description": "Plays the Lottie animation."
+      "Description": "Invokes the OnComplete event when the animation completes.\nRemarks: This event is triggered when the animation has finished playing all frames and loops, if applicable. If it\u0027s set to loop indefinitely, this event will never be triggered."
     },
     {
-      "Name": "PauseAsync",
-      "ReturnType": "ValueTask",
-      "Parameters": [],
-      "Description": "Pauses the currently playing Lottie animation."
+      "Name": "DOMLoadedEvent",
+      "ReturnType": "Task",
+      "Parameters": [
+        {
+          "Name": "args",
+          "Type": "LottiePlayerLoadedEventArgs"
+        }
+      ],
+      "Description": "Invokes the OnDOMLoaded event when the DOM is fully loaded with the Lottie animation."
     },
     {
-      "Name": "StopAsync",
+      "Name": "EnterFrameEvent",
+      "ReturnType": "Task",
+      "Parameters": [
+        {
+          "Name": "args",
+          "Type": "LottiePlayerEventFrameArgs"
+        }
+      ],
+      "Description": "Invokes the OnEnterFrame event with the specified arguments."
+    },
+    {
+      "Name": "ExecuteActionAsync",
       "ReturnType": "ValueTask",
-      "Parameters": [],
-      "Description": "Stops the currently playing Lottie animation."
+      "Parameters": [
+        {
+          "Name": "action",
+          "Type": "String"
+        },
+        {
+          "Name": "args",
+          "Type": "Object[]"
+        }
+      ],
+      "Description": "Executes javascript directly from the Lottie animation reference. So you can call any method that is available on the Lottie animation object."
     },
     {
       "Name": "GoToAndPlay",
@@ -78,15 +103,33 @@
       "Description": "Moves the animation to the specified frame and stops playback at that point."
     },
     {
-      "Name": "SetSpeedAsync",
-      "ReturnType": "ValueTask",
+      "Name": "InitializeAsync",
+      "ReturnType": "Task\u00601",
       "Parameters": [
         {
-          "Name": "speed",
-          "Type": "Double"
+          "Name": "lottiePlaybackOptions",
+          "Type": "LottiePlaybackOptions"
         }
       ],
-      "Description": "Asynchronously sets the speed for the associated animation. 1 is normal speed, 2 is double speed, 0.5 is half speed, etc."
+      "Description": "Initializes the Lottie player with the specified playback options.\nRemarks: This method imports the required JavaScript module and invokes the initialization logic for the Lottie player. It also ensures that the instance is not disposing and that the JavaScript runtime is available before loading the module."
+    },
+    {
+      "Name": "LoopCompleteEvent",
+      "ReturnType": "Task",
+      "Parameters": [],
+      "Description": "Invokes the OnLoopComplete event when a loop completes."
+    },
+    {
+      "Name": "PauseAsync",
+      "ReturnType": "ValueTask",
+      "Parameters": [],
+      "Description": "Pauses the currently playing Lottie animation."
+    },
+    {
+      "Name": "PlayAsync",
+      "ReturnType": "ValueTask",
+      "Parameters": [],
+      "Description": "Plays the Lottie animation."
     },
     {
       "Name": "SetDirectionAsync",
@@ -100,64 +143,21 @@
       "Description": "Asynchronously sets the playback direction for the associated animation."
     },
     {
-      "Name": "ExecuteActionAsync",
+      "Name": "SetSpeedAsync",
       "ReturnType": "ValueTask",
       "Parameters": [
         {
-          "Name": "action",
-          "Type": "String"
-        },
-        {
-          "Name": "args",
-          "Type": "Object[]"
+          "Name": "speed",
+          "Type": "Double"
         }
       ],
-      "Description": "Executes javascript directly from the Lottie animation reference. So you can call any method that is available on the Lottie animation object."
+      "Description": "Asynchronously sets the speed for the associated animation. 1 is normal speed, 2 is double speed, 0.5 is half speed, etc."
     },
     {
-      "Name": "AnimationReadyEvent",
-      "ReturnType": "Task",
-      "Parameters": [
-        {
-          "Name": "args",
-          "Type": "LottiePlayerLoadedEventArgs"
-        }
-      ],
-      "Description": "Invokes the OnAnimationReady event when the animation is ready. (DOMLoaded)"
-    },
-    {
-      "Name": "DOMLoadedEvent",
-      "ReturnType": "Task",
-      "Parameters": [
-        {
-          "Name": "args",
-          "Type": "LottiePlayerLoadedEventArgs"
-        }
-      ],
-      "Description": "Invokes the OnDOMLoaded event when the DOM is fully loaded with the Lottie animation."
-    },
-    {
-      "Name": "CompleteEvent",
-      "ReturnType": "Task",
+      "Name": "StopAsync",
+      "ReturnType": "ValueTask",
       "Parameters": [],
-      "Description": "Invokes the OnComplete event when the animation completes.\nRemarks: This event is triggered when the animation has finished playing all frames and loops, if applicable. If it\u0027s set to loop indefinitely, this event will never be triggered."
-    },
-    {
-      "Name": "LoopCompleteEvent",
-      "ReturnType": "Task",
-      "Parameters": [],
-      "Description": "Invokes the OnLoopComplete event when a loop completes."
-    },
-    {
-      "Name": "EnterFrameEvent",
-      "ReturnType": "Task",
-      "Parameters": [
-        {
-          "Name": "args",
-          "Type": "LottiePlayerEventFrameArgs"
-        }
-      ],
-      "Description": "Invokes the OnEnterFrame event with the specified arguments."
+      "Description": "Stops the currently playing Lottie animation."
     }
   ]
 }

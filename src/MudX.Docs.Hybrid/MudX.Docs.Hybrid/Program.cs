@@ -1,4 +1,4 @@
-using MudBlazor.Services;
+﻿using MudBlazor.Services;
 using MudX.Docs.Hybrid.Components;
 
 var builder = WebApplication.CreateBuilder(args);

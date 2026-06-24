@@ -1,0 +1,201 @@
+{
+  "Component": "MudXSheet",
+  "Namespace": "MudX",
+  "Description": "A Material Design sheet component that slides in from an edge of the screen to display contextual content. Commonly used in mobile UIs for lists or selections (bottom sheet) or in desktop layouts for menus or side panels (side sheet). Supports positioning at the top, bottom, left, right, or center.\nRemarks: When a Sheet is open the current page scroll is prevented.",
+  "Parameters": [
+    {
+      "Name": "AriaLabel",
+      "Type": "String",
+      "Default": "null",
+      "Description": "ARIA label on the sheet container for accessibility.\nRemarks: If not overridden, defaults to a string that includes the position of the sheet. e.g. Bottom Sheet, Left Sheet, etc."
+    },
+    {
+      "Name": "BorderRadius",
+      "Type": "Nullable\u003CInt32\u003E",
+      "Default": "16",
+      "Description": "The border radius of the sheet. Does not apply to the connecting edge.\nRemarks: Defaults to 16. Can be set to null to default to MudTheme border radius. Any value above 24 is ignored and set to null."
+    },
+    {
+      "Name": "ChildContent",
+      "Type": "RenderFragment",
+      "Default": "null",
+      "Description": "The content to be rendered inside the content area of the sheet."
+    },
+    {
+      "Name": "Class",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
+    },
+    {
+      "Name": "CloseOnEscapeKey",
+      "Type": "Boolean",
+      "Default": "true",
+      "Description": "Determines if a sheet should close when the Escape key is pressed while anywhere inside the container has focus.\nRemarks: Defaults to true."
+    },
+    {
+      "Name": "CoverAppBar",
+      "Type": "Nullable\u003CBoolean\u003E",
+      "Default": "null",
+      "Description": "Whether the sheet should visually cover the AppBar.\nRemarks: Default is null, behavior follows Material defaults: - Standard: false, Appbar is never covered and clicking outside does not close the sheet. - Modal: true, Appbar is covered by default and clicking outside the sheet closes it."
+    },
+    {
+      "Name": "CurrentSize",
+      "Type": "Int32",
+      "Default": "50",
+      "Description": "The Current Size of the sheet as a percentage of the viewport height (vh) or width (vw).\nRemarks: Defaults to 50% of the viewport height or width, depending on the position. If the sheet is closed and reopened, it will retain its last size."
+    },
+    {
+      "Name": "CurrentSizeChanged",
+      "Type": "EventCallback\u003CInt32\u003E",
+      "Default": "",
+      "Description": "The callback that is invoked when the current size of the sheet changes."
+    },
+    {
+      "Name": "Elevation",
+      "Type": "Int32",
+      "Default": "16",
+      "Description": "The size of the drop shadow.\nRemarks: Defaults to 16. A higher number creates a heavier drop shadow. Use a value of 0 for no shadow."
+    },
+    {
+      "Name": "EnableDragToSize",
+      "Type": "Boolean",
+      "Default": "true",
+      "Description": "A value indicating whether the user can resize the sheet by dragging.\nRemarks: Defaults to true."
+    },
+    {
+      "Name": "HorizontalHandle",
+      "Type": "String",
+      "Default": "\u003Cpath d=\u0022M0 0h24v24H0V0z\u0022 fill=\u0022none\u0022/\u003E\u003Cpath d=\u0022M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z\u0022/\u003E",
+      "Description": "The icon used as the drag handle when Position is horizontal."
+    },
+    {
+      "Name": "OnDismissed",
+      "Type": "EventCallback",
+      "Default": "",
+      "Description": "The callback that is invoked when the bottom sheet is closed."
+    },
+    {
+      "Name": "Open",
+      "Type": "Boolean",
+      "Default": "false",
+      "Description": "Gets or sets a value indicating whether the sheet is open or closed.\nRemarks: Defaults to false."
+    },
+    {
+      "Name": "OpenChanged",
+      "Type": "EventCallback\u003CBoolean\u003E",
+      "Default": "",
+      "Description": "The callback that is invoked when the open state of the sheet changes."
+    },
+    {
+      "Name": "Paper",
+      "Type": "Boolean",
+      "Default": "true",
+      "Description": "Displays content within a MudPaper.\nRemarks: Defaults to true. When true it spans 100% width, 100% height, and overflow: auto"
+    },
+    {
+      "Name": "Position",
+      "Type": "Position",
+      "Default": "Bottom",
+      "Description": "The position of the component relative to its reference point.\nRemarks: Defaults to Bottom."
+    },
+    {
+      "Name": "PresetSizes",
+      "Type": "Int32[]",
+      "Default": "[25, 50, 75, ...]",
+      "Description": "List of snap point heights (in viewport height or width) to toggle or drag\nRemarks: Defaults to [20, 40, 50, 70, 90, 100]. Valid values are between 10 and 100, inclusive."
+    },
+    {
+      "Name": "SheetHandleFragment",
+      "Type": "RenderFragment",
+      "Default": "null",
+      "Description": "The content to be rendered inside the mud-sheet-handle area of the sheet.\nRemarks: Defaults to: @\u003CMudIconButton Icon=\u0022@DragHandle\u0022 Class=\u0022mud-sheet-handle-button\u0022 OnClick=\u0022@ToggleSizeAsync\u0022 @onpointerdown:stopPropagation aria-controls=\u0022@ElementId\u0022 /\u003E"
+    },
+    {
+      "Name": "SnapMode",
+      "Type": "Boolean",
+      "Default": "false",
+      "Description": "Indicates whether the drag methods can roam outside of PresetSizes or not.\nRemarks: Defaults to false. When true, the user can drag or cycle only through the preset sizes. When false, the user can drag or cycle through any size."
+    },
+    {
+      "Name": "Standard",
+      "Type": "Boolean",
+      "Default": "true",
+      "Description": "Whether this is a persistent (standard) sheet. If false, it is shown as a modal.\nRemarks: Defaults to true. Standard sheets are persistent and do not close when clicking outside of them. Non Standard sheets behaves like a modal, closing when clicking outside of it."
+    },
+    {
+      "Name": "Style",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the Class property to apply CSS classes."
+    },
+    {
+      "Name": "Tag",
+      "Type": "Object",
+      "Default": null,
+      "Description": "The arbitrary object to link to this component.\nRemarks: This property is typically used to associate additional information with this component, such as a model containing data for this component."
+    },
+    {
+      "Name": "UserAttributes",
+      "Type": "Dictionary\u003CString, Object\u003E",
+      "Default": null,
+      "Description": "The additional HTML attributes to apply to this component.\nRemarks: This property is typically used to provide additional HTML attributes during rendering such as ARIA accessibility tags or a custom ID."
+    },
+    {
+      "Name": "VerticalHandle",
+      "Type": "String",
+      "Default": "\u003Cg\u003E\u003Crect fill=\u0022none\u0022 height=\u002224\u0022 width=\u002224\u0022/\u003E\u003C/g\u003E\u003Cg\u003E\u003Cg\u003E\u003Cg\u003E\u003Cpath d=\u0022M20,9H4v2h16V9z M4,15h16v-2H4V15z\u0022/\u003E\u003C/g\u003E\u003C/g\u003E\u003C/g\u003E",
+      "Description": "The icon used as the drag handle when Position is Top or Bottom."
+    }
+  ],
+  "Events": [],
+  "PublicProperties": [
+    {
+      "Name": "AriaAttributes",
+      "Type": "Dictionary\u003CString, Object\u003E",
+      "Description": "Dictionary for ARIA attributes for accessibility. You can override any of the attributes by setting a matching key in UserAttributes\nRemarks: Standard (Non-Modal) sheet containers will have the following attributes: role=\u0022region\u0022 tabindex=\u0022-1\u0022 Modal sheets will have the following attributes: role=\u0022dialog\u0022 aria-modal=\u0022true\u0022 tabindex=\u0022-1\u0022"
+    },
+    {
+      "Name": "ElementId",
+      "Type": "String",
+      "Description": "The id for the sheet container element, used for accessibility and styling purposes."
+    },
+    {
+      "Name": "RightToLeft",
+      "Type": "Boolean",
+      "Description": "Gets a cascading value indicating whether the layout and text direction are rendered in a right-to-left format."
+    }
+  ],
+  "PublicFields": [],
+  "Methods": [
+    {
+      "Name": "CloseSheetAsync",
+      "ReturnType": "Task",
+      "Parameters": [],
+      "Description": "Closes the currently open sheet, if it is open.\nRemarks: This method updates the sheet\u0027s state to closed and triggers the appropriate events to notify listeners of the state change. If the sheet is already closed, no action is taken."
+    },
+    {
+      "Name": "OpenSheetAsync",
+      "ReturnType": "Task",
+      "Parameters": [],
+      "Description": "Opens the sheet if it is not already open.\nRemarks: If the sheet is already open, this method does nothing. Otherwise, it sets the sheet\u0027s state to open and triggers the OpenChanged event with a value of true."
+    },
+    {
+      "Name": "SetParametersAsync",
+      "ReturnType": "Task",
+      "Parameters": [
+        {
+          "Name": "parameters",
+          "Type": "ParameterView"
+        }
+      ],
+      "Description": ""
+    },
+    {
+      "Name": "ToggleSizeAsync",
+      "ReturnType": "Task",
+      "Parameters": [],
+      "Description": "Selects the next larger size from the PresetSizes array based on the current sheet size.\nRemarks: If there are no preset sizes defined, or if the current size is already the largest preset size, the sheet will be closed."
+    }
+  ]
+}

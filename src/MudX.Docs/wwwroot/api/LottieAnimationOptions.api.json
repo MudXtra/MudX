@@ -6,14 +6,14 @@
   "Events": [],
   "PublicProperties": [
     {
-      "Name": "LottieSourceJs",
-      "Type": "String",
-      "Description": "Gets or sets the URL of the Lottie JavaScript library used for rendering Lottie animations."
-    },
-    {
       "Name": "AnimationQuality",
       "Type": "LottieAnimationQuality",
       "Description": "Gets or sets the quality level of the Lottie animation rendering. This is a global setting.\nRemarks: Defaults to High. Higher quality levels may result in smoother animations but could increase resource usage."
+    },
+    {
+      "Name": "LottieSourceJs",
+      "Type": "String",
+      "Description": "Gets or sets the URL of the Lottie JavaScript library used for rendering Lottie animations."
     },
     {
       "Name": "SmoothFrameInterpolation",

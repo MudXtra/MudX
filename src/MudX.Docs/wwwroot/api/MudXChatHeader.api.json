@@ -1,0 +1,53 @@
+{
+  "Component": "MudXChatHeader",
+  "Namespace": "MudX",
+  "Description": "Represents the header of a MudXChat.",
+  "Parameters": [
+    {
+      "Name": "ChildContent",
+      "Type": "RenderFragment",
+      "Default": "null",
+      "Description": "Child content of component."
+    },
+    {
+      "Name": "Class",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
+    },
+    {
+      "Name": "Name",
+      "Type": "String",
+      "Default": "null",
+      "Description": "The name to display within this header."
+    },
+    {
+      "Name": "Style",
+      "Type": "String",
+      "Default": null,
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the Class property to apply CSS classes."
+    },
+    {
+      "Name": "Tag",
+      "Type": "Object",
+      "Default": null,
+      "Description": "The arbitrary object to link to this component.\nRemarks: This property is typically used to associate additional information with this component, such as a model containing data for this component."
+    },
+    {
+      "Name": "Time",
+      "Type": "String",
+      "Default": "null",
+      "Description": "The time to display within this header."
+    },
+    {
+      "Name": "UserAttributes",
+      "Type": "Dictionary\u003CString, Object\u003E",
+      "Default": null,
+      "Description": "The additional HTML attributes to apply to this component.\nRemarks: This property is typically used to provide additional HTML attributes during rendering such as ARIA accessibility tags or a custom ID."
+    }
+  ],
+  "Events": [],
+  "PublicProperties": [],
+  "PublicFields": [],
+  "Methods": []
+}

@@ -4,40 +4,10 @@
   "Description": "Represents a security code input component that allows users to enter a code based on a specified pattern.",
   "Parameters": [
     {
-      "Name": "Pattern",
+      "Name": "Class",
       "Type": "String",
-      "Default": "####",
-      "Description": "The pattern of the security code. e.g. (\u0022##/##/19##\u0022 would represent \u0022MM/DD/YYYY\u0022 where the first two YY are filled in.). Default Placeholders (can be changed)\u003E. # is a placeholder for a numeric value. A is a placeholder for an alphabetic character. ? is a placeholder for an alphabetic or numeric character. @ is a placeholder for a special symbol. * is a placeholder for any UTF-8 character.\nRemarks: Defaults to \u0022####\u0022"
-    },
-    {
-      "Name": "PlaceholderNumeric",
-      "Type": "Char",
-      "Default": "#",
-      "Description": "The placeholder character for numeric values.\nRemarks: Defaults to \u0027#\u0027, translates to char.IsDigit"
-    },
-    {
-      "Name": "PlaceholderAlpha",
-      "Type": "Char",
-      "Default": "A",
-      "Description": "The placeholder character for alphabetic characters.\nRemarks: Defaults to \u0027A\u0027, translates to char.IsLetter"
-    },
-    {
-      "Name": "PlaceholderAlphaNumeric",
-      "Type": "Char",
-      "Default": "?",
-      "Description": "The placeholder character for alphabetic or numeric characters.\nRemarks: Defaults to \u0027?\u0027, translates to char.IsLetterOrDigit"
-    },
-    {
-      "Name": "PlaceholderSpecial",
-      "Type": "Char",
-      "Default": "@",
-      "Description": "The placeholder character for special characters, typically symbols.\nRemarks: Defaults to \u0027@\u0027, translates to char.IsSymbol or char.IsPunctuation"
-    },
-    {
-      "Name": "PlaceholderAny",
-      "Type": "Char",
-      "Default": "*",
-      "Description": "The placeholder character for any UTF-8 character.\nRemarks: Defaults to \u0027*\u0027, translates to any UTF-8 char."
+      "Default": null,
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
     },
     {
       "Name": "Code",
@@ -52,40 +22,10 @@
       "Description": "Called when the value of the security code changes."
     },
     {
-      "Name": "Password",
-      "Type": "Boolean",
-      "Default": "false",
-      "Description": "If true, each input will be masked as a password.\nRemarks: Defaults to false."
-    },
-    {
-      "Name": "Spacing",
-      "Type": "Int32",
-      "Default": "2",
-      "Description": "The gap between items in increments of 4px.\nRemarks: Defaults to 3, maximum of 20 (80px)"
-    },
-    {
       "Name": "Horizontal",
       "Type": "Boolean",
       "Default": "true",
       "Description": "Whether to display items horizontally, if true will display items horizontally, false will display items vertically\nRemarks: Defaults to true."
-    },
-    {
-      "Name": "Variant",
-      "Type": "Variant",
-      "Default": "Outlined",
-      "Description": "The display variant of the component. Options are Outlined, Text, and Filled.\nRemarks: Defaults to Outlined"
-    },
-    {
-      "Name": "ReadOnlyVariant",
-      "Type": "Variant",
-      "Default": "Text",
-      "Description": "The display variant of the code when readonly. Options are Outlined, Text, and Filled.\nRemarks: Defaults to Text"
-    },
-    {
-      "Name": "Underline",
-      "Type": "Boolean",
-      "Default": "true",
-      "Description": "If true, the underline will be visible.\nRemarks: Defaults to true."
     },
     {
       "Name": "Margin",
@@ -94,10 +34,58 @@
       "Description": "The margin of the component.\nRemarks: Defaults to Normal"
     },
     {
-      "Name": "Class",
+      "Name": "Password",
+      "Type": "Boolean",
+      "Default": "false",
+      "Description": "If true, each input will be masked as a password.\nRemarks: Defaults to false."
+    },
+    {
+      "Name": "Pattern",
       "Type": "String",
-      "Default": null,
-      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
+      "Default": "####",
+      "Description": "The pattern of the security code. e.g. (\u0022##/##/19##\u0022 would represent \u0022MM/DD/YYYY\u0022 where the first two YY are filled in.). Default Placeholders (can be changed)\u003E. # is a placeholder for a numeric value. A is a placeholder for an alphabetic character. ? is a placeholder for an alphabetic or numeric character. @ is a placeholder for a special symbol. * is a placeholder for any UTF-8 character.\nRemarks: Defaults to \u0022####\u0022"
+    },
+    {
+      "Name": "PlaceholderAlpha",
+      "Type": "Char",
+      "Default": "A",
+      "Description": "The placeholder character for alphabetic characters.\nRemarks: Defaults to \u0027A\u0027, translates to char.IsLetter"
+    },
+    {
+      "Name": "PlaceholderAlphaNumeric",
+      "Type": "Char",
+      "Default": "?",
+      "Description": "The placeholder character for alphabetic or numeric characters.\nRemarks: Defaults to \u0027?\u0027, translates to char.IsLetterOrDigit"
+    },
+    {
+      "Name": "PlaceholderAny",
+      "Type": "Char",
+      "Default": "*",
+      "Description": "The placeholder character for any UTF-8 character.\nRemarks: Defaults to \u0027*\u0027, translates to any UTF-8 char."
+    },
+    {
+      "Name": "PlaceholderNumeric",
+      "Type": "Char",
+      "Default": "#",
+      "Description": "The placeholder character for numeric values.\nRemarks: Defaults to \u0027#\u0027, translates to char.IsDigit"
+    },
+    {
+      "Name": "PlaceholderSpecial",
+      "Type": "Char",
+      "Default": "@",
+      "Description": "The placeholder character for special characters, typically symbols.\nRemarks: Defaults to \u0027@\u0027, translates to char.IsSymbol or char.IsPunctuation"
+    },
+    {
+      "Name": "ReadOnlyVariant",
+      "Type": "Variant",
+      "Default": "Text",
+      "Description": "The display variant of the code when readonly. Options are Outlined, Text, and Filled.\nRemarks: Defaults to Text"
+    },
+    {
+      "Name": "Spacing",
+      "Type": "Int32",
+      "Default": "2",
+      "Description": "The gap between items in increments of 4px.\nRemarks: Defaults to 3, maximum of 20 (80px)"
     },
     {
       "Name": "Style",
@@ -112,10 +100,22 @@
       "Description": "The arbitrary object to link to this component.\nRemarks: This property is typically used to associate additional information with this component, such as a model containing data for this component."
     },
     {
+      "Name": "Underline",
+      "Type": "Boolean",
+      "Default": "true",
+      "Description": "If true, the underline will be visible.\nRemarks: Defaults to true."
+    },
+    {
       "Name": "UserAttributes",
       "Type": "Dictionary\u003CString, Object\u003E",
       "Default": null,
       "Description": "The additional HTML attributes to apply to this component.\nRemarks: This property is typically used to provide additional HTML attributes during rendering such as ARIA accessibility tags or a custom ID."
+    },
+    {
+      "Name": "Variant",
+      "Type": "Variant",
+      "Default": "Outlined",
+      "Description": "The display variant of the component. Options are Outlined, Text, and Filled.\nRemarks: Defaults to Outlined"
     }
   ],
   "Events": [],

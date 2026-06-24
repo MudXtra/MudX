@@ -1,0 +1,46 @@
+<Solution>
+  <Folder Name="/MD Files/">
+    <File Path="../.editorconfig" />
+    <File Path="../AGENTS.md" />
+    <File Path="../CODE_OF_CONDUCT.md" />
+    <File Path="../CONTRIBUTING.md" />
+    <File Path="../README.md" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="../.gitignore" />
+    <File Path="../images/BlazorLottiePlayer.png" />
+    <File Path="../images/MudXBreadcrumbs.png" />
+    <File Path="../images/MudXCodeBlock.png" />
+    <File Path="../images/MudXCopyToClipboard.png" />
+    <File Path="../images/MudXOutline.png" />
+    <File Path="../images/MudXSecurityCode.png" />
+    <File Path="../images/MudXSplitter.png" />
+    <File Path="../images/Nuget.png" />
+  </Folder>
+  <Folder Name="/Templates/">
+    <File Path="../.github/ISSUE_TEMPLATE/bug_report.yml" />
+    <File Path="../.github/ISSUE_TEMPLATE/feature_request.yml" />
+    <File Path="../.github/ISSUE_TEMPLATE/need_help.yml" />
+    <File Path="../.github/pull_request_template.md" />
+    <File Path="../.github/workflows/auto-assign.yml" />
+    <File Path="../.github/workflows/Build_And_Deploy.yml" />
+    <File Path="../.github/workflows/Build_And_Test.yml" />
+    <File Path="../.github/workflows/deploy-mudx-nuget.yml" />
+    <File Path="../.github/workflows/Deploy.yml" />
+    <File Path="../.github/workflows/Update_MudX_Version.yml" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <File Path="../.gitignore" />
+    <Project Path="../tests/MudX.UnitTests.Viewer/MudX.UnitTests.Viewer.csproj" />
+    <Project Path="../tests/MudX.UnitTests/MudX.UnitTests.csproj" />
+  </Folder>
+  <Project Path="MudX.Docs.Generator/MudX.Docs.Generator.csproj">
+    <Build Project="false" />
+  </Project>
+  <Project Path="MudX.Docs.Hybrid/MudX.Docs.Hybrid.Client/MudX.Docs.Hybrid.Client.csproj" />
+  <Project Path="MudX.Docs.Hybrid/MudX.Docs.Hybrid/MudX.Docs.Hybrid.csproj" />
+  <Project Path="MudX.Docs.Server/MudX.Docs.Server.csproj" />
+  <Project Path="MudX.Docs/MudX.Docs.csproj" />
+  <Project Path="MudX.Generator/MudX.Generator.csproj" />
+  <Project Path="MudX/MudX.csproj" />
+</Solution>
