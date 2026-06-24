@@ -1,13 +1,13 @@
 {
   "Component": "MudXOutline",
   "Namespace": "MudX",
-  "Description": "Represents a Table of Contents (TOC) component that provides navigation links to sections within a document.\nRemarks: The component allows users to navigate through sections of a document or page. It supports features such as customizable styling, scroll spying, and dynamic section registration. The TOC can be positioned on the left or right side of the viewport and includes options for rendering additional content above or below the section links.",
+  "Description": "Represents a Table of Contents (TOC) component that provides navigation links to sections within a document.\nRemarks: The MudXOutline component allows users to navigate through sections of a document or page. It supports features such as customizable styling, scroll spying, and dynamic section registration. The TOC can be positioned on the left or right side of the viewport and includes options for rendering additional content above or below the section links.",
   "Parameters": [
     {
       "Name": "ContentDrawerOpen",
       "Type": "Boolean",
       "Default": "true",
-      "Description": "Whether the Table of Contents drawer is open or closed\nRemarks: Defaults to"
+      "Description": "Whether the Table of Contents drawer is open or closed\nRemarks: Defaults to true"
     },
     {
       "Name": "Width",
@@ -19,7 +19,7 @@
       "Name": "Color",
       "Type": "Color",
       "Default": "Transparent",
-      "Description": "The color of the Table of Contents drawer\nRemarks: Defaults to"
+      "Description": "The color of the Table of Contents drawer\nRemarks: Defaults to Transparent"
     },
     {
       "Name": "Headline",
@@ -37,13 +37,13 @@
       "Name": "UnderlineActiveSections",
       "Type": "Boolean",
       "Default": "true",
-      "Description": "Whether to underline the active section\nRemarks: Defaults to"
+      "Description": "Whether to underline the active section\nRemarks: Defaults to true"
     },
     {
       "Name": "ScrollToTopVisible",
       "Type": "Boolean",
       "Default": "true",
-      "Description": "Whether the scroll to top button is visible\nRemarks: Defaults to"
+      "Description": "Whether the scroll to top button is visible\nRemarks: Defaults to true"
     },
     {
       "Name": "ChildContent",
@@ -67,7 +67,7 @@
       "Name": "Anchor",
       "Type": "Anchor",
       "Default": "Right",
-      "Description": "Where you want the Table of Contents to be rendered\nRemarks: Defaults to . Only Valid values are and ."
+      "Description": "Where you want the Table of Contents to be rendered\nRemarks: Defaults to Right. Only Valid values are Left and Right."
     },
     {
       "Name": "ScrollContainerSelector",
@@ -79,31 +79,31 @@
       "Name": "SectionClassSelector",
       "Type": "String",
       "Default": "mudx-toc-section",
-      "Description": "The class name to identify the HTML elements that should be observed for viewport changes inside the .\nRemarks: Defaults to \u0022mudx-toc-section\u0022"
+      "Description": "The class name to identify the HTML elements that should be observed for viewport changes inside the ScrollContainerSelector.\nRemarks: Defaults to \u0022mudx-toc-section\u0022"
     },
     {
       "Name": "StyleVariant",
       "Type": "OutlineStyleVariant",
       "Default": "Scroll",
-      "Description": "The Style Variant to apply to the Table of Contents area. Options are Bullet, Scroll, Minimal, and None.\nRemarks: Defaults to"
+      "Description": "The Style Variant to apply to the Table of Contents area. Options are Bullet, Scroll, Minimal, and None.\nRemarks: Defaults to Scroll"
     },
     {
       "Name": "TOCBreakpoint",
       "Type": "Breakpoint",
       "Default": "Md",
-      "Description": "The Breakpoint at which to hide the Table of Contents\nRemarks: Defaults to"
+      "Description": "The Breakpoint at which to hide the Table of Contents\nRemarks: Defaults to Md"
     },
     {
       "Name": "Class",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
     },
     {
       "Name": "Style",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the Class property to apply CSS classes."
     },
     {
       "Name": "Tag",

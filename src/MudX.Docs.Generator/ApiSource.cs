@@ -262,11 +262,62 @@ namespace MudX.Docs.Generator
                     x => x.Attribute("name")!.Value,
                     x =>
                     {
-                        var summary = x.Element("summary")?.Value ?? "";
-                        var remarks = x.Element("remarks")?.Value ?? "";
+                        var summary = GetXmlDocElementText(x.Element("summary"));
+                        var remarks = GetXmlDocElementText(x.Element("remarks"));
                         return CleanXmlDoc(summary, remarks);
                     }
                 );
+        }
+
+        private static string GetXmlDocElementText(XElement? element)
+        {
+            if (element is null)
+                return string.Empty;
+
+            return string.Concat(element.Nodes().Select(GetXmlDocNodeText));
+        }
+
+        private static string GetXmlDocNodeText(XNode node)
+        {
+            if (node is XText text)
+                return text.Value;
+
+            if (node is not XElement element)
+                return string.Empty;
+
+            return element.Name.LocalName switch
+            {
+                "see" or "seealso" => GetXmlDocReferenceText(element),
+                "paramref" or "typeparamref" => element.Attribute("name")?.Value ?? string.Empty,
+                "c" or "code" => element.Value,
+                "para" => $" {GetXmlDocElementText(element)} ",
+                "br" => " ",
+                _ => GetXmlDocElementText(element)
+            };
+        }
+
+        private static string GetXmlDocReferenceText(XElement element)
+        {
+            var langword = element.Attribute("langword")?.Value;
+            if (!string.IsNullOrWhiteSpace(langword))
+                return langword;
+
+            var cref = element.Attribute("cref")?.Value;
+            if (string.IsNullOrWhiteSpace(cref))
+                return GetXmlDocElementText(element);
+
+            var innerText = GetXmlDocElementText(element);
+            if (!string.IsNullOrWhiteSpace(innerText))
+                return innerText;
+
+            var memberName = cref.Contains(':') ? cref[(cref.IndexOf(':') + 1)..] : cref;
+            var parametersStart = memberName.IndexOf('(');
+            if (parametersStart >= 0)
+                memberName = memberName[..parametersStart];
+
+            var displayName = memberName[(memberName.LastIndexOf('.') + 1)..];
+            var genericMarker = displayName.IndexOf('`');
+            return genericMarker >= 0 ? displayName[..genericMarker] : displayName;
         }
 
         private static string GetFriendlyTypeName(Type type)
