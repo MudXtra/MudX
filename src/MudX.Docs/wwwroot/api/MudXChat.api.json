@@ -25,7 +25,7 @@
       "Name": "Class",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
     },
     {
       "Name": "Color",
@@ -55,7 +55,7 @@
       "Name": "Style",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the Class property to apply CSS classes."
     },
     {
       "Name": "Tag",
@@ -73,7 +73,7 @@
       "Name": "Variant",
       "Type": "Variant",
       "Default": "Text",
-      "Description": "Display variant to use.\nRemarks: Defaults to . The variant changes the appearance of the chat bubbles, such as Text, Outlined, or Filled."
+      "Description": "Display variant to use.\nRemarks: Defaults to Text. The variant changes the appearance of the chat bubbles, such as Text, Outlined, or Filled."
     }
   ],
   "Events": [],

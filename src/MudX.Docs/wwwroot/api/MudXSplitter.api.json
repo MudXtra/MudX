@@ -7,19 +7,19 @@
       "Name": "Class",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
     },
     {
       "Name": "Direction",
       "Type": "SplitterDirection",
       "Default": "Horizontal",
-      "Description": "The orientation for the splitter.\nRemarks: Defaults to ."
+      "Description": "The orientation for the splitter.\nRemarks: Defaults to Horizontal."
     },
     {
       "Name": "EndMinimumSize",
       "Type": "Int32",
       "Default": "0",
-      "Description": "The minimum percentage the will go.\nRemarks: Defaults to 0."
+      "Description": "The minimum percentage the EndSplitter will go.\nRemarks: Defaults to 0."
     },
     {
       "Name": "EndSplitter",
@@ -43,19 +43,19 @@
       "Name": "StartMinimumSize",
       "Type": "Int32",
       "Default": "0",
-      "Description": "The minimum percentage the will go.\nRemarks: Defaults to 0."
+      "Description": "The minimum percentage the StartSplitter will go.\nRemarks: Defaults to 0."
     },
     {
       "Name": "StartSize",
       "Type": "Int32",
       "Default": "50",
-      "Description": "Sets or gets the starting size of the .\nRemarks: Defaults to 50."
+      "Description": "Sets or gets the starting size of the StartSplitter.\nRemarks: Defaults to 50."
     },
     {
       "Name": "StartSizeChanged",
       "Type": "EventCallback\u003CInt32\u003E",
       "Default": "",
-      "Description": "Event callback for when the changes."
+      "Description": "Event callback for when the StartSize changes."
     },
     {
       "Name": "StartSplitter",
@@ -67,7 +67,7 @@
       "Name": "Style",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the Class property to apply CSS classes."
     },
     {
       "Name": "Tag",

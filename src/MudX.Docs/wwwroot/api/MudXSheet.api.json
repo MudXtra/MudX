@@ -25,7 +25,7 @@
       "Name": "Class",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
     },
     {
       "Name": "CloseOnEscapeKey",
@@ -67,7 +67,7 @@
       "Name": "HorizontalHandle",
       "Type": "String",
       "Default": "\u003Cpath d=\u0022M0 0h24v24H0V0z\u0022 fill=\u0022none\u0022/\u003E\u003Cpath d=\u0022M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z\u0022/\u003E",
-      "Description": "The icon used as the drag handle when is horizontal."
+      "Description": "The icon used as the drag handle when Position is horizontal."
     },
     {
       "Name": "OnDismissed",
@@ -91,13 +91,13 @@
       "Name": "Paper",
       "Type": "Boolean",
       "Default": "true",
-      "Description": "Displays content within a .\nRemarks: Defaults to true. When true it spans 100% width, 100% height, and overflow: auto"
+      "Description": "Displays content within a MudPaper.\nRemarks: Defaults to true. When true it spans 100% width, 100% height, and overflow: auto"
     },
     {
       "Name": "Position",
       "Type": "Position",
       "Default": "Bottom",
-      "Description": "The position of the component relative to its reference point.\nRemarks: Defaults to ."
+      "Description": "The position of the component relative to its reference point.\nRemarks: Defaults to Bottom."
     },
     {
       "Name": "PresetSizes",
@@ -115,7 +115,7 @@
       "Name": "SnapMode",
       "Type": "Boolean",
       "Default": "false",
-      "Description": "Indicates whether the drag methods can roam outside of or not.\nRemarks: Defaults to false. When true, the user can drag or cycle only through the preset sizes. When false, the user can drag or cycle through any size."
+      "Description": "Indicates whether the drag methods can roam outside of PresetSizes or not.\nRemarks: Defaults to false. When true, the user can drag or cycle only through the preset sizes. When false, the user can drag or cycle through any size."
     },
     {
       "Name": "Standard",
@@ -127,7 +127,7 @@
       "Name": "Style",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the Class property to apply CSS classes."
     },
     {
       "Name": "Tag",
@@ -145,7 +145,7 @@
       "Name": "VerticalHandle",
       "Type": "String",
       "Default": "\u003Cg\u003E\u003Crect fill=\u0022none\u0022 height=\u002224\u0022 width=\u002224\u0022/\u003E\u003C/g\u003E\u003Cg\u003E\u003Cg\u003E\u003Cg\u003E\u003Cpath d=\u0022M20,9H4v2h16V9z M4,15h16v-2H4V15z\u0022/\u003E\u003C/g\u003E\u003C/g\u003E\u003C/g\u003E",
-      "Description": "The icon used as the drag handle when is Top or Bottom."
+      "Description": "The icon used as the drag handle when Position is Top or Bottom."
     }
   ],
   "Events": [],
@@ -153,7 +153,7 @@
     {
       "Name": "AriaAttributes",
       "Type": "Dictionary\u003CString, Object\u003E",
-      "Description": "Dictionary for ARIA attributes for accessibility. You can override any of the attributes by setting a matching key in\nRemarks: Standard (Non-Modal) sheet containers will have the following attributes: role=\u0022region\u0022 tabindex=\u0022-1\u0022 Modal sheets will have the following attributes: role=\u0022dialog\u0022 aria-modal=\u0022true\u0022 tabindex=\u0022-1\u0022"
+      "Description": "Dictionary for ARIA attributes for accessibility. You can override any of the attributes by setting a matching key in UserAttributes\nRemarks: Standard (Non-Modal) sheet containers will have the following attributes: role=\u0022region\u0022 tabindex=\u0022-1\u0022 Modal sheets will have the following attributes: role=\u0022dialog\u0022 aria-modal=\u0022true\u0022 tabindex=\u0022-1\u0022"
     },
     {
       "Name": "ElementId",
@@ -178,7 +178,7 @@
       "Name": "OpenSheetAsync",
       "ReturnType": "Task",
       "Parameters": [],
-      "Description": "Opens the sheet if it is not already open.\nRemarks: If the sheet is already open, this method does nothing. Otherwise, it sets the sheet\u0027s state to open and triggers the event with a value of ."
+      "Description": "Opens the sheet if it is not already open.\nRemarks: If the sheet is already open, this method does nothing. Otherwise, it sets the sheet\u0027s state to open and triggers the OpenChanged event with a value of true."
     },
     {
       "Name": "SetParametersAsync",
@@ -195,7 +195,7 @@
       "Name": "ToggleSizeAsync",
       "ReturnType": "Task",
       "Parameters": [],
-      "Description": "Selects the next larger size from the array based on the current sheet size.\nRemarks: If there are no preset sizes defined, or if the current size is already the largest preset size, the sheet will be closed."
+      "Description": "Selects the next larger size from the PresetSizes array based on the current sheet size.\nRemarks: If there are no preset sizes defined, or if the current size is already the largest preset size, the sheet will be closed."
     }
   ]
 }

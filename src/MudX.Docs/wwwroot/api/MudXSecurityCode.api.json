@@ -7,7 +7,7 @@
       "Name": "Class",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
     },
     {
       "Name": "Code",
@@ -31,7 +31,7 @@
       "Name": "Margin",
       "Type": "Margin",
       "Default": "Normal",
-      "Description": "The margin of the component.\nRemarks: Defaults to"
+      "Description": "The margin of the component.\nRemarks: Defaults to Normal"
     },
     {
       "Name": "Password",
@@ -43,7 +43,7 @@
       "Name": "Pattern",
       "Type": "String",
       "Default": "####",
-      "Description": "The pattern of the security code. e.g. (\u0022##/##/19##\u0022 would represent \u0022MM/DD/YYYY\u0022 where the first two YY are filled in.). Default Placeholders (can be changed)\u003E.# is a placeholder for a numeric value.A is a placeholder for an alphabetic character.? is a placeholder for an alphabetic or numeric character.@ is a placeholder for a special symbol.* is a placeholder for any UTF-8 character.\nRemarks: Defaults to \u0022####\u0022"
+      "Description": "The pattern of the security code. e.g. (\u0022##/##/19##\u0022 would represent \u0022MM/DD/YYYY\u0022 where the first two YY are filled in.). Default Placeholders (can be changed)\u003E. # is a placeholder for a numeric value. A is a placeholder for an alphabetic character. ? is a placeholder for an alphabetic or numeric character. @ is a placeholder for a special symbol. * is a placeholder for any UTF-8 character.\nRemarks: Defaults to \u0022####\u0022"
     },
     {
       "Name": "PlaceholderAlpha",
@@ -79,7 +79,7 @@
       "Name": "ReadOnlyVariant",
       "Type": "Variant",
       "Default": "Text",
-      "Description": "The display variant of the code when readonly. Options are Outlined, Text, and Filled.\nRemarks: Defaults to"
+      "Description": "The display variant of the code when readonly. Options are Outlined, Text, and Filled.\nRemarks: Defaults to Text"
     },
     {
       "Name": "Spacing",
@@ -91,7 +91,7 @@
       "Name": "Style",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the Class property to apply CSS classes."
     },
     {
       "Name": "Tag",
@@ -115,7 +115,7 @@
       "Name": "Variant",
       "Type": "Variant",
       "Default": "Outlined",
-      "Description": "The display variant of the component. Options are Outlined, Text, and Filled.\nRemarks: Defaults to"
+      "Description": "The display variant of the component. Options are Outlined, Text, and Filled.\nRemarks: Defaults to Outlined"
     }
   ],
   "Events": [],

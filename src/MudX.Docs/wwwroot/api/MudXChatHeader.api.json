@@ -1,7 +1,7 @@
 {
   "Component": "MudXChatHeader",
   "Namespace": "MudX",
-  "Description": "Represents the header of a .",
+  "Description": "Represents the header of a MudXChat.",
   "Parameters": [
     {
       "Name": "ChildContent",
@@ -13,7 +13,7 @@
       "Name": "Class",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
     },
     {
       "Name": "Name",
@@ -25,7 +25,7 @@
       "Name": "Style",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the Class property to apply CSS classes."
     },
     {
       "Name": "Tag",

@@ -1,7 +1,7 @@
 {
   "Component": "LottiePlayer",
   "Namespace": "Blazor.Lottie.Player",
-  "Description": "A Blazor component for rendering and controlling Lottie animations using BodyMovin.\nRemarks: The component provides a flexible way to integrate Lottie animations into Blazor applications. It supports various customization options, including animation source, playback settings, and event callbacks for animation lifecycle events.",
+  "Description": "A Blazor component for rendering and controlling Lottie animations using BodyMovin.\nRemarks: The LottiePlayer component provides a flexible way to integrate Lottie animations into Blazor applications. It supports various customization options, including animation source, playback settings, and event callbacks for animation lifecycle events.",
   "Parameters": [
     {
       "Name": "AnimationCompleted",
@@ -13,7 +13,7 @@
       "Name": "AnimationDirection",
       "Type": "LottieAnimationDirection",
       "Default": "Forward",
-      "Description": "Gets or sets the direction in which the Lottie animation plays.\nRemarks: Defaults to . Changing this property after initialization will not change the playback direction of the animation, use"
+      "Description": "Gets or sets the direction in which the Lottie animation plays.\nRemarks: Defaults to Forward. Changing this property after initialization will not change the playback direction of the animation, use SetDirectionAsync"
     },
     {
       "Name": "AnimationLoopCompleted",
@@ -25,7 +25,7 @@
       "Name": "AnimationOptions",
       "Type": "LottieAnimationOptions",
       "Default": null,
-      "Description": "Additional Less Used Animation Options.\nRemarks: Refer to for defaults."
+      "Description": "Additional Less Used Animation Options.\nRemarks: Refer to LottieAnimationOptions for defaults."
     },
     {
       "Name": "AnimationReady",
@@ -37,13 +37,13 @@
       "Name": "AnimationSpeed",
       "Type": "Double",
       "Default": "1",
-      "Description": "Gets or sets the speed of the animation.\nRemarks: Defaults to 1.0 (normal speed). Changing this property after initialization will not change the speed of the animation, use"
+      "Description": "Gets or sets the speed of the animation.\nRemarks: Defaults to 1.0 (normal speed). Changing this property after initialization will not change the speed of the animation, use SetSpeedAsync"
     },
     {
       "Name": "AnimationType",
       "Type": "LottieAnimationType",
       "Default": "Svg",
-      "Description": "Gets or sets the type of animation to be used for rendering the Lottie animation.\nRemarks: Defaults to ."
+      "Description": "Gets or sets the type of animation to be used for rendering the Lottie animation.\nRemarks: Defaults to Svg."
     },
     {
       "Name": "AutoPlay",
@@ -61,13 +61,13 @@
       "Name": "CurrentFrameChangeFunc",
       "Type": "Func\u003CDouble, Boolean\u003E",
       "Default": "null",
-      "Description": "Called when the current frame changes, with custom filtering logic\nRemarks: The function receives the current frame number and should return true if the event should be raised. This allows for custom throttling logic (e.g., only every 10th frame, only on specific frames, etc.) Warning: Frame updates could happen as frequently as 30-60 times per second. Defaults to null. is only raised if something is attached to the handler. Example: frame =\u003E frame % 10 == 0 will raise the event every 10th frame."
+      "Description": "Called when the current frame changes, with custom filtering logic\nRemarks: The function receives the current frame number and should return true if the event should be raised. This allows for custom throttling logic (e.g., only every 10th frame, only on specific frames, etc.) Warning: Frame updates could happen as frequently as 30-60 times per second. Defaults to null. CurrentFrameChanged is only raised if something is attached to the handler. Example: frame =\u003E frame % 10 == 0 will raise the event every 10th frame."
     },
     {
       "Name": "CurrentFrameChanged",
       "Type": "EventCallback\u003CLottiePlayerEventFrameArgs\u003E",
       "Default": "",
-      "Description": "Called when the current frame changes (only when returns true)"
+      "Description": "Called when the current frame changes (only when CurrentFrameChangeFunc returns true)"
     },
     {
       "Name": "DOMLoaded",
@@ -85,7 +85,7 @@
       "Name": "LoopCount",
       "Type": "Int32",
       "Default": "0",
-      "Description": "Gets or sets the number of times a loop should occur. Requires to be true.\nRemarks: Default is 0 (infinite loop)."
+      "Description": "Gets or sets the number of times a loop should occur. Requires Loop to be true.\nRemarks: Default is 0 (infinite loop)."
     },
     {
       "Name": "Src",

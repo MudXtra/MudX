@@ -1,7 +1,7 @@
 {
   "Component": "MudXChatBubble",
   "Namespace": "MudX",
-  "Description": "Represents the content displayed within a .",
+  "Description": "Represents the content displayed within a MudXChat.",
   "Parameters": [
     {
       "Name": "ChildContent",
@@ -13,7 +13,7 @@
       "Name": "Class",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
     },
     {
       "Name": "Color",
@@ -37,7 +37,7 @@
       "Name": "Style",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the Class property to apply CSS classes."
     },
     {
       "Name": "Tag",
@@ -68,17 +68,17 @@
     {
       "Name": "ParentArrowPosition",
       "Type": "ChatArrowPosition",
-      "Description": "The arrow position provided by the component."
+      "Description": "The arrow position provided by the MudXChat component."
     },
     {
       "Name": "ParentColor",
       "Type": "Color",
-      "Description": "The color provided by the component."
+      "Description": "The color provided by the MudXChat component."
     },
     {
       "Name": "ParentVariant",
       "Type": "Variant",
-      "Description": "The variant provided by the component."
+      "Description": "The variant provided by the MudXChat component."
     }
   ],
   "PublicFields": [],

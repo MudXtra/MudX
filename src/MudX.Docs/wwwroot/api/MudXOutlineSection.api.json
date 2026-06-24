@@ -1,7 +1,7 @@
 {
   "Component": "MudXOutlineSection",
   "Namespace": "MudX",
-  "Description": "Represents a section within an outline or table of contents, providing hierarchical structure and navigation capabilities.\nRemarks: This class is used to define sections in a document outline, supporting features such as hierarchical levels, scrolling behavior, and active state tracking. Sections can be nested within parent containers, and their properties such as and are used for display and navigation.",
+  "Description": "Represents a section within an outline or table of contents, providing hierarchical structure and navigation capabilities.\nRemarks: This class is used to define sections in a document outline, supporting features such as hierarchical levels, scrolling behavior, and active state tracking. Sections can be nested within parent containers, and their properties such as Title and Id are used for display and navigation.",
   "Parameters": [
     {
       "Name": "ChildContent",
@@ -13,7 +13,7 @@
       "Name": "Class",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the property to apply custom CSS styles."
+      "Description": "The CSS classes applied to this component.\nRemarks: Defaults to null. You can use spaces to separate multiple classes. Use the Style property to apply custom CSS styles."
     },
     {
       "Name": "Id",
@@ -25,7 +25,7 @@
       "Name": "Style",
       "Type": "String",
       "Default": null,
-      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the property to apply CSS classes."
+      "Description": "The CSS styles applied to this component.\nRemarks: Defaults to null. Use the Class property to apply CSS classes."
     },
     {
       "Name": "Tag",

@@ -27,13 +27,13 @@
           "Type": "LottiePlayerLoadedEventArgs"
         }
       ],
-      "Description": "Invokes the event when the animation is ready. (DOMLoaded)"
+      "Description": "Invokes the OnAnimationReady event when the animation is ready. (DOMLoaded)"
     },
     {
       "Name": "CompleteEvent",
       "ReturnType": "Task",
       "Parameters": [],
-      "Description": "Invokes the event when the animation completes.\nRemarks: This event is triggered when the animation has finished playing all frames and loops, if applicable. If it\u0027s set to loop indefinitely, this event will never be triggered."
+      "Description": "Invokes the OnComplete event when the animation completes.\nRemarks: This event is triggered when the animation has finished playing all frames and loops, if applicable. If it\u0027s set to loop indefinitely, this event will never be triggered."
     },
     {
       "Name": "DOMLoadedEvent",
@@ -44,7 +44,7 @@
           "Type": "LottiePlayerLoadedEventArgs"
         }
       ],
-      "Description": "Invokes the event when the DOM is fully loaded with the Lottie animation."
+      "Description": "Invokes the OnDOMLoaded event when the DOM is fully loaded with the Lottie animation."
     },
     {
       "Name": "EnterFrameEvent",
@@ -55,7 +55,7 @@
           "Type": "LottiePlayerEventFrameArgs"
         }
       ],
-      "Description": "Invokes the event with the specified arguments."
+      "Description": "Invokes the OnEnterFrame event with the specified arguments."
     },
     {
       "Name": "ExecuteActionAsync",
@@ -117,7 +117,7 @@
       "Name": "LoopCompleteEvent",
       "ReturnType": "Task",
       "Parameters": [],
-      "Description": "Invokes the event when a loop completes."
+      "Description": "Invokes the OnLoopComplete event when a loop completes."
     },
     {
       "Name": "PauseAsync",
