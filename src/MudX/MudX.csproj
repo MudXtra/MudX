@@ -58,7 +58,7 @@
     
     <!-- Collect all .js files in Scripts directory with timestamps -->
     <ItemGroup>
-        <ScriptFiles Include="$(ScriptsDirectory)\**\*.js;$(MudXOutputPath)\mudx.js;$(MudXOutputPath)\mudx.css" />
+        <ScriptFiles Include="$(ScriptsDirectory)\**\*.js;$(MudXOutputPath)\mudx.js;$(ScriptsDirectory)\**\*.css" />
         <StampsFile Include="$(StampsFilePath)" />
         <OutputFiles Include="$(MudXOutputPath)modules\**\*.js" />
     </ItemGroup>
