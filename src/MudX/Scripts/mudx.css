@@ -742,6 +742,19 @@ div[mudsheet] {
         --mud-ripple-opacity: var(--mud-ripple-opacity-secondary) !important;
     }
 
+    /* MudBlazor appends the ripple span to the .mud-ripple element and relies on that
+    element's overflow:hidden to clip it. The bubble needs visible overflow so its arrow
+    (:before) can paint outside, so instead of clipping we pin the span to the bubble's
+    box - it can then never extend past the bubble or inflate an ancestor's scrollable
+    overflow. The !important beats the inline width/height/left/top the ripple script
+    sets. See issue #63. */
+    .mudx-chat-bubble.mudx-chat-bubble-clickable > .mud-ripple-effect {
+        inset: 0 !important;
+        width: auto !important;
+        height: auto !important;
+        border-radius: inherit;
+    }
+
 /* hover/focus/active styles only on devices that hover */
 @media (hover: hover) and (pointer: fine) {
     .mudx-chat-bubble.mudx-chat-bubble-clickable:hover {
