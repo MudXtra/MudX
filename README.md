@@ -20,7 +20,6 @@
 - [MudXCodeBlock](#mudxcodeblock)
 - [MudXCopyToClipboard](#mudxcopytoclipboard)
 - [MudXBreadcrumbs](#mudxbreadcrumbs)
-- [MudXSplitter](#mudxsplitter)
 - [Blazor Lottie Player](#blazor-lottie-player)]
 
 ---
@@ -77,16 +76,6 @@ A component that allows users to copy text to the clipboard with access to an ex
 
 A self-navigating breadcrumb navigation component that supports custom separators and icons.  
 ![MudXBreadcrumbs Image](https://github.com/MudXtra/Mudx/raw/dev/images/MudXBreadcrumbs.png)  
-[Back to top](#table-of-contents)
-
----
-
-### MudXSplitter
-![status](https://img.shields.io/badge/status-extended-blue)
-
-A component designed to split panels with a draggable element. No inputs were harmed in the creation 
-of this component.
-![MudXBreadcrumbs Image](https://github.com/MudXtra/Mudx/raw/dev/images/MudXSplitter.png)  
 [Back to top](#table-of-contents)
 
 ---
