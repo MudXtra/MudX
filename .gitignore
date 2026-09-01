@@ -9,6 +9,9 @@ src/MudX/wwwroot/modules/
 # MudX.Generator api
 src/MudX.Docs/wwwroot/api
 
+# MudX docs host-local deployment state and selected immutable image.
+deploy/mudx-docs/mudx-docs.env
+
 # User-specific files
 *.rsuser
 *.suo

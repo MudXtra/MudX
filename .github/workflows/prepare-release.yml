@@ -1,0 +1,182 @@
+name: Prepare MudX release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Stable SemVer without a v prefix (for example, 9.9.0)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Build and verify release preparation
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-name: ${{ steps.artifact.outputs.name }}
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - name: Validate stable SemVer input
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          [[ "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || {
+            echo "Version must be stable SemVer without a v prefix" >&2
+            exit 1
+          }
+
+      - name: Checkout current dev without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: dev
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Create or resume the prepared branch locally
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          branch="release/${VERSION}"
+          if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+            git switch --create "$branch" "origin/$branch"
+            git merge --no-edit origin/dev
+          else
+            git switch --create "$branch" origin/dev
+          fi
+          echo "RELEASE_BRANCH=$branch" >>"$GITHUB_ENV"
+
+      - name: Update the MudX project version with structured XML
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $path = Join-Path $PWD 'src/MudX/MudX.csproj'
+          $document = [System.Xml.Linq.XDocument]::Load(
+            $path,
+            [System.Xml.Linq.LoadOptions]::PreserveWhitespace)
+          $versions = @($document.Root.Elements('PropertyGroup').Elements('Version'))
+          if ($versions.Count -ne 1) {
+            throw "Expected exactly one MudX project Version element; found $($versions.Count)"
+          }
+          $versions[0].Value = $env:VERSION
+          $temporary = "$path.tmp"
+          $settings = [System.Xml.XmlWriterSettings]::new()
+          $settings.Encoding = [System.Text.UTF8Encoding]::new($false)
+          $settings.Indent = $false
+          $settings.OmitXmlDeclaration = $null -eq $document.Declaration
+          $writer = [System.Xml.XmlWriter]::Create($temporary, $settings)
+          try { $document.Save($writer) }
+          finally { $writer.Dispose() }
+          Move-Item -Force $temporary $path
+
+      - name: Restore, regenerate, build, and test without publish credentials
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          actual=$(dotnet msbuild src/MudX/MudX.csproj -nologo -getProperty:Version | tail -n 1 | tr -d '\r')
+          [[ "$actual" == "$VERSION" ]] || { echo "MSBuild version mismatch" >&2; exit 1; }
+          dotnet restore tests/MudX.UnitTests/MudX.UnitTests.csproj --nologo
+          dotnet restore src/MudX.Docs/MudX.Docs.csproj --nologo
+          dotnet run --project src/MudX.Generator/MudX.Generator.csproj --configuration Release --framework net10.0 -- src/MudX/wwwroot src/MudX/Scripts
+          dotnet build src/MudX.Docs/MudX.Docs.csproj --configuration Release --no-restore --nologo /p:BuildInParallel=false
+          dotnet build src/MudX/MudX.csproj --configuration Release --no-restore --nologo
+          dotnet test tests/MudX.UnitTests/MudX.UnitTests.csproj --configuration Release --no-restore --nologo --blame-hang --blame-hang-timeout 60s
+
+      - name: Create the verified branch bundle
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git add --update
+          if ! git diff --cached --quiet; then
+            git commit -m "Prepare MudX ${VERSION} release"
+          fi
+          actual=$(dotnet msbuild src/MudX/MudX.csproj -nologo -getProperty:Version | tail -n 1 | tr -d '\r')
+          [[ "$actual" == "$VERSION" ]] || { echo "Prepared branch version mismatch" >&2; exit 1; }
+          if git diff --quiet origin/dev..HEAD; then
+            echo "Prepared branch has no release change relative to dev" >&2
+            exit 1
+          fi
+          mkdir -p release-preparation
+          printf 'RELEASE_BRANCH=%s\nPREPARED_COMMIT=%s\n' "$RELEASE_BRANCH" "$(git rev-parse HEAD)" >release-preparation/metadata.env
+          git branch --force prepared-artifact HEAD
+          git bundle create release-preparation/release-preparation.bundle prepared-artifact
+          (cd release-preparation && sha256sum metadata.env release-preparation.bundle >SHA256SUMS)
+
+      - name: Bind preparation artifact to the producing attempt
+        id: artifact
+        shell: bash
+        run: echo "name=release-preparation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >>"$GITHUB_OUTPUT"
+
+      - name: Upload verified release preparation
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: release-preparation/
+          if-no-files-found: error
+          retention-days: 3
+
+  publish:
+    name: Push branch and create or repair pull request
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Download same-run verified preparation
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ needs.validate.outputs.artifact-name }}
+          path: release-preparation
+
+      - name: Checkout dev without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: dev
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Publish prepared branch and create or update pull request
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          (cd release-preparation && sha256sum --check SHA256SUMS)
+          RELEASE_BRANCH=$(sed -n 's/^RELEASE_BRANCH=//p' release-preparation/metadata.env)
+          PREPARED_COMMIT=$(sed -n 's/^PREPARED_COMMIT=//p' release-preparation/metadata.env)
+          [[ "$RELEASE_BRANCH" =~ ^release/(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || exit 1
+          [[ "$PREPARED_COMMIT" =~ ^[0-9a-f]{40}$ ]] || exit 1
+          git bundle verify release-preparation/release-preparation.bundle
+          git fetch release-preparation/release-preparation.bundle prepared-artifact
+          [[ "$(git rev-parse FETCH_HEAD)" == "$PREPARED_COMMIT" ]] || exit 1
+          gh auth setup-git
+          remote_commit=$(git ls-remote origin "refs/heads/$RELEASE_BRANCH" | awk '{print $1}')
+          if [[ "$remote_commit" == "$PREPARED_COMMIT" ]]; then
+            echo "prepared branch already exists at the verified commit"
+          else
+            git push origin "$PREPARED_COMMIT:refs/heads/$RELEASE_BRANCH"
+          fi
+          pr_number=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$RELEASE_BRANCH" --base dev --state open --json number --jq '.[0].number // empty')
+          if [[ -z "$pr_number" ]]; then
+            gh pr create --repo "$GITHUB_REPOSITORY" --head "$RELEASE_BRANCH" --base dev \
+              --title "Prepare MudX ${RELEASE_BRANCH#release/} release" \
+              --body "Verified release preparation. Human approval and merge are required." --label "release"
+          else
+            gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$pr_number/labels" --input - <<<'{"labels":["release"]}'
+          fi
+          gh workflow run Build_And_Test.yml --ref "$RELEASE_BRANCH" --repo "$GITHUB_REPOSITORY"

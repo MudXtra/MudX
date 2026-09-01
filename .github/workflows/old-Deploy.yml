@@ -1,10 +1,11 @@
-name: Manual Deploy
+name: '[OLD] Manual Deploy'
 
 on:
   workflow_dispatch:  # Allows you to run the action manually from the GitHub UI
 
 jobs:
   deploy:
+    if: ${{ false }}
     runs-on: ubuntu-latest
 
     steps:

@@ -1,4 +1,4 @@
-name: Update MudX Version
+name: '[OLD] Update MudX Version'
 
 on:
   workflow_dispatch:
@@ -14,6 +14,7 @@ permissions:
 
 jobs:
   update-version:
+    if: ${{ false }}
     name: Update Version
     runs-on: ubuntu-latest
     env:

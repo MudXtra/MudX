@@ -1,0 +1,26 @@
+name: mudx-docs
+
+services:
+  docs:
+    image: ${MUDX_DOCS_IMAGE:?Set MUDX_DOCS_IMAGE to an immutable repository digest}
+    container_name: MudX
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4560:8080"
+    networks:
+      - mudx-docs
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080;
+          printf "GET /healthz HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >&3;
+          grep -q "200 OK" <&3'
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+networks:
+  mudx-docs:
+    driver: bridge

@@ -3,6 +3,7 @@
 name: Run Test Coverage
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "dev" ]
   pull_request:
@@ -53,3 +54,34 @@ jobs:
       with:
         name: coverage-report
         path: ./tests/MudX.UnitTests/TestResults/coverage.xml
+
+  release-contracts:
+    name: Release and deployment contracts
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Validate release workflow contracts
+        run: bash tests/ReleasePipelineTests/release-workflow-contracts.sh
+
+      - name: Test docs updater
+        run: bash deploy/mudx-docs/tests/update-mudx-docs-tests.sh
+
+      - name: Build docs health host
+        run: |
+          dotnet restore src/MudX.Docs.Hybrid/MudX.Docs.Hybrid/MudX.Docs.Hybrid.csproj --nologo
+          dotnet build src/MudX.Docs.Hybrid/MudX.Docs.Hybrid/MudX.Docs.Hybrid.csproj --no-restore --nologo
+
+      - name: Verify docs health endpoint
+        run: DOTNET_BIN=dotnet bash tests/MudX.Docs.Hybrid.Tests/healthz-contract.sh

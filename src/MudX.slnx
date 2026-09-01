@@ -22,11 +22,13 @@
     <File Path="../.github/ISSUE_TEMPLATE/need_help.yml" />
     <File Path="../.github/pull_request_template.md" />
     <File Path="../.github/workflows/auto-assign.yml" />
-    <File Path="../.github/workflows/Build_And_Deploy.yml" />
+    <File Path="../.github/workflows/old-Build_And_Deploy.yml" />
     <File Path="../.github/workflows/Build_And_Test.yml" />
-    <File Path="../.github/workflows/deploy-mudx-nuget.yml" />
-    <File Path="../.github/workflows/Deploy.yml" />
-    <File Path="../.github/workflows/Update_MudX_Version.yml" />
+    <File Path="../.github/workflows/old-deploy-mudx-nuget.yml" />
+    <File Path="../.github/workflows/old-Deploy.yml" />
+    <File Path="../.github/workflows/old-Update_MudX_Version.yml" />
+    <File Path="../.github/workflows/prepare-release.yml" />
+    <File Path="../.github/workflows/release.yml" />
   </Folder>
   <Folder Name="/Tests/">
     <File Path="../.gitignore" />

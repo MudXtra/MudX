@@ -1,4 +1,4 @@
-name: Deploy MudX Nuget
+name: '[OLD] Deploy MudX Nuget'
 
 on:
   workflow_dispatch:
@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   deploy-nuget:
+    if: ${{ false }}
     name: Deploy MudX NuGet to nuget.org
     runs-on: ubuntu-latest
     env:

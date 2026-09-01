@@ -1,0 +1,721 @@
+name: Release MudX
+
+on:
+  pull_request:
+    branches: [dev]
+    types: [closed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mudx-release
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: Verify trusted reviewed release PR
+    if: >-
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'release') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Fail closed unless final review decision is approved
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -Eeuo pipefail
+          # GraphQL variable names must remain literal.
+          # shellcheck disable=SC2016
+          decision=$(gh api graphql -f query='query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){reviewDecision}}}' \
+            -f owner="${GITHUB_REPOSITORY_OWNER}" -f name="${GITHUB_REPOSITORY#*/}" -F number="$PR_NUMBER" \
+            --jq '.data.repository.pullRequest.reviewDecision')
+          [[ "$decision" == APPROVED ]] || { echo "Final reviewDecision must be APPROVED" >&2; exit 1; }
+          final_head_approval=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/reviews" \
+            --jq ".[] | select(.state == \"APPROVED\" and .commit_id == \"$PR_HEAD_SHA\") | .id")
+          [[ -n "$final_head_approval" ]] || { echo "Final PR head commit must have an approval" >&2; exit 1; }
+
+  build:
+    name: Build unprivileged release artifacts
+    needs: gate
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-name: ${{ steps.artifact.outputs.name }}
+    permissions:
+      contents: read
+    env:
+      MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+    steps:
+      - name: Checkout exact merge without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Derive and validate release identity
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$(git rev-parse HEAD)" == "$MERGE_SHA" ]] || exit 1
+          mapfile -t project_versions < <(python3 - "$BASE_SHA" <<'PY'
+          import pathlib
+          import subprocess
+          import sys
+          import xml.etree.ElementTree as ET
+
+          project_path = pathlib.Path("src/MudX/MudX.csproj")
+
+          def version(document, revision):
+              values = [
+                  element.text.strip()
+                  for element in ET.fromstring(document).findall("./PropertyGroup/Version")
+                  if element.text and element.text.strip()
+              ]
+              if len(values) != 1:
+                  raise SystemExit(f"Expected exactly one MudX Version at {revision}; found {len(values)}")
+              return values[0]
+
+          base_sha = sys.argv[1]
+          base_project = subprocess.run(
+              ["git", "show", f"{base_sha}:{project_path.as_posix()}"],
+              check=True,
+              capture_output=True,
+              text=True,
+          ).stdout
+          print(version(base_project, base_sha))
+          print(version(project_path.read_text(encoding="utf-8-sig"), "merge"))
+          PY
+          )
+          [[ "${#project_versions[@]}" -eq 2 ]] || exit 1
+          base_version=${project_versions[0]}
+          version=${project_versions[1]}
+          [[ "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || exit 1
+          [[ "$base_version" != "$version" ]] || {
+            echo "Release PR did not change the MudX Version" >&2
+            exit 1
+          }
+          tag="v${version}"
+          if git rev-parse --verify --quiet "refs/tags/$tag"; then
+            [[ "$(git rev-list -n 1 "$tag")" == "$MERGE_SHA" ]] || {
+              echo "Existing release tag points to a different commit" >&2
+              exit 1
+            }
+          fi
+          printf 'VERSION=%s\nTAG=v%s\nMERGE_SHA=%s\n' "$version" "$version" "$MERGE_SHA" >>"$GITHUB_ENV"
+
+      - name: Restore, regenerate, build, test, and pack without publish credentials
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          dotnet restore tests/MudX.UnitTests/MudX.UnitTests.csproj --nologo
+          dotnet restore src/MudX.Docs.Hybrid/MudX.Docs.Hybrid/MudX.Docs.Hybrid.csproj --nologo
+          dotnet restore src/MudX.Docs/MudX.Docs.csproj --nologo
+          dotnet run --project src/MudX.Generator/MudX.Generator.csproj --configuration Release --framework net10.0 -- src/MudX/wwwroot src/MudX/Scripts
+          dotnet build src/MudX.Docs/MudX.Docs.csproj --configuration Release --no-restore --nologo /p:BuildInParallel=false
+          git diff --exit-code
+          dotnet build src/MudX/MudX.csproj --configuration Release --no-restore --nologo
+          dotnet build tests/MudX.UnitTests/MudX.UnitTests.csproj --configuration Release --framework net10.0 --no-restore --nologo /p:BuildInParallel=false
+          dotnet test tests/MudX.UnitTests/MudX.UnitTests.csproj --configuration Release --framework net10.0 --no-build --no-restore --nologo --blame-hang --blame-hang-timeout 60s
+          mkdir -p release-artifacts/release-assets
+          dotnet pack src/MudX/MudX.csproj --configuration Release --no-build --no-restore \
+            --output release-artifacts/release-assets /p:Version="$VERSION"
+
+      - name: Validate packaged static assets
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $package = Get-ChildItem release-artifacts/release-assets/*.nupkg |
+            Where-Object { $_.Name -notlike '*.symbols.nupkg' } | Select-Object -First 1
+          ./tools/CheckStaticAssets.ps1 $package.FullName @('mudx.min.css', 'mudx.min.js', 'prism.js', 'mudxProvider.js')
+
+      - name: Build exact-SHA OCI image with provenance and SBOM
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source_date_epoch=$(git show --no-show-signature -s --format=%ct "$MERGE_SHA")
+          [[ "$source_date_epoch" =~ ^[0-9]+$ ]] || { echo "Invalid source commit timestamp" >&2; exit 1; }
+          docker buildx build --platform linux/amd64 \
+            --build-arg "SOURCE_DATE_EPOCH=$source_date_epoch" \
+            --label "org.opencontainers.image.revision=$MERGE_SHA" \
+            --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+            --label "org.opencontainers.image.workflow=$GITHUB_WORKFLOW_REF" \
+            --provenance=mode=max --sbom=true \
+            --output type=oci,dest=release-artifacts/docs-image.oci.tar,rewrite-timestamp=true \
+            --file src/MudX.Docs.Hybrid/MudX.Docs.Hybrid/Dockerfile src
+          python3 - <<'PY'
+          import json, pathlib, tarfile
+          archive = pathlib.Path('release-artifacts/docs-image.oci.tar')
+          with tarfile.open(archive) as bundle:
+              def document(name):
+                  member = bundle.extractfile(name)
+                  if member is None:
+                      raise SystemExit(f'OCI archive member is not a file: {name}')
+                  return json.load(member)
+              index = document('index.json')
+              def manifests(index_document):
+                  for item in index_document['manifests']:
+                      if item['mediaType'].endswith('image.index.v1+json'):
+                          nested = document('blobs/sha256/' + item['digest'].split(':', 1)[1])
+                          yield from manifests(nested)
+                      else:
+                          yield item
+              descriptor = next(item for item in manifests(index) if item.get('platform', {}).get('architecture') == 'amd64' and item.get('platform', {}).get('os') == 'linux')
+              manifest = document('blobs/sha256/' + descriptor['digest'].split(':', 1)[1])
+              if len(index['manifests']) != 1:
+                  raise SystemExit('OCI layout must contain exactly one publication descriptor')
+          pathlib.Path('release-artifacts/release-assets/image-config-digest.txt').write_text(manifest['config']['digest'] + '\n')
+          pathlib.Path('release-artifacts/release-assets/image-application-manifest-digest.txt').write_text(descriptor['digest'] + '\n')
+          pathlib.Path('release-artifacts/provenance-index-digest.txt').write_text(index['manifests'][0]['digest'] + '\n')
+          PY
+          printf 'VERSION=%s\nTAG=%s\nMERGE_SHA=%s\nSOURCE=https://github.com/%s\nWORKFLOW=%s\n' \
+            "$VERSION" "$TAG" "$MERGE_SHA" "$GITHUB_REPOSITORY" "$GITHUB_WORKFLOW_REF" \
+            >release-artifacts/release-assets/release.env
+          (cd release-artifacts/release-assets && sha256sum ./*.nupkg ./*.snupkg image-application-manifest-digest.txt image-config-digest.txt release.env >SHA256SUMS)
+          (cd release-artifacts && sha256sum docs-image.oci.tar >OCI_SHA256SUM)
+
+      - name: Bind release artifact to the producing attempt
+        id: artifact
+        shell: bash
+        run: echo "name=mudx-release-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >>"$GITHUB_OUTPUT"
+
+      - name: Upload same-run release artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: release-artifacts/
+          if-no-files-found: error
+          retention-days: 7
+
+  attest:
+    name: Attest same-run release artifacts
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-name: ${{ needs.build.outputs.artifact-name }}
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ needs.build.outputs.artifact-name }}
+          path: release-artifacts
+      - name: Create GitHub artifact provenance
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        with:
+          subject-path: release-artifacts/**
+
+  publish:
+    name: Publish verified artifacts
+    needs: [gate, build, attest]
+    environment: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      pull-requests: read
+      attestations: read
+    env:
+      IMAGE_REPOSITORY: ghcr.io/mudxtra/mudx/mudxdocwebsite
+      MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+    steps:
+      - name: Download same-run release artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ needs.attest.outputs.artifact-name }}
+          path: release-artifacts
+
+      - name: Verify checksums, attestation, and release identity
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          (cd release-artifacts/release-assets && sha256sum --check SHA256SUMS)
+          (cd release-artifacts && sha256sum --check OCI_SHA256SUM)
+          while IFS= read -r -d '' artifact; do
+            gh attestation verify "$artifact" --repo "$GITHUB_REPOSITORY"
+          done < <(find release-artifacts -type f -print0)
+          artifact_version=$(sed -n 's/^VERSION=//p' release-artifacts/release-assets/release.env)
+          artifact_tag=$(sed -n 's/^TAG=//p' release-artifacts/release-assets/release.env)
+          artifact_sha=$(sed -n 's/^MERGE_SHA=//p' release-artifacts/release-assets/release.env)
+          artifact_source=$(sed -n 's/^SOURCE=//p' release-artifacts/release-assets/release.env)
+          artifact_workflow=$(sed -n 's/^WORKFLOW=//p' release-artifacts/release-assets/release.env)
+          [[ "$artifact_sha" == "$MERGE_SHA" ]] || exit 1
+          [[ "$artifact_version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || exit 1
+          [[ "$artifact_tag" == "v$artifact_version" ]] || exit 1
+          [[ "$artifact_source" == "https://github.com/$GITHUB_REPOSITORY" ]] || exit 1
+          [[ "$artifact_workflow" == "$GITHUB_WORKFLOW_REF" ]] || exit 1
+          printf 'VERSION=%s\nTAG=%s\n' "$artifact_version" "$artifact_tag" >>"$GITHUB_ENV"
+
+      - name: Install OCI publication tooling without credentials
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes skopeo
+
+      - name: Detect draft versus published GitHub release
+        id: release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          response=$(mktemp)
+          status=$(curl --silent --show-error --output "$response" --write-out '%{http_code}' \
+            --header "Authorization: Bearer $GH_TOKEN" --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$TAG")
+          case "$status" in
+            200)
+              [[ "$(jq -r '.prerelease' "$response")" == false ]] || {
+                echo "existing release must not be marked prerelease" >&2
+                exit 1
+              }
+              if [[ "$(jq -r '.draft' "$response")" == true ]]; then
+                release_target=$(jq -r '.target_commitish' "$response")
+                [[ "$release_target" == "$MERGE_SHA" ]] || {
+                  echo "existing draft target does not match merge SHA" >&2
+                  exit 1
+                }
+                state=draft
+              else
+                state=published
+              fi
+              ;;
+            404) state=absent ;;
+            *) echo "GitHub release lookup failed with HTTP $status" >&2; exit 1 ;;
+          esac
+          rm -f "$response"
+          echo "state=$state" >>"$GITHUB_OUTPUT"
+
+      - name: Guard stable against historical release retries
+        if: steps.release.outputs.state != 'published'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          newest_eligible=$(
+            gh api --paginate "repos/$GITHUB_REPOSITORY/releases" \
+              --jq '.[] | select(.prerelease == false) | .tag_name' |
+              sed -nE 's/^v((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))$/\1/p' |
+              sort -V |
+              tail -n 1
+          )
+          if [[ -n "$newest_eligible" && "$(printf '%s\n%s\n' "$VERSION" "$newest_eligible" | sort -V | tail -n 1)" != "$VERSION" ]]; then
+            echo "Refusing stale release $VERSION because $newest_eligible is already eligible for stable" >&2
+            exit 1
+          fi
+
+      - name: Create missing draft GitHub release
+        if: steps.release.outputs.state == 'absent'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$MERGE_SHA" \
+            --title "MudX ${VERSION}" --generate-notes --draft
+
+      - name: Verify or publish provenance-bound image
+        if: steps.release.outputs.state != 'published'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          echo "$GH_TOKEN" | skopeo login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          expected_config=$(cat release-artifacts/release-assets/image-config-digest.txt)
+          expected_application_manifest=$(cat release-artifacts/release-assets/image-application-manifest-digest.txt)
+          local_labels=$(skopeo inspect --config oci-archive:release-artifacts/docs-image.oci.tar | jq -c '.config.Labels')
+          [[ "$(jq -r '."org.opencontainers.image.revision"' <<<"$local_labels")" == "$MERGE_SHA" ]] || exit 1
+          [[ "$(jq -r '."org.opencontainers.image.source"' <<<"$local_labels")" == "https://github.com/$GITHUB_REPOSITORY" ]] || exit 1
+          [[ "$(jq -r '."org.opencontainers.image.workflow"' <<<"$local_labels")" == "$GITHUB_WORKFLOW_REF" ]] || exit 1
+          commit_ref="docker://$IMAGE_REPOSITORY:sha-$MERGE_SHA"
+          inspection_error=$(mktemp)
+          trap 'rm -f "$inspection_error"' EXIT
+          if existing_raw=$(skopeo inspect --raw "$commit_ref" 2>"$inspection_error"); then
+            commit_exists=true
+          elif grep -Eqi 'manifest unknown|name unknown' "$inspection_error"; then
+            commit_exists=false
+          else
+            cat "$inspection_error" >&2
+            echo "commit tag inspection failed; refusing to treat it as absent" >&2
+            exit 1
+          fi
+          if [[ "$commit_exists" == true ]]; then
+            config_ref="$commit_ref"
+            existing_application_manifest=$(skopeo inspect --format '{{.Digest}}' "$commit_ref")
+            while jq -e '.manifests' >/dev/null 2>&1 <<<"$existing_raw"; do
+              platform_manifest=$(jq -r '([.manifests[] | select(.platform.os == "linux" and .platform.architecture == "amd64")][0].digest // [.manifests[] | select(.annotations["vnd.docker.reference.type"] != "attestation-manifest")][0].digest // empty)' <<<"$existing_raw")
+              [[ "$platform_manifest" =~ ^sha256:[0-9a-f]{64}$ ]] || exit 1
+              existing_application_manifest=$platform_manifest
+              config_ref="docker://$IMAGE_REPOSITORY@$platform_manifest"
+              existing_raw=$(skopeo inspect --raw "$config_ref")
+            done
+            existing_config=$(jq -r '.config.digest // empty' <<<"$existing_raw")
+            existing_labels=$(skopeo inspect --config "$config_ref" | jq -c '.config.Labels')
+            [[ "$existing_application_manifest" == "$expected_application_manifest" ]] || { echo "existing commit image application manifest mismatch" >&2; exit 1; }
+            [[ "$existing_config" == "$expected_config" ]] || { echo "existing commit image provenance mismatch" >&2; exit 1; }
+            [[ "$(jq -r '."org.opencontainers.image.revision"' <<<"$existing_labels")" == "$MERGE_SHA" ]] || exit 1
+            [[ "$(jq -r '."org.opencontainers.image.source"' <<<"$existing_labels")" == "https://github.com/$GITHUB_REPOSITORY" ]] || exit 1
+            [[ "$(jq -r '."org.opencontainers.image.workflow"' <<<"$existing_labels")" == "$GITHUB_WORKFLOW_REF" ]] || exit 1
+          else
+            skopeo copy --override-os linux --override-arch amd64 \
+              oci-archive:release-artifacts/docs-image.oci.tar "$commit_ref"
+          fi
+          image_digest=$(skopeo inspect --format '{{.Digest}}' "$commit_ref")
+          [[ "$image_digest" =~ ^sha256:[0-9a-f]{64}$ ]] || exit 1
+          [[ "$image_digest" == "$expected_application_manifest" ]] || { echo "published application manifest differs from attested build" >&2; exit 1; }
+          version_ref="docker://$IMAGE_REPOSITORY:$VERSION"
+          : >"$inspection_error"
+          if version_digest=$(skopeo inspect --format '{{.Digest}}' "$version_ref" 2>"$inspection_error"); then
+            version_exists=true
+          elif grep -Eqi 'manifest unknown|name unknown' "$inspection_error"; then
+            version_exists=false
+          else
+            cat "$inspection_error" >&2
+            echo "version tag inspection failed; refusing to treat it as absent" >&2
+            exit 1
+          fi
+          if [[ "$version_exists" == false ]]; then
+            skopeo copy "docker://$IMAGE_REPOSITORY@$image_digest" "$version_ref"
+          elif [[ "$version_digest" != "$image_digest" ]]; then
+            echo "version tag provenance mismatch" >&2; exit 1
+          fi
+          [[ "$(skopeo inspect --format '{{.Digest}}' "$version_ref")" == "$image_digest" ]] || { echo "version tag digest verification failed" >&2; exit 1; }
+          printf 'IMAGE_DIGEST=%s\nIMAGE_CONFIG_DIGEST=%s\n' "$image_digest" "$expected_config" >>"$GITHUB_ENV"
+
+      - name: Upload or repair draft assets only
+        if: steps.release.outputs.state != 'published'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          expected_assets=$(mktemp)
+          remote_assets=$(mktemp)
+          asset_inventory=$(mktemp)
+          trap 'rm -f "$expected_assets" "$remote_assets" "$asset_inventory"' EXIT
+          find release-artifacts/release-assets -maxdepth 1 -type f -printf '%f\n' | LC_ALL=C sort >"$expected_assets"
+          release_id=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq '.id')
+          [[ "$release_id" =~ ^[0-9]+$ ]] || { echo "draft release ID is invalid" >&2; exit 1; }
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases/$release_id/assets?per_page=100" \
+            --jq '.[] | [.id, .name] | @tsv' >"$asset_inventory"
+          while IFS=$'\t' read -r asset_id asset_name; do
+            [[ "$asset_id" =~ ^[0-9]+$ && -n "$asset_name" ]] || {
+              echo "draft asset inventory entry is invalid" >&2
+              exit 1
+            }
+            if ! grep -Fxq -- "$asset_name" "$expected_assets"; then
+              gh api --method DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id"
+            fi
+          done <"$asset_inventory"
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber release-artifacts/release-assets/*
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases/$release_id/assets?per_page=100" \
+            --jq '.[].name' | LC_ALL=C sort >"$remote_assets"
+          if ! diff --unified "$expected_assets" "$remote_assets"; then
+            echo "draft release assets do not match the attested asset set" >&2
+            exit 1
+          fi
+
+      - name: Check NuGet main and symbol package identities
+        id: nuget
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          local_package=$(find release-artifacts/release-assets -maxdepth 1 -name '*.nupkg' ! -name '*.snupkg' -print -quit)
+          local_symbols=$(find release-artifacts/release-assets -maxdepth 1 -name '*.snupkg' -print -quit)
+          [[ -n "$local_package" && -n "$local_symbols" ]] || { echo "release artifacts must contain main and symbol packages" >&2; exit 1; }
+          package_id=$(python3 -c 'import zipfile,sys; z=zipfile.ZipFile(sys.argv[1]); n=next(x for x in z.namelist() if x.endswith(".nuspec")); import xml.etree.ElementTree as E; r=E.fromstring(z.read(n)); print(next(x.text for x in r.iter() if x.tag.endswith("id")))' "$local_package")
+          lower_id=${package_id,,}
+          main_url="https://api.nuget.org/v3-flatcontainer/$lower_id/$VERSION/$lower_id.$VERSION.nupkg"
+          symbol_url="https://www.nuget.org/api/v2/symbolpackage/$package_id/$VERSION"
+          main_status=$(curl --silent --show-error --location --output /tmp/published.nupkg --write-out '%{http_code}' "$main_url") || {
+            echo "NuGet main package lookup failed" >&2; exit 1;
+          }
+          if [[ "$main_status" == 200 ]]; then
+            echo "verifying semantic package identity while ignoring NuGet.org repository signing metadata"
+            LOCAL_PACKAGE="$local_package" python3 - <<'PY'
+          import hashlib, os, zipfile, xml.etree.ElementTree as ET
+          def content_types(data):
+              root = ET.fromstring(data)
+              declarations = []
+              for item in root:
+                  attributes = {key.rsplit('}', 1)[-1]: value for key, value in item.attrib.items()}
+                  part = attributes.get('PartName', '').lower()
+                  extension = attributes.get('Extension', '').lower()
+                  content_type = attributes.get('ContentType', '').lower()
+                  if part == '/.signature.p7s' or extension == 'p7s' or 'digital-signature' in content_type:
+                      continue
+                  declarations.append((item.tag.rsplit('}', 1)[-1], tuple(sorted(attributes.items()))))
+              return sorted(declarations)
+          def payload(path):
+              with zipfile.ZipFile(path) as archive:
+                  entries = {n: hashlib.sha256(archive.read(n)).hexdigest() for n in archive.namelist()
+                             if n.lower() != '.signature.p7s' and n != '[Content_Types].xml' and not n.endswith('/')}
+                  entries['[Content_Types].xml'] = content_types(archive.read('[Content_Types].xml'))
+                  return entries
+          if payload(os.environ['LOCAL_PACKAGE']) != payload('/tmp/published.nupkg'):
+              raise SystemExit('published NuGet package semantic identity mismatch')
+          PY
+            echo "main-exists=true" >>"$GITHUB_OUTPUT"
+          elif [[ "$main_status" == 404 ]]; then
+            echo "main-exists=false" >>"$GITHUB_OUTPUT"
+          else
+            echo "NuGet main package lookup returned HTTP $main_status" >&2; exit 1
+          fi
+          symbol_status=$(curl --silent --show-error --location --output /tmp/published.snupkg --write-out '%{http_code}' "$symbol_url") || {
+            echo "NuGet symbol package lookup failed" >&2; exit 1;
+          }
+          if [[ "$symbol_status" == 200 ]]; then
+            LOCAL_SYMBOLS="$local_symbols" python3 - <<'PY'
+          import hashlib, os, zipfile
+          def payload(path):
+              with zipfile.ZipFile(path) as archive:
+                  return {n: hashlib.sha256(archive.read(n)).hexdigest() for n in archive.namelist() if not n.endswith('/')}
+          if payload(os.environ['LOCAL_SYMBOLS']) != payload('/tmp/published.snupkg'):
+              raise SystemExit('published NuGet symbol package semantic identity mismatch')
+          PY
+            echo "symbols-exist=true" >>"$GITHUB_OUTPUT"
+          elif [[ "$symbol_status" == 404 ]]; then
+            echo "symbols-exist=false" >>"$GITHUB_OUTPUT"
+          else
+            echo "NuGet symbol package lookup returned HTTP $symbol_status" >&2; exit 1
+          fi
+
+      - name: Publish missing NuGet main package
+        if: steps.release.outputs.state != 'published' && steps.nuget.outputs.main-exists == 'false'
+        shell: bash
+        env:
+          NUGET_KEY: ${{ secrets.NUGET_KEY }}
+        run: |
+          set -Eeuo pipefail
+          package=$(find release-artifacts/release-assets -maxdepth 1 -name '*.nupkg' ! -name '*.snupkg' -print -quit)
+          dotnet nuget push "$package" \
+            --api-key "$NUGET_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate --no-symbols
+
+      - name: Publish missing NuGet symbol package
+        if: steps.release.outputs.state != 'published' && steps.nuget.outputs.symbols-exist == 'false'
+        shell: bash
+        env:
+          NUGET_KEY: ${{ secrets.NUGET_KEY }}
+        run: |
+          set -Eeuo pipefail
+          symbols=$(find release-artifacts/release-assets -maxdepth 1 -name '*.snupkg' -print -quit)
+          dotnet nuget push "$symbols" \
+            --api-key "$NUGET_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Verify NuGet main and symbol identities after publication
+        if: steps.release.outputs.state != 'published'
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          local_package=$(find release-artifacts/release-assets -maxdepth 1 -name '*.nupkg' ! -name '*.snupkg' -print -quit)
+          local_symbols=$(find release-artifacts/release-assets -maxdepth 1 -name '*.snupkg' -print -quit)
+          package_id=$(python3 -c 'import zipfile,sys; z=zipfile.ZipFile(sys.argv[1]); n=next(x for x in z.namelist() if x.endswith(".nuspec")); import xml.etree.ElementTree as E; r=E.fromstring(z.read(n)); print(next(x.text for x in r.iter() if x.tag.endswith("id")))' "$local_package")
+          lower_id=${package_id,,}
+          download_with_retry() {
+            local url=$1 output=$2 label=$3
+            for attempt in 1 2 3 4 5; do
+              if curl --fail --silent --show-error --location "$url" --output "$output"; then
+                return 0
+              fi
+              rm -f "$output"
+              if [[ "$attempt" -eq 5 ]]; then
+                echo "$label was not visible after $attempt attempts" >&2
+                return 1
+              fi
+              sleep "$((attempt * 2))"
+            done
+          }
+          download_with_retry \
+            "https://api.nuget.org/v3-flatcontainer/$lower_id/$VERSION/$lower_id.$VERSION.nupkg" \
+            /tmp/published-after-push.nupkg "NuGet main package"
+          download_with_retry \
+            "https://www.nuget.org/api/v2/symbolpackage/$package_id/$VERSION" \
+            /tmp/published-after-push.snupkg "NuGet symbol package"
+          LOCAL_PACKAGE="$local_package" LOCAL_SYMBOLS="$local_symbols" python3 - <<'PY'
+          import hashlib, os, zipfile, xml.etree.ElementTree as ET
+          def content_types(data):
+              root = ET.fromstring(data)
+              declarations = []
+              for item in root:
+                  attributes = {key.rsplit('}', 1)[-1]: value for key, value in item.attrib.items()}
+                  part = attributes.get('PartName', '').lower()
+                  extension = attributes.get('Extension', '').lower()
+                  content_type = attributes.get('ContentType', '').lower()
+                  if part == '/.signature.p7s' or extension == 'p7s' or 'digital-signature' in content_type:
+                      continue
+                  declarations.append((item.tag.rsplit('}', 1)[-1], tuple(sorted(attributes.items()))))
+              return sorted(declarations)
+          def package_payload(path):
+              with zipfile.ZipFile(path) as archive:
+                  entries = {n: hashlib.sha256(archive.read(n)).hexdigest() for n in archive.namelist()
+                             if n.lower() != '.signature.p7s' and n != '[Content_Types].xml' and not n.endswith('/')}
+                  entries['[Content_Types].xml'] = content_types(archive.read('[Content_Types].xml'))
+                  return entries
+          def symbol_payload(path):
+              with zipfile.ZipFile(path) as archive:
+                  return {n: hashlib.sha256(archive.read(n)).hexdigest() for n in archive.namelist() if not n.endswith('/')}
+          if package_payload(os.environ['LOCAL_PACKAGE']) != package_payload('/tmp/published-after-push.nupkg'):
+              raise SystemExit('published NuGet package semantic identity mismatch after publication')
+          if symbol_payload(os.environ['LOCAL_SYMBOLS']) != symbol_payload('/tmp/published-after-push.snupkg'):
+              raise SystemExit('published NuGet symbol package semantic identity mismatch after publication')
+          PY
+
+      - name: Promote verified digest to stable
+        if: steps.release.outputs.state != 'published'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          echo "$GH_TOKEN" | skopeo login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          skopeo copy "docker://$IMAGE_REPOSITORY@$IMAGE_DIGEST" "docker://$IMAGE_REPOSITORY:stable"
+          stable_digest=$(skopeo inspect --format '{{.Digest}}' "docker://$IMAGE_REPOSITORY:stable")
+          [[ "$stable_digest" == "$IMAGE_DIGEST" ]] || { echo "stable tag digest verification failed" >&2; exit 1; }
+
+      - name: Record idempotent checksums and provenance in draft notes
+        if: steps.release.outputs.state != 'published'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          package_checksum=$(awk '/\.nupkg$/ && $2 !~ /\.snupkg$/ {print $1; exit}' release-artifacts/release-assets/SHA256SUMS)
+          export PACKAGE_CHECKSUM="$package_checksum"
+          current_notes=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq '.body // ""')
+          CURRENT_NOTES="$current_notes" python3 - <<'PY'
+          import os, re
+          start = '<!-- mudx-release-metadata:start -->'
+          end = '<!-- mudx-release-metadata:end -->'
+          block = f'''{start}
+          Version: `{os.environ['VERSION']}`
+
+          Commit: `{os.environ['MERGE_SHA']}`
+
+          Docs application manifest: `{os.environ['IMAGE_REPOSITORY']}@{os.environ['IMAGE_DIGEST']}`
+
+          Image config: `{os.environ['IMAGE_CONFIG_DIGEST']}`
+
+          NuGet SHA-256: `{os.environ['PACKAGE_CHECKSUM']}`
+
+          Provenance: GitHub attestation covers the full OCI archive and its run-specific provenance/SBOM index; deployment identity is the application manifest above.
+          {end}'''
+          notes = re.sub(re.escape(start) + r'.*?' + re.escape(end), '', os.environ['CURRENT_NOTES'], flags=re.S).rstrip()
+          open('/tmp/release-notes.md', 'w').write(notes + '\n\n' + block + '\n')
+          PY
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file /tmp/release-notes.md
+
+      - name: Verify published release and no-op
+        if: steps.release.outputs.state == 'published'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          [[ "${{ steps.nuget.outputs.main-exists }}" == true ]] || { echo "Published release has no matching NuGet main package" >&2; exit 1; }
+          [[ "${{ steps.nuget.outputs.symbols-exist }}" == true ]] || { echo "Published release has no matching NuGet symbol package" >&2; exit 1; }
+          mkdir /tmp/public-assets
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir /tmp/public-assets
+          cmp --silent release-artifacts/release-assets/SHA256SUMS /tmp/public-assets/SHA256SUMS || {
+            echo "Published checksum manifest does not match this attested build" >&2
+            exit 1
+          }
+          (cd /tmp/public-assets && sha256sum --check SHA256SUMS)
+          (cd /tmp/public-assets && { awk '{sub(/^\.\//, "", $2); print $2}' SHA256SUMS; echo SHA256SUMS; } | sort > /tmp/expected-assets)
+          find /tmp/public-assets -maxdepth 1 -type f -printf '%f\n' | sort > /tmp/actual-assets
+          diff --unified /tmp/expected-assets /tmp/actual-assets
+          notes=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body)
+          grep -q 'mudx-release-metadata:start' <<<"$notes"
+          expected_nuget_checksum=$(awk '/\.nupkg$/ && $2 !~ /\.snupkg$/ {print $1; exit}' release-artifacts/release-assets/SHA256SUMS)
+          expected_image_digest=$(cat release-artifacts/release-assets/image-application-manifest-digest.txt)
+          expected_config=$(cat release-artifacts/release-assets/image-config-digest.txt)
+          # The sed capture expression is intentionally literal.
+          # shellcheck disable=SC2016
+          recorded_version=$(sed -n 's/.*Version: `\([^`]*\)`.*/\1/p' <<<"$notes")
+          # shellcheck disable=SC2016
+          recorded_commit=$(sed -n 's/.*Commit: `\([0-9a-f]*\)`.*/\1/p' <<<"$notes")
+          # shellcheck disable=SC2016
+          recorded_digest=$(sed -n 's/.*Docs application manifest: `[^@]*@\(sha256:[0-9a-f]*\)`.*/\1/p' <<<"$notes")
+          # shellcheck disable=SC2016
+          recorded_config=$(sed -n 's/.*Image config: `\(sha256:[0-9a-f]*\)`.*/\1/p' <<<"$notes")
+          # shellcheck disable=SC2016
+          recorded_nuget_checksum=$(sed -n 's/.*NuGet SHA-256: `\([0-9a-f]*\)`.*/\1/p' <<<"$notes")
+          [[ "$recorded_version" == "$VERSION" ]] || exit 1
+          [[ "$recorded_commit" == "$MERGE_SHA" ]] || exit 1
+          [[ "$recorded_nuget_checksum" == "$expected_nuget_checksum" ]] || exit 1
+          [[ "$recorded_digest" == "$expected_image_digest" ]] || exit 1
+          [[ "$recorded_config" == "$expected_config" ]] || exit 1
+          [[ "$recorded_digest" =~ ^sha256:[0-9a-f]{64}$ ]] || exit 1
+          [[ "$recorded_config" =~ ^sha256:[0-9a-f]{64}$ ]] || exit 1
+          echo "$GH_TOKEN" | skopeo login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          [[ "$(skopeo inspect --format '{{.Digest}}' "docker://$IMAGE_REPOSITORY:sha-$MERGE_SHA")" == "$recorded_digest" ]] || exit 1
+          [[ "$(skopeo inspect --format '{{.Digest}}' "docker://$IMAGE_REPOSITORY:$VERSION")" == "$recorded_digest" ]] || exit 1
+          remote_raw=$(skopeo inspect --raw "docker://$IMAGE_REPOSITORY:sha-$MERGE_SHA")
+          while jq -e '.manifests' >/dev/null 2>&1 <<<"$remote_raw"; do
+            platform_manifest=$(jq -r '([.manifests[] | select(.platform.os == "linux" and .platform.architecture == "amd64")][0].digest // [.manifests[] | select(.annotations["vnd.docker.reference.type"] != "attestation-manifest")][0].digest // empty)' <<<"$remote_raw")
+            [[ "$platform_manifest" =~ ^sha256:[0-9a-f]{64}$ ]] || exit 1
+            remote_raw=$(skopeo inspect --raw "docker://$IMAGE_REPOSITORY@$platform_manifest")
+          done
+          [[ "$(jq -r '.config.digest' <<<"$remote_raw")" == "$recorded_config" ]] || exit 1
+          tag_object=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG")
+          tagged_sha=$(jq -r '.object.sha' <<<"$tag_object")
+          tagged_type=$(jq -r '.object.type' <<<"$tag_object")
+          for _ in 1 2 3 4 5; do
+            [[ "$tagged_type" == tag ]] || break
+            tag_object=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tagged_sha")
+            tagged_sha=$(jq -r '.object.sha' <<<"$tag_object")
+            tagged_type=$(jq -r '.object.type' <<<"$tag_object")
+          done
+          [[ "$tagged_type" == commit && "$tagged_sha" == "$MERGE_SHA" ]] || {
+            echo "Published Git tag does not resolve to merge SHA" >&2
+            exit 1
+          }
+          echo "published release verified; no publication mutation required"
+
+      - name: Finalize draft GitHub release last
+        if: steps.release.outputs.state != 'published'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false
+          tag_object=""
+          for _ in 1 2 3 4 5; do
+            if tag_object=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" 2>/dev/null); then break; fi
+            sleep 2
+          done
+          [[ -n "$tag_object" ]] || { echo "Finalized Git tag was not created" >&2; exit 1; }
+          tagged_sha=$(jq -r '.object.sha' <<<"$tag_object")
+          tagged_type=$(jq -r '.object.type' <<<"$tag_object")
+          for _ in 1 2 3 4 5; do
+            [[ "$tagged_type" == tag ]] || break
+            tag_object=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tagged_sha")
+            tagged_sha=$(jq -r '.object.sha' <<<"$tag_object")
+            tagged_type=$(jq -r '.object.type' <<<"$tag_object")
+          done
+          [[ "$tagged_type" == commit && "$tagged_sha" == "$MERGE_SHA" ]] || {
+            echo "Finalized Git tag does not resolve to merge SHA" >&2
+            exit 1
+          }

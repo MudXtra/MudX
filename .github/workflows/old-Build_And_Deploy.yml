@@ -1,10 +1,11 @@
-name: 'Build and Deploy Docker Image to GHCR'
+name: '[OLD] Build and Deploy Docker Image to GHCR'
 
 on:
   workflow_dispatch
 
 jobs:
   build:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

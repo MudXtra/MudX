@@ -1,0 +1,9 @@
+paths:
+  .github/workflows/old-*.yml:
+    ignore:
+      # Archived workflows must remain unconditionally disabled.
+      - 'constant expression "false" in condition'
+      # Historical action pins are preserved for reference and can never run.
+      - 'the runner of ".+" action is too old to run on GitHub Actions'
+      # Historical shell bodies are preserved verbatim inside disabled jobs.
+      - 'shellcheck reported issue in this script: SC(2035|2086):'

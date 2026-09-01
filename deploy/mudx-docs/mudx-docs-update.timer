@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodically check for a verified MudX documentation image
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=15min
+RandomizedDelaySec=2min
+Persistent=true
+Unit=mudx-docs-update.service
+
+[Install]
+WantedBy=timers.target
