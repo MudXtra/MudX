@@ -284,7 +284,7 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
     /// List of snap point heights (in viewport height or width) to toggle or drag
     /// </summary>
     /// <remarks>
-    /// Defaults to <c>[20, 40, 50, 70, 90, 100]</c>.<br/>
+    /// Defaults to <c>[25, 50, 75, 100]</c>.<br/>
     /// Valid values are between 10 and 100, inclusive.<br/>
     /// </remarks>
     [Parameter]

@@ -103,7 +103,7 @@
       "Name": "PresetSizes",
       "Type": "Int32[]",
       "Default": "[25, 50, 75, ...]",
-      "Description": "List of snap point heights (in viewport height or width) to toggle or drag\nRemarks: Defaults to [20, 40, 50, 70, 90, 100]. Valid values are between 10 and 100, inclusive."
+      "Description": "List of snap point heights (in viewport height or width) to toggle or drag\nRemarks: Defaults to [25, 50, 75, 100]. Valid values are between 10 and 100, inclusive."
     },
     {
       "Name": "SheetHandleFragment",
