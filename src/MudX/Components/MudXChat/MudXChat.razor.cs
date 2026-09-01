@@ -6,7 +6,7 @@ using MudX.Extensions;
 namespace MudX
 {
     /// <summary>
-    /// The MudXChat component is used to house one or more MudChatBubble components, with optional components such as MudAvatar, MudChatHeader, and MudChatFooter.
+    /// The MudXChat component is used to house one or more MudXChatBubble components, with optional components such as MudAvatar, MudXChatHeader, and MudXChatFooter.
     /// </summary>
     public partial class MudXChat : MudComponentBase
     {

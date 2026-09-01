@@ -1,7 +1,7 @@
 {
   "Component": "MudXChat",
   "Namespace": "MudX",
-  "Description": "The MudXChat component is used to house one or more MudChatBubble components, with optional components such as MudAvatar, MudChatHeader, and MudChatFooter.",
+  "Description": "The MudXChat component is used to house one or more MudXChatBubble components, with optional components such as MudAvatar, MudXChatHeader, and MudXChatFooter.",
   "Parameters": [
     {
       "Name": "ArrowPosition",
