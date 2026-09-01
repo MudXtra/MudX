@@ -25,6 +25,17 @@
             </ChildContent>
         </DocsPageSection>
 
+        <DocsPageSection Title="Accessibility">
+            <Description>
+                For a transcript that receives new messages, place <CodeInline Tag="false">role="log"</CodeInline>, <CodeInline Tag="false">aria-live="polite"</CodeInline>, and <CodeInline Tag="false">aria-relevant="additions"</CodeInline> on one outer transcript container. The transcript owner provides the accessible name and live-region semantics; each <CodeInline>MudXChat</CodeInline> remains a message group within it.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@ChatTranscriptAccessibilityExampleCode.Files">
+                    <ChatTranscriptAccessibilityExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
         <DocsPageSection Title="With Avatar">
                 <Description>
                     MudXChat can include an avatar, which works seamlessly with the <CodeInline>MudAvatar</CodeInline> component. The avatar will always appear on the first <CodeInline>MudXChatBubble</CodeInline> inside a MudXChat. 
