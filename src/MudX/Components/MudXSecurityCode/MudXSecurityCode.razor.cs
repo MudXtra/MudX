@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Globalization;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -20,6 +21,71 @@ namespace MudX
         internal ParameterState<string?> _codeState;
         private bool _isInternalChange = false;
         private MudForm? _form = null!;
+        private string LabelId => $"{Id}-label";
+        private string HelperTextId => $"{Id}-helper-text";
+        private string ErrorTextId => $"{Id}-error-text";
+        private string? FirstEditableInputId => CodeItems.FirstOrDefault(item => item.IsEditable)?.InputId;
+        private const string DefaultSegmentAriaLabelFormat = "Character {0} of {1}";
+
+        private Dictionary<string, object?> GetContainerAttributes()
+        {
+            return UserAttributes
+                .Where(attribute => !string.Equals(attribute.Key, "aria-label", StringComparison.OrdinalIgnoreCase))
+                .ToDictionary(attribute => attribute.Key, attribute => attribute.Value);
+        }
+
+        private Dictionary<string, object?> GetInputAttributes(CodeItem item)
+        {
+            var attributes = new Dictionary<string, object?>(_attributes);
+            var hasExplicitAriaLabel = attributes.TryGetValue("aria-label", out var ariaLabel)
+                && !string.IsNullOrWhiteSpace(ariaLabel?.ToString());
+            if (item.IsEditable)
+            {
+                var ordinal = CodeItems.Take(item.Index + 1).Count(codeItem => codeItem.IsEditable);
+                var total = CodeItems.Count(codeItem => codeItem.IsEditable);
+                if (!hasExplicitAriaLabel)
+                    attributes["aria-label"] = FormatSegmentAriaLabel(ordinal, total);
+            }
+            else
+            {
+                attributes["tabindex"] = "-1";
+                attributes["aria-hidden"] = "true";
+                attributes["inert"] = string.Empty;
+            }
+
+            return attributes;
+        }
+
+        private string FormatSegmentAriaLabel(int ordinal, int total)
+        {
+            var format = string.IsNullOrWhiteSpace(SegmentAriaLabelFormat)
+                ? DefaultSegmentAriaLabelFormat
+                : SegmentAriaLabelFormat;
+            try
+            {
+                return string.Format(CultureInfo.CurrentCulture, format, ordinal, total);
+            }
+            catch (FormatException)
+            {
+                return string.Format(CultureInfo.CurrentCulture, DefaultSegmentAriaLabelFormat, ordinal, total);
+            }
+        }
+
+        private string? GetDescriptionIds(CodeItem item)
+        {
+            if (!item.IsEditable)
+                return null;
+
+            var helperId = !string.IsNullOrWhiteSpace(HelperText) ? HelperTextId : null;
+            var errorId = Error && !string.IsNullOrWhiteSpace(ErrorText) ? ErrorTextId : null;
+            return (helperId, errorId) switch
+            {
+                (not null, not null) => $"{helperId} {errorId}",
+                (not null, null) => helperId,
+                (null, not null) => errorId,
+                _ => null
+            };
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MudXSecurityCode"/> class.
@@ -113,6 +179,69 @@ namespace MudX
         /// <remarks>Defaults to <c>null</c>.</remarks>
         [Parameter]
         public string? Code { get; set; }
+
+        /// <summary>
+        /// The visible label for the security code group.
+        /// </summary>
+        /// <remarks>Defaults to <c>null</c>.</remarks>
+        [Parameter]
+        public string? Label { get; set; }
+
+        /// <summary>
+        /// The helper text displayed beneath the security code group.
+        /// </summary>
+        /// <remarks>Defaults to <c>null</c>.</remarks>
+        [Parameter]
+        public string? HelperText { get; set; }
+
+        /// <summary>
+        /// Whether a value is required for every editable segment.
+        /// </summary>
+        /// <remarks>Defaults to <c>false</c>.</remarks>
+        [Parameter]
+        public bool Required { get; set; }
+
+        /// <summary>
+        /// Whether the editable security code segments are disabled.
+        /// </summary>
+        /// <remarks>Defaults to <c>false</c>.</remarks>
+        [Parameter]
+        public bool Disabled { get; set; }
+
+        /// <summary>
+        /// Whether the security code group is in an error state.
+        /// </summary>
+        /// <remarks>Defaults to <c>false</c>.</remarks>
+        [Parameter]
+        public bool Error { get; set; }
+
+        /// <summary>
+        /// The error text displayed when <see cref="Error" /> is <c>true</c>.
+        /// </summary>
+        /// <remarks>Defaults to <c>null</c>.</remarks>
+        [Parameter]
+        public string? ErrorText { get; set; }
+
+        /// <summary>
+        /// The accessible name for the security code group.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to <c>null</c>. When set, this value takes precedence over <see cref="Label" /> for the group's accessible name.
+        /// </remarks>
+        [Parameter]
+        public string? AriaLabel { get; set; }
+
+        /// <summary>
+        /// The format used for each editable segment's accessible name.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to <c>"Character {0} of {1}"</c>, where <c>{0}</c> is the segment position and <c>{1}</c> is the editable segment count.
+        /// An <c>aria-label</c> supplied through <see cref="MudComponentBase.UserAttributes" /> labels each editable segment and takes precedence.
+        /// It does not replace the group's accessible name.
+        /// Null, blank, or malformed formats fall back to the default so every editable segment remains named.
+        /// </remarks>
+        [Parameter]
+        public string? SegmentAriaLabelFormat { get; set; } = DefaultSegmentAriaLabelFormat;
 
         /// <summary>
         /// Called when the value of the security code changes.
@@ -213,7 +342,10 @@ namespace MudX
         private IEnumerable<string> CharPatternValidator(int index, string val)
         {
             if (string.IsNullOrEmpty(val))
-                yield return "*";
+            {
+                if (Required && CodeItems[index].IsEditable)
+                    yield return "*";
+            }
             else if (val.Length > 1 && !IsValidInput(CodeItems[index].PatternChar, val))
                 yield return "*";
         }
@@ -336,7 +468,7 @@ namespace MudX
         /// <remarks>This method processes the pasted text by matching it against the editable and fixed
         /// characters in the code items. Editable code items are updated with valid characters from the pasted text,
         /// while fixed code items are set to their predefined values. After processing, the method updates the code
-        /// value, moves focus to the next focusable item, and validates the form if applicable.</remarks>
+        /// value, moves focus to the next focusable item, and runs the component's internal segmented-field validation.</remarks>
         /// <param name="fullid">The full identifier string, which must be at least 10 characters long. The substring after the first 10
         /// characters is used to determine the starting index for processing.</param>
         /// <param name="text">The text pasted from the clipboard. Cannot be null, empty, or consist only of whitespace.</param>

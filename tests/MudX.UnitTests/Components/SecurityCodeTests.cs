@@ -1,4 +1,5 @@
-﻿using AngleSharp.Dom;
+﻿using System.Reflection;
+using AngleSharp.Dom;
 using AwesomeAssertions;
 using Bunit;
 using MudBlazor;
@@ -118,6 +119,272 @@ namespace MudX.UnitTests.Components
             codeComp.Instance.CodeItems.Count.Should().Be(4);
             codeComp.Instance.CodeItems.All(item => item.Value == string.Empty).Should().BeTrue();
             codeComp.Instance.CodeItems.All(item => item.IsEditable).Should().BeTrue();
+        }
+
+        [Test]
+        public void SecurityCode_ShouldRenderAccessibleGroupSemantics()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.Label, "Verification code")
+                .Add(p => p.HelperText, "Enter the code from your authenticator.")
+                .Add(p => p.Required, true)
+                .Add(p => p.Error, true)
+                .Add(p => p.ErrorText, "The code is invalid."));
+
+            // Assert
+            var group = comp.Find(".mudx-code-container[role='group']");
+            comp.FindAll("[role='group']").Should().ContainSingle();
+            var labelId = group.GetAttribute("aria-labelledby");
+            labelId.Should().NotBeNullOrWhiteSpace();
+            comp.FindAll($"#{labelId}").Should().ContainSingle()
+                .Which.TextContent.Should().Be("Verification code");
+
+            group.HasAttribute("aria-describedby").Should().BeFalse();
+            group.HasAttribute("aria-required").Should().BeFalse();
+            group.HasAttribute("aria-invalid").Should().BeFalse();
+
+            var inputs = comp.FindAll("input:not([readonly])");
+            inputs.Should().HaveCount(4);
+            inputs.Select(input => input.GetAttribute("aria-label")).Should().Equal(
+                "Character 1 of 4",
+                "Character 2 of 4",
+                "Character 3 of 4",
+                "Character 4 of 4");
+            inputs.Should().OnlyContain(input => input.GetAttribute("aria-required") == "true");
+            inputs.Should().OnlyContain(input => input.GetAttribute("aria-invalid") == "true");
+            foreach (var input in inputs)
+            {
+                var descriptionIds = input.GetAttribute("aria-describedby")!
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                descriptionIds.Should().HaveCount(2);
+                descriptionIds.Select(id => comp.Find($"#{id}").TextContent)
+                    .Should().BeEquivalentTo("Enter the code from your authenticator.", "The code is invalid.");
+            }
+
+            comp.FindAll("[role='alert']").Should().ContainSingle()
+                .Which.TextContent.Should().Be("The code is invalid.");
+            comp.Markup.Split("Verification code").Should().HaveCount(2);
+            comp.Markup.Split("Enter the code from your authenticator.").Should().HaveCount(2);
+            comp.Markup.Split("The code is invalid.").Should().HaveCount(2);
+        }
+
+        [Test]
+        public void SecurityCode_ShouldPreferExplicitAriaLabelForAccessibleName()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.Label, "Visible label")
+                .Add(p => p.AriaLabel, "Account verification code"));
+
+            // Assert
+            var group = comp.Find(".mudx-code-container[role='group']");
+            group.GetAttribute("aria-label").Should().Be("Account verification code");
+            group.HasAttribute("aria-labelledby").Should().BeFalse();
+            comp.Markup.Split("Visible label").Should().HaveCount(2);
+        }
+
+        [Test]
+        public void SecurityCode_ShouldKeepGroupAndSegmentAriaLabelOwnershipSeparate()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.AriaLabel, "Account verification code")
+                .Add(p => p.UserAttributes, new Dictionary<string, object?>
+                {
+                    ["aria-label"] = "Custom segment"
+                }));
+
+            // Assert
+            comp.Find(".mudx-code-container[role='group']")
+                .GetAttribute("aria-label").Should().Be("Account verification code");
+            comp.FindAll("input:not([readonly])")
+                .Should().OnlyContain(input => input.GetAttribute("aria-label") == "Custom segment");
+        }
+
+        [Test]
+        public void SecurityCode_ShouldAssociateVisibleLabelWithFirstEditableSegment()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.Pattern, "-##")
+                .Add(p => p.Label, "Verification code"));
+
+            // Assert
+            var label = comp.Find("label.mudx-code-label");
+            var firstEditableInput = comp.Find("input:not([readonly])");
+            label.GetAttribute("for").Should().Be(firstEditableInput.Id);
+            label.GetAttribute("for").Should().NotBe(comp.Find("input[readonly]").Id);
+        }
+
+        [Test]
+        public void SecurityCode_ShouldOmitInactiveRequiredAndErrorSemantics()
+        {
+            // Act
+            var comp = Context.RenderComponent<MudXSecurityCode>();
+
+            // Assert
+            var group = comp.Find(".mudx-code-container[role='group']");
+            group.HasAttribute("aria-required").Should().BeFalse();
+            group.HasAttribute("aria-invalid").Should().BeFalse();
+            group.HasAttribute("aria-describedby").Should().BeFalse();
+            comp.FindAll("[role='group']").Should().ContainSingle();
+            comp.FindAll("input:not([readonly])").Should().OnlyContain(input =>
+                input.GetAttribute("aria-required") == "false"
+                && input.GetAttribute("aria-invalid") == "false"
+                && !input.HasAttribute("aria-describedby"));
+        }
+
+        [Test]
+        public async Task SecurityCode_ShouldAnnounceErrorOnceWhenErrorStateChanges()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.HelperText, "Enter the code from your authenticator.")
+                .Add(p => p.ErrorText, "The code is invalid."));
+
+            // Act
+            await comp.InvokeAsync(() => comp.SetParametersAndRender(parameters => parameters
+                .Add(p => p.Error, true)));
+
+            // Assert
+            var inputs = comp.FindAll("input:not([readonly])");
+            inputs.Should().OnlyContain(input => input.GetAttribute("aria-invalid") == "true");
+            inputs.Should().OnlyContain(input => input.GetAttribute("aria-describedby")!
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Select(id => comp.Find($"#{id}").TextContent)
+                .Contains("The code is invalid."));
+            comp.FindAll("[role='alert']").Should().ContainSingle()
+                .Which.TextContent.Should().Be("The code is invalid.");
+        }
+
+        [Test]
+        public void SecurityCode_ShouldDisableEveryEditableSegment()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.Pattern, "#-#")
+                .Add(p => p.Disabled, true));
+
+            // Assert
+            var group = comp.Find(".mudx-code-container[role='group']");
+            group.GetAttribute("aria-disabled").Should().Be("true");
+            comp.FindAll("input:not([readonly])").Should().HaveCount(2)
+                .And.OnlyContain(input => input.HasAttribute("disabled"));
+            comp.Find("input[readonly]").HasAttribute("disabled").Should().BeFalse();
+        }
+
+        [Test]
+        public void SecurityCode_ShouldKeepFixedPatternCharactersOutOfSequentialFocus()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.Pattern, "#-#"));
+
+            // Assert
+            comp.FindAll("input:not([readonly])").Should().HaveCount(2)
+                .And.OnlyContain(input => !input.HasAttribute("tabindex"));
+            var fixedInput = comp.Find("input[readonly]");
+            fixedInput.GetAttribute("tabindex").Should().Be("-1");
+            fixedInput.GetAttribute("aria-hidden").Should().Be("true");
+            fixedInput.HasAttribute("inert").Should().BeTrue();
+        }
+
+        [Test]
+        public void SecurityCode_ShouldSupportLocalizedSegmentNames()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.SegmentAriaLabelFormat, "Caractère {0} sur {1}"));
+
+            // Assert
+            comp.FindAll("input:not([readonly])")
+                .Select(input => input.GetAttribute("aria-label"))
+                .Should().Equal(
+                    "Caractère 1 sur 4",
+                    "Caractère 2 sur 4",
+                    "Caractère 3 sur 4",
+                    "Caractère 4 sur 4");
+        }
+
+        [Test]
+        public void SecurityCode_ShouldExposeNullableSegmentAriaLabelFormat()
+        {
+            // Arrange
+            var property = typeof(MudXSecurityCode).GetProperty(nameof(MudXSecurityCode.SegmentAriaLabelFormat));
+
+            // Act
+            var nullability = new NullabilityInfoContext().Create(property!);
+
+            // Assert
+            nullability.ReadState.Should().Be(NullabilityState.Nullable);
+            nullability.WriteState.Should().Be(NullabilityState.Nullable);
+        }
+
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("   ")]
+        [TestCase("Character {0")]
+        [TestCase("Character {2} of {1}")]
+        public void SecurityCode_ShouldFallbackWhenSegmentAriaLabelFormatIsInvalid(string? format)
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.SegmentAriaLabelFormat, format));
+
+            // Assert
+            comp.FindAll("input:not([readonly])")
+                .Select(input => input.GetAttribute("aria-label"))
+                .Should().Equal(
+                    "Character 1 of 4",
+                    "Character 2 of 4",
+                    "Character 3 of 4",
+                    "Character 4 of 4");
+        }
+
+        [Test]
+        public void SecurityCode_ShouldPreserveExplicitSegmentAriaLabel()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.SegmentAriaLabelFormat, "Character {0")
+                .Add(p => p.UserAttributes, new Dictionary<string, object?>
+                {
+                    ["aria-label"] = "Custom segment"
+                }));
+
+            // Assert
+            comp.FindAll("input:not([readonly])")
+                .Should().OnlyContain(input => input.GetAttribute("aria-label") == "Custom segment");
+        }
+
+        [Test]
+        public async Task SecurityCode_ShouldAllowEmptyOptionalSegments()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXSecurityCode>();
+            var fields = comp.FindComponents<MudTextField<string>>();
+
+            // Act
+            await comp.InvokeAsync(() => Task.WhenAll(fields.Select(field => field.Instance.ValidateAsync())));
+
+            // Assert
+            fields.Should().OnlyContain(field => !field.Instance.HasErrors);
+        }
+
+        [Test]
+        public async Task SecurityCode_ShouldRejectEmptyRequiredSegments()
+        {
+            // Arrange
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.Required, true));
+            var fields = comp.FindComponents<MudTextField<string>>();
+
+            // Act
+            await comp.InvokeAsync(() => Task.WhenAll(fields.Select(field => field.Instance.ValidateAsync())));
+
+            // Assert
+            fields.Should().OnlyContain(field => field.Instance.HasErrors);
         }
 
         [Test]

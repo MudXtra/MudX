@@ -3,11 +3,24 @@
 
 @((MarkupString)ContainerClass)
 
-<div @ref="@_elementRef" id="@Id" class="@($"mudx-code-container {Class}")" @attributes="@UserAttributes">
+<div @ref="@_elementRef"
+     id="@Id"
+     class="@($"mudx-code-container {Class}")"
+     role="group"
+     aria-label="@(!string.IsNullOrWhiteSpace(AriaLabel) ? AriaLabel : null)"
+     aria-labelledby="@(string.IsNullOrWhiteSpace(AriaLabel) && !string.IsNullOrWhiteSpace(Label) ? LabelId : null)"
+     aria-disabled="@(Disabled ? "true" : null)"
+     @attributes="@GetContainerAttributes()">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <label id="@LabelId" for="@FirstEditableInputId" class="mudx-code-label">@Label</label>
+    }
+
     <MudForm @ref="@_form">
         <MudStack Row="@Horizontal"
-        Justify="Justify.SpaceBetween"
-        Spacing="@Spacing">
+                  Justify="Justify.SpaceBetween"
+                  Spacing="@Spacing"
+                  role="presentation">
 
             @foreach (var item in CodeItems.OrderBy(x => x.Index))
             {                
@@ -18,16 +31,30 @@
                               @bind-Value:after="@(() => OnAfterChange(item.Index))"
                               Immediate="true"
                               Validation="@((string val) => CharPatternValidator(item.Index, val))"
-                              UserAttributes="@_attributes"
+                              UserAttributes="@GetInputAttributes(item)"
                               InputType="@(item.IsEditable && Password ? InputType.Password : InputType.Text)"
                               InputMode="@(item.PatternChar == PlaceholderNumeric ? InputMode.numeric : InputMode.text)"
                               Variant="@(!item.IsEditable ? ReadOnlyVariant : Variant)"
                               Margin="@Margin"
                               Underline="@(item.IsEditable ? Underline : false)"
                               OnKeyDown="@(e => OnKeyDown(item.Index, e))"
+                              Required="@(item.IsEditable && Required)"
+                              Error="@(item.IsEditable && Error)"
+                              HelperId="@GetDescriptionIds(item)"
+                              Disabled="@(item.IsEditable && Disabled)"
                               ReadOnly="!item.IsEditable" />
             }
 
         </MudStack>
     </MudForm>
+
+    @if (!string.IsNullOrWhiteSpace(HelperText))
+    {
+        <div id="@HelperTextId" class="mudx-code-helper-text">@HelperText</div>
+    }
+
+    @if (Error && !string.IsNullOrWhiteSpace(ErrorText))
+    {
+        <div id="@ErrorTextId" class="mudx-code-error-text" role="alert">@ErrorText</div>
+    }
 </div>

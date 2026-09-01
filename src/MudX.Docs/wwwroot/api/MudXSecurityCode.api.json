@@ -4,6 +4,12 @@
   "Description": "Represents a security code input component that allows users to enter a code based on a specified pattern.",
   "Parameters": [
     {
+      "Name": "AriaLabel",
+      "Type": "String",
+      "Default": "null",
+      "Description": "The accessible name for the security code group.\nRemarks: Defaults to null. When set, this value takes precedence over Label for the group\u0027s accessible name."
+    },
+    {
       "Name": "Class",
       "Type": "String",
       "Default": null,
@@ -22,10 +28,40 @@
       "Description": "Called when the value of the security code changes."
     },
     {
+      "Name": "Disabled",
+      "Type": "Boolean",
+      "Default": "false",
+      "Description": "Whether the editable security code segments are disabled.\nRemarks: Defaults to false."
+    },
+    {
+      "Name": "Error",
+      "Type": "Boolean",
+      "Default": "false",
+      "Description": "Whether the security code group is in an error state.\nRemarks: Defaults to false."
+    },
+    {
+      "Name": "ErrorText",
+      "Type": "String",
+      "Default": "null",
+      "Description": "The error text displayed when Error is true.\nRemarks: Defaults to null."
+    },
+    {
+      "Name": "HelperText",
+      "Type": "String",
+      "Default": "null",
+      "Description": "The helper text displayed beneath the security code group.\nRemarks: Defaults to null."
+    },
+    {
       "Name": "Horizontal",
       "Type": "Boolean",
       "Default": "true",
       "Description": "Whether to display items horizontally, if true will display items horizontally, false will display items vertically\nRemarks: Defaults to true."
+    },
+    {
+      "Name": "Label",
+      "Type": "String",
+      "Default": "null",
+      "Description": "The visible label for the security code group.\nRemarks: Defaults to null."
     },
     {
       "Name": "Margin",
@@ -82,6 +118,18 @@
       "Description": "The display variant of the code when readonly. Options are Outlined, Text, and Filled.\nRemarks: Defaults to Text"
     },
     {
+      "Name": "Required",
+      "Type": "Boolean",
+      "Default": "false",
+      "Description": "Whether a value is required for every editable segment.\nRemarks: Defaults to false."
+    },
+    {
+      "Name": "SegmentAriaLabelFormat",
+      "Type": "String",
+      "Default": "Character {0} of {1}",
+      "Description": "The format used for each editable segment\u0027s accessible name.\nRemarks: Defaults to \u0022Character {0} of {1}\u0022, where {0} is the segment position and {1} is the editable segment count. An aria-label supplied through UserAttributes labels each editable segment and takes precedence. It does not replace the group\u0027s accessible name. Null, blank, or malformed formats fall back to the default so every editable segment remains named."
+    },
+    {
       "Name": "Spacing",
       "Type": "Int32",
       "Default": "2",
@@ -135,7 +183,7 @@
           "Type": "String"
         }
       ],
-      "Description": "Handles the clipboard paste event triggered in javascript by processing the pasted text and updating the corresponding code items.\nRemarks: This method processes the pasted text by matching it against the editable and fixed characters in the code items. Editable code items are updated with valid characters from the pasted text, while fixed code items are set to their predefined values. After processing, the method updates the code value, moves focus to the next focusable item, and validates the form if applicable."
+      "Description": "Handles the clipboard paste event triggered in javascript by processing the pasted text and updating the corresponding code items.\nRemarks: This method processes the pasted text by matching it against the editable and fixed characters in the code items. Editable code items are updated with valid characters from the pasted text, while fixed code items are set to their predefined values. After processing, the method updates the code value, moves focus to the next focusable item, and runs the component\u0027s internal segmented-field validation."
     }
   ]
 }
