@@ -19,7 +19,9 @@ namespace MudX
         private readonly Dictionary<string, object?> _attributes = [];
         internal ParameterState<string?> _codeState;
         private bool _isInternalChange = false;
+        private bool _isDisposed;
         private MudForm? _form = null!;
+        private long _completionGeneration;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MudXSecurityCode"/> class.
@@ -119,6 +121,14 @@ namespace MudX
         /// </summary>
         [Parameter]
         public EventCallback<string?> CodeChanged { get; set; }
+
+        /// <summary>
+        /// Occurs after a complete security code has been published and the component's form has passed asynchronous validation.
+        /// </summary>
+        /// <remarks>When a handler is provided, it is awaited and owns any follow-up behavior, including focus. Without a handler,
+        /// the component preserves its default behavior by advancing focus to the next focusable element.</remarks>
+        [Parameter]
+        public EventCallback<string?> OnCompleted { get; set; }
 
         /// <summary>
         /// If true, each input will be masked as a password.
@@ -252,6 +262,12 @@ namespace MudX
             if (IsValidInput(CodeItems[index].PatternChar, val))
             {
                 CodeItems[index].Value = val;
+                if (IsCodeComplete())
+                {
+                    await CompleteInteractionAsync();
+                    return;
+                }
+
                 // Find next editable index
                 int next = index + 1;
                 while (next < CodeItems.Count && !CodeItems[next].IsEditable)
@@ -263,9 +279,6 @@ namespace MudX
                 {
                     await MoveFocus(next);
                 }
-                // We're at the last editable index — move to the next focusable element
-                else if (index == CodeItems.Count - 1 && _module != null && (_form?.IsValid ?? false))
-                    await _module.InvokeVoidAsync("focusNextAfterContainer", _elementRef);
             }
             else
             {
@@ -274,9 +287,9 @@ namespace MudX
             var textFieldRef = CodeItems[index].TextFieldRef;
             if (textFieldRef != null && index < CodeItems.Count - 1)
                 await textFieldRef.ValidateAsync();
-            else
+            else if (_form is not null)
             {
-                _form?.Validate().CatchAndLog();
+                await _form.ValidateAsync();
             }
             await UpdateCodeValue();
         }
@@ -330,13 +343,22 @@ namespace MudX
             return false;
         }
 
+        private bool IsCodeComplete()
+        {
+            var editableItems = CodeItems.Where(item => item.IsEditable).ToList();
+            return editableItems.Count > 0 && editableItems.All(item =>
+                !string.IsNullOrEmpty(item.Value) && IsValidInput(item.PatternChar, item.Value));
+        }
+
         /// <summary>
         /// Handles the clipboard paste event triggered in javascript by processing the pasted text and updating the corresponding code items.
         /// </summary>
         /// <remarks>This method processes the pasted text by matching it against the editable and fixed
         /// characters in the code items. Editable code items are updated with valid characters from the pasted text,
-        /// while fixed code items are set to their predefined values. After processing, the method updates the code
-        /// value, moves focus to the next focusable item, and validates the form if applicable.</remarks>
+        /// while fixed code items are set to their predefined values. A partial paste advances focus to the next internal
+        /// editable item. A complete valid paste publishes the value and validates the form asynchronously. When an
+        /// <c>OnCompleted</c> handler is provided, it is awaited and owns follow-up behavior; otherwise, focus advances to
+        /// the next focusable element.</remarks>
         /// <param name="fullid">The full identifier string, which must be at least 10 characters long. The substring after the first 10
         /// characters is used to determine the starting index for processing.</param>
         /// <param name="text">The text pasted from the clipboard. Cannot be null, empty, or consist only of whitespace.</param>
@@ -357,6 +379,7 @@ namespace MudX
 
             var chars = text.ToCharArray();
             int charIndex = 0;
+            int changedEditableCount = 0;
 
             for (int i = index; i < CodeItems.Count && charIndex < chars.Length; i++)
             {
@@ -378,6 +401,8 @@ namespace MudX
                         break;
 
                     pasteChar = chars[charIndex].ToString();
+                    if (CodeItems[i].Value != pasteChar)
+                        changedEditableCount++;
                     CodeItems[i].Value = pasteChar;
                     charIndex++;
                 }
@@ -403,24 +428,49 @@ namespace MudX
                 }
             }
 
+            if (changedEditableCount > 0 && IsCodeComplete())
+            {
+                await CompleteInteractionAsync();
+                return;
+            }
+
             await UpdateCodeValue();
 
-            // Move to next focusable item
-            int nextIndex = CodeItems.FindLastIndex(ci => !string.IsNullOrEmpty(ci.Value)) + 1;
-            if (nextIndex < CodeItems.Count)
+            var nextIndex = CodeItems.FindIndex(item => item.IsEditable && string.IsNullOrEmpty(item.Value));
+            if (nextIndex >= 0)
             {
                 await MoveFocus(nextIndex);
             }
-            else if (_module != null)
-            {
-                await _module.InvokeVoidAsync("focusNextAfterContainer", _elementRef);
-            }
 
-            if (_form != null)
-                await _form.Validate();
+            if (_form is not null)
+                await _form.ValidateAsync();
         }
 
-        private async Task UpdateCodeValue()
+        private async Task CompleteInteractionAsync()
+        {
+            if (_isDisposed)
+                return;
+
+            var interactionGeneration = ++_completionGeneration;
+            var publishedValue = await UpdateCodeValue();
+
+            if (_form is null || !IsCurrentCompletion(interactionGeneration, publishedValue))
+                return;
+
+            await _form.ValidateAsync();
+            if (!_form.IsValid || !IsCurrentCompletion(interactionGeneration, publishedValue))
+                return;
+
+            if (OnCompleted.HasDelegate)
+                await OnCompleted.InvokeAsync(publishedValue);
+            else if (_module is not null)
+                await _module.InvokeVoidAsync("focusNextAfterContainer", _elementRef);
+        }
+
+        private bool IsCurrentCompletion(long interactionGeneration, string? publishedValue)
+            => !_isDisposed && interactionGeneration == _completionGeneration && _codeState.Value == publishedValue;
+
+        private async Task<string> UpdateCodeValue()
         {
             var result = string.Empty;
 
@@ -431,6 +481,7 @@ namespace MudX
                 .Select(x => x.index)
                 .DefaultIfEmpty(-1)
                 .Max();
+            var includeAllFixedItems = IsCodeComplete();
 
             for (int i = 0; i < CodeItems.Count; i++)
             {
@@ -440,9 +491,10 @@ namespace MudX
                 {
                     result += item.Value;
                 }
-                // Show fixed characters only if they appear before or at the last filled editable,
-                // or if they are the first fixed character immediately after the last filled editable
-                else if (i <= lastFilledEditableIndex ||
+                // Once complete, publish every fixed item in the rendered value. While incomplete,
+                // show fixed items through the first one immediately after the last filled editable.
+                else if (includeAllFixedItems ||
+                         i <= lastFilledEditableIndex ||
                          (i > lastFilledEditableIndex &&
                           lastFilledEditableIndex >= 0 &&
                           CodeItems[i - 1].IsEditable &&
@@ -452,11 +504,17 @@ namespace MudX
                 }
             }
 
-            _isInternalChange = true;
-            await _codeState.SetValueAsync(result);
-            await CodeChanged.InvokeAsync(_codeState.Value);
-            _isInternalChange = false;
+            try
+            {
+                _isInternalChange = true;
+                await _codeState.SetValueAsync(result);
+            }
+            finally
+            {
+                _isInternalChange = false;
+            }
             StateHasChanged();
+            return result;
         }
 
         private void OnChangeHandler(ParameterChangedEventArgs<string?> args)
@@ -483,6 +541,7 @@ namespace MudX
         /// </summary>
         public async ValueTask DisposeAsync()
         {
+            _isDisposed = true;
             if (IsJSRuntimeAvailable)
             {
                 if (_module != null)

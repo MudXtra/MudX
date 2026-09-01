@@ -34,6 +34,12 @@
       "Description": "The margin of the component.\nRemarks: Defaults to Normal"
     },
     {
+      "Name": "OnCompleted",
+      "Type": "EventCallback\u003CString\u003E",
+      "Default": "",
+      "Description": "Occurs after a complete security code has been published and the component\u0027s form has passed asynchronous validation.\nRemarks: When a handler is provided, it is awaited and owns any follow-up behavior, including focus. Without a handler, the component preserves its default behavior by advancing focus to the next focusable element."
+    },
+    {
       "Name": "Password",
       "Type": "Boolean",
       "Default": "false",
@@ -135,7 +141,7 @@
           "Type": "String"
         }
       ],
-      "Description": "Handles the clipboard paste event triggered in javascript by processing the pasted text and updating the corresponding code items.\nRemarks: This method processes the pasted text by matching it against the editable and fixed characters in the code items. Editable code items are updated with valid characters from the pasted text, while fixed code items are set to their predefined values. After processing, the method updates the code value, moves focus to the next focusable item, and validates the form if applicable."
+      "Description": "Handles the clipboard paste event triggered in javascript by processing the pasted text and updating the corresponding code items.\nRemarks: This method processes the pasted text by matching it against the editable and fixed characters in the code items. Editable code items are updated with valid characters from the pasted text, while fixed code items are set to their predefined values. A partial paste advances focus to the next internal editable item. A complete valid paste publishes the value and validates the form asynchronously. When an OnCompleted handler is provided, it is awaited and owns follow-up behavior; otherwise, focus advances to the next focusable element."
     }
   ]
 }

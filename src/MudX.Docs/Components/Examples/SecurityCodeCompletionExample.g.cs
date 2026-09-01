@@ -1,0 +1,39 @@
+using System.Collections.Generic;
+using MudX;
+
+namespace MudX.Docs.Examples
+{
+    public static class SecurityCodeCompletionExampleCode
+    {
+        public static readonly IEnumerable<CodeFile> Files = new[]
+        {
+            new CodeFile
+            (
+                Title: "SecurityCodeCompletionExample.razor",
+                Code: @"@namespace MudX.Docs.SecurityCode
+
+<MudStack Spacing=""2"" Class=""mx-auto"" Style=""max-width: 320px;"">
+    <MudText>Binding OnCompleted opts into consumer-owned follow-up behavior.</MudText>
+    <MudXSecurityCode @bind-Code=""_code"" Pattern=""####"" OnCompleted=""HandleCompleted"" />
+    <MudText>Completed code: @_completedCode</MudText>
+    <label for=""security-code-next-field"">Consumer-owned next field</label>
+    <input id=""security-code-next-field"" @ref=""_nextField"" />
+</MudStack>
+
+@code {
+    private ElementReference _nextField;
+    private string? _code;
+    private string? _completedCode;
+
+    private async Task HandleCompleted(string? value)
+    {
+        _completedCode = value;
+        await _nextField.FocusAsync();
+    }
+}
+",
+                Language: CodeLanguage.Razor
+            )
+        };
+    }
+}

@@ -8,10 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="1.5.0" />
     <PackageReference Include="AwesomeAssertions" Version="9.2.1" />
-    <PackageReference Include="bunit" Version="1.40.0" />
-    <PackageReference Include="bunit.core" Version="1.40.0" />
-    <PackageReference Include="bunit.web" Version="1.40.0" />
+    <PackageReference Include="bunit" Version="2.0.66" />
     <PackageReference Include="coverlet.msbuild" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

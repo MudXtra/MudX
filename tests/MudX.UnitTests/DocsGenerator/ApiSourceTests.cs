@@ -1,10 +1,42 @@
-using System.Reflection;
+﻿using System.Reflection;
 using AwesomeAssertions;
 
 namespace MudX.UnitTests.DocsGenerator;
 
 public class ApiSourceTests
 {
+    [Fact]
+    public void FindPackageXmlPath_SelectsRequestedVersionAndFramework()
+    {
+        var packageRoot = Directory.CreateTempSubdirectory();
+        var expectedPath = Path.Combine(packageRoot.FullName, "9.9.0", "lib", "net10.0", "MudBlazor.xml");
+        var stalePath = Path.Combine(packageRoot.FullName, "8.0.0", "lib", "net10.0", "MudBlazor.xml");
+        Directory.CreateDirectory(Path.GetDirectoryName(expectedPath)!);
+        Directory.CreateDirectory(Path.GetDirectoryName(stalePath)!);
+        File.WriteAllText(expectedPath, "9.9.0");
+        File.WriteAllText(stalePath, "8.0.0");
+
+        try
+        {
+            var apiSourceType = Assembly.LoadFrom(GetDocsGeneratorAssemblyPath())
+                .GetType("MudX.Docs.Generator.ApiSource", throwOnError: true)!;
+            var findPackageXmlPath = apiSourceType.GetMethod(
+                "FindPackageXmlPath",
+                BindingFlags.NonPublic | BindingFlags.Static);
+
+            findPackageXmlPath.Should().NotBeNull();
+            var selectedPath = (string?)findPackageXmlPath!.Invoke(
+                null,
+                [packageRoot.FullName, "9.9.0", "net10.0", "MudBlazor.xml"]);
+
+            selectedPath.Should().Be(expectedPath);
+        }
+        finally
+        {
+            packageRoot.Delete(recursive: true);
+        }
+    }
+
     [Fact]
     public void LoadXmlDocumentation_PreservesReadableTextForSeeCrefElements()
     {

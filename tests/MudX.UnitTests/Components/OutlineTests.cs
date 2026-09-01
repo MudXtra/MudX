@@ -19,8 +19,8 @@ namespace MudX.UnitTests.Components
         [Test]
         public void Outline_ShouldRender()
         {
-            var provider = Context.RenderComponent<MudPopoverProvider>();
-            var comp = Context.RenderComponent<OutlineBasicTest>();
+            var provider = Context.Render<MudPopoverProvider>();
+            var comp = Context.Render<OutlineBasicTest>();
             // the entire outline
             var divs = comp.FindAll(".mudx-toc-document");
             divs.Count.Should().Be(1);
@@ -42,8 +42,8 @@ namespace MudX.UnitTests.Components
         [Test]
         public void Outline_NestedSections_ShouldRenderCorrectly()
         {
-            var provider = Context.RenderComponent<MudPopoverProvider>();
-            var comp = Context.RenderComponent<OutlineNestingTest>();
+            var provider = Context.Render<MudPopoverProvider>();
+            var comp = Context.Render<OutlineNestingTest>();
             // Top-level sections: Item A, Item B
             var topSections = provider.FindAll(".mudx-toc-nav-navlink");
             var sections = comp.FindComponents<MudXOutlineSection>();
@@ -67,7 +67,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void Outline_SectionTitlesAndContent_ShouldRender()
         {
-            var comp = Context.RenderComponent<OutlineBasicTest>();
+            var comp = Context.Render<OutlineBasicTest>();
             comp.Markup.Should().Contain("Item 1");
             comp.Markup.Should().Contain("Item 2");
             comp.Markup.Should().Contain("Item 3");
@@ -77,8 +77,8 @@ namespace MudX.UnitTests.Components
         [Test]
         public void Outline_ContentDrawer_ShouldRenderCorrectly()
         {
-            var provider = Context.RenderComponent<MudPopoverProvider>();
-            var comp = Context.RenderComponent<OutlineBasicTest>();
+            var provider = Context.Render<MudPopoverProvider>();
+            var comp = Context.Render<OutlineBasicTest>();
             // The content drawer should be rendered
             var contentDrawer = provider.Find(".mudx-outline-popover");
             contentDrawer.Should().NotBeNull();
@@ -87,7 +87,7 @@ namespace MudX.UnitTests.Components
             var outline = comp.FindComponent<MudXOutline>();
             outline.Should().NotBeNull();
 
-            outline.SetParametersAndRender(parameters => parameters.Add(p => p.ContentDrawerOpen, false));
+            outline.Render(parameters => parameters.Add(p => p.ContentDrawerOpen, false));
 
             // When the content drawer is closed, it should not have the open class
             contentDrawer.ClassList.Contains("mud-popover-open").Should().BeFalse();
@@ -96,7 +96,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void Outline_SectionIds_ShouldBeUniqueAndValid()
         {
-            var comp = Context.RenderComponent<OutlineNestingTest>();
+            var comp = Context.Render<OutlineNestingTest>();
             var sections = comp.FindAll(".mudx-toc-section");
             var ids = sections.Select(s => s.GetAttribute("id")).ToList();
 
@@ -108,8 +108,8 @@ namespace MudX.UnitTests.Components
         [Test]
         public void Outline_ActiveSection_OnlyOneActiveAtATime()
         {
-            var provider = Context.RenderComponent<MudPopoverProvider>();
-            var comp = Context.RenderComponent<OutlineBasicTest>();
+            var provider = Context.Render<MudPopoverProvider>();
+            var comp = Context.Render<OutlineBasicTest>();
             // Simulate clicking the first nav link
             var navLinks = provider.FindAll(".mudx-toc-nav-navlink .mud-nav-link");
             navLinks[0].Click();
@@ -122,12 +122,12 @@ namespace MudX.UnitTests.Components
         [Test]
         public async Task Outline_GetId_Ensure_Unique()
         {
-            var comp = Context.RenderComponent<OutlineBasicTest>();
+            var comp = Context.Render<OutlineBasicTest>();
             var outline = comp.FindComponent<MudXOutline>();
             var sections = comp.FindComponents<MudXOutlineSection>();
             sections.Count.Should().Be(3);
             sections[2].Instance.Title.Should().Be("Item 3");
-            var newSection = Context.RenderComponent<MudXOutlineSection>(p => p
+            var newSection = Context.Render<MudXOutlineSection>(p => p
                 .Add(p => p.Title, "Item 3")); // create an outline section with a duplicate title
             newSection.Instance.ParentContainer = outline.Instance;
             await outline.Instance.RegisterSectionAsync(newSection.Instance);
@@ -136,7 +136,7 @@ namespace MudX.UnitTests.Components
             newId.Should().Be("item-3-1");
 
             // create a section with a title with odd characters
-            var oddSection = Context.RenderComponent<MudXOutlineSection>(p => p
+            var oddSection = Context.Render<MudXOutlineSection>(p => p
                 .Add(p => p.Title, "#!$ _ 77"));
             oddSection.Instance.ParentContainer = outline.Instance;
             await outline.Instance.RegisterSectionAsync(oddSection.Instance);
@@ -151,7 +151,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public async Task Outline_ContentDrawer_ByBreakpoint()
         {
-            var comp = Context.RenderComponent<OutlineBasicTest>();
+            var comp = Context.Render<OutlineBasicTest>();
             var outline = comp.FindComponent<MudXOutline>();
             outline.Should().NotBeNull();
             outline.Instance.TOCBreakpoint.Should().Be(Breakpoint.Md);
@@ -176,7 +176,7 @@ namespace MudX.UnitTests.Components
             moduleMock.Setup<bool>("scrollToSection", _ => true);
             moduleMock.Setup<bool>("disposeScrollSpy", _ => true);
 
-            var comp = Context.RenderComponent<OutlineBasicTest>();
+            var comp = Context.Render<OutlineBasicTest>();
             var outline = comp.FindComponent<MudXOutline>();
             outline.Should().NotBeNull();
             var sections = comp.FindComponents<MudXOutlineSection>();
@@ -330,7 +330,7 @@ namespace MudX.UnitTests.Components
         public async Task MudXOutline_OnParametersSetAsync_ShouldSetAnchorAndScrollContainerSelector()
         {
             // Arrange
-            var comp = Context.RenderComponent<MudXOutline>(parameters => parameters
+            var comp = Context.Render<MudXOutline>(parameters => parameters
                 .Add(p => p.Anchor, Anchor.Top)
                 .Add(p => p.ScrollContainerSelector, null!));
 
@@ -355,7 +355,7 @@ namespace MudX.UnitTests.Components
         public async Task MudXOutline_PositionChanged_ShouldOpenOrCloseDrawerAndCallPositionIndex()
         {
             // Arrange
-            var comp = Context.RenderComponent<MudXOutline>(parameters => parameters
+            var comp = Context.Render<MudXOutline>(parameters => parameters
                 .Add(p => p.TOCBreakpoint, Breakpoint.Md)
                 .Add(p => p.ContentDrawerOpen, true));
 
@@ -364,7 +364,7 @@ namespace MudX.UnitTests.Components
             positionIndexMethod.CreateDelegate(typeof(Func<Task>), comp.Instance);
 
             // Use a derived class to override PositionIndex for tracking
-            var testOutline = Context.RenderComponent<TestMudXOutline>(p => p.Add(p => p.ContentDrawerOpen, true));
+            var testOutline = Context.Render<TestMudXOutline>(p => p.Add(p => p.ContentDrawerOpen, true));
 
             // Act: Should close drawer for Breakpoint.Md (since Md <= TOCBreakpoint)
             await testOutline.InvokeAsync(async () => await testOutline.Instance.PositionChanged(null, Breakpoint.Md));
@@ -403,7 +403,7 @@ namespace MudX.UnitTests.Components
             Breakpoint breakpoint, bool expectedDrawerOpen, bool expectPositionIndex)
         {
             // Arrange
-            var testOutline = Context.RenderComponent<TestMudXOutline>(p =>
+            var testOutline = Context.Render<TestMudXOutline>(p =>
                 p.Add(x => x.TOCBreakpoint, Breakpoint.Md)
                  .Add(x => x.ContentDrawerOpen, !expectedDrawerOpen)); // Start in opposite state
 

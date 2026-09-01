@@ -14,7 +14,7 @@ namespace MudX.UnitTests.Components
         public async Task CopyToClipboardAsync_NullOrEmptyText_ShouldReturnNoTextToCopy()
         {
             // Arrange
-            var comp = Context.RenderComponent<CopyToClipboardBasicTest>();
+            var comp = Context.Render<CopyToClipboardBasicTest>();
             var copy = comp.FindComponent<MudXCopyToClipboard>();
             // Act
             var result1 = await copy.Instance.CopyToClipboardAsync(null);
@@ -31,7 +31,7 @@ namespace MudX.UnitTests.Components
         public async Task CopyToClipboardAsync_JSRuntimeNotAvailable_ShouldReturnError()
         {
             // Arrange
-            var comp = Context.RenderComponent<CopyToClipboardBasicTest>();
+            var comp = Context.Render<CopyToClipboardBasicTest>();
             var copy = comp.FindComponent<MudXCopyToClipboard>();
             copy.Instance.IsJSRuntimeAvailable = false;
             // Act
@@ -46,7 +46,7 @@ namespace MudX.UnitTests.Components
         public async Task CopyToClipboardAsync_ShouldCopyText_WhenJSRuntimeIsAvailable()
         {
             // Arrange: Set JS runtime availability and disable Snackbar
-            var comp = Context.RenderComponent<MudXCopyToClipboard>(p => p
+            var comp = Context.Render<MudXCopyToClipboard>(p => p
                 .Add(x => x.Snackbar, false));
             comp.Instance.IsJSRuntimeAvailable = true;
 
@@ -71,8 +71,8 @@ namespace MudX.UnitTests.Components
         public async Task CopyToClipboardAsync_SnackbarEnabled_ShouldCallSnackbarService()
         {
             // Arrange: Set JS runtime availability and disable Snackbar
-            var provider = Context.RenderComponent<MudSnackbarProvider>();
-            var comp = Context.RenderComponent<MudXCopyToClipboard>(p => p
+            var provider = Context.Render<MudSnackbarProvider>();
+            var comp = Context.Render<MudXCopyToClipboard>(p => p
                 .Add(x => x.Snackbar, true));
             comp.Instance.IsJSRuntimeAvailable = true;
 

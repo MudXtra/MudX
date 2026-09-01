@@ -15,7 +15,7 @@ namespace MudX.UnitTests.Components
         public void BreadCrumbsShouldRenderCorrectly()
         {
             // Arrange: Render the MudX BreadCrumbs component
-            var comp = Context.RenderComponent<BreadcrumbsBasicTest>();
+            var comp = Context.Render<BreadcrumbsBasicTest>();
             // Act: Find the breadcrumb container
             var breadcrumbContainer = comp.Find(".mudx-breadcrumbs-wrapper");
             // Assert: Verify the breadcrumb container is rendered
@@ -27,7 +27,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void BreadCrumbsShouldUpdateHomeText()
         {
-            var comp = Context.RenderComponent<BreadcrumbsHomeFormatTest>();
+            var comp = Context.Render<BreadcrumbsHomeFormatTest>();
             var breadcrumbsContainer = comp.Find(".mudx-breadcrumbs-wrapper");
             breadcrumbsContainer.Should().NotBeNull();
             breadcrumbsContainer.TextContent.Should().Contain("MudXHome", "Updated breadcrumb Home Text should be 'MudXHome'.");
@@ -38,7 +38,7 @@ namespace MudX.UnitTests.Components
         {
             // Arrange: Render the MudXBreadcrumbs component directly
             var navMan = Context.Services.GetRequiredService<NavigationManager>() as NavigationManager;
-            var comp = Context.RenderComponent<MudXBreadcrumbs>();
+            var comp = Context.Render<MudXBreadcrumbs>();
 
             // Act: Simulate navigation to a nested route
             navMan?.NavigateTo("/section/subsection/page");

@@ -25,8 +25,8 @@ public class SheetTests : BunitTest
     {
         var textContent = "Example content";
         var exampleContent = @$"<MudText>{textContent}</MudText>";
-        var provider = Context.RenderComponent<MudPopoverProvider>();
-        var comp = Context.RenderComponent<MudXSheet>(p => p
+        var provider = Context.Render<MudPopoverProvider>();
+        var comp = Context.Render<MudXSheet>(p => p
             .Add(p => p.Position, pos)
             .Add(p => p.ChildContent, exampleContent));
         comp.Instance.Should().NotBeNull();
@@ -64,8 +64,8 @@ public class SheetTests : BunitTest
     [Test]
     public async Task Sheet_ShouldUpdateRtlPositions(Position pos, string result)
     {
-        var provider = Context.RenderComponent<MudPopoverProvider>();
-        var comp = Context.RenderComponent<MudXSheet>(p => p
+        var provider = Context.Render<MudPopoverProvider>();
+        var comp = Context.Render<MudXSheet>(p => p
             .Add(p => p.Position, pos)
             .Add(p => p.RightToLeft, true));
         comp.Instance.Should().NotBeNull();
@@ -82,8 +82,8 @@ public class SheetTests : BunitTest
     [Test]
     public void Sheet_Bindable_Properties()
     {
-        var provider = Context.RenderComponent<MudPopoverProvider>();
-        var comp = Context.RenderComponent<SheetBindTest>();
+        var provider = Context.Render<MudPopoverProvider>();
+        var comp = Context.Render<SheetBindTest>();
 
         // Initial state, not open
         provider.FindAll(".mud-sheet-container").Count.Should().Be(0);
@@ -138,8 +138,8 @@ public class SheetTests : BunitTest
     [Test]
     public async Task Sheet_TestAccessibility(bool standard)
     {
-        var provider = Context.RenderComponent<MudPopoverProvider>();
-        var comp = Context.RenderComponent<MudXSheet>(p => p
+        var provider = Context.Render<MudPopoverProvider>();
+        var comp = Context.Render<MudXSheet>(p => p
             .Add(p => p.Standard, standard)
             .Add(p => p.Position, Position.Bottom));
         comp.Instance.Should().NotBeNull();
@@ -155,7 +155,7 @@ public class SheetTests : BunitTest
 
         // verify overrides work, both AriaLabel and UserAttributes
         comp.Instance.UserAttributes.Add("role", "norole");
-        comp.SetParametersAndRender(p => p
+        comp.Render(p => p
             .Add(p => p.AriaLabel, "Test To Test"));
 
         comp.WaitForAssertion(() => comp.Instance.AriaAttributes["aria-label"].Should().Be("Test To Test"));
@@ -173,8 +173,8 @@ public class SheetTests : BunitTest
     [Test]
     public async Task Sheet_TestStandard_Modal(bool standard)
     {
-        var provider = Context.RenderComponent<MudPopoverProvider>();
-        var comp = Context.RenderComponent<MudXSheet>(p => p
+        var provider = Context.Render<MudPopoverProvider>();
+        var comp = Context.Render<MudXSheet>(p => p
             .Add(p => p.Standard, standard)
             .Add(p => p.Position, Position.Bottom));
         comp.Instance.Should().NotBeNull();
@@ -200,7 +200,7 @@ public class SheetTests : BunitTest
     [Test]
     public void Sheet_Default_Parameters()
     {
-        var comp = Context.RenderComponent<MudXSheet>();
+        var comp = Context.Render<MudXSheet>();
         comp.Instance.Should().NotBeNull();
         var sheet = comp.Instance;
         sheet.Standard.Should().BeTrue();
@@ -229,7 +229,7 @@ public class SheetTests : BunitTest
         var openCallback = false;
         var currentSizeCallback = false;
         var onDismissedCallback = false;
-        var comp = Context.RenderComponent<MudXSheet>(p => p
+        var comp = Context.Render<MudXSheet>(p => p
             .Add(p => p.OpenChanged, value => openCallback = value)
             .Add(p => p.CurrentSizeChanged, value => currentSizeCallback = true)
             .Add(p => p.OnDismissed, () => { onDismissedCallback = true; }));
@@ -264,8 +264,8 @@ public class SheetTests : BunitTest
     {
         var jsInterop = Context.JSInterop;
 
-        var provider = Context.RenderComponent<MudPopoverProvider>();
-        var comp = Context.RenderComponent<MudXSheet>(p => p
+        var provider = Context.Render<MudPopoverProvider>();
+        var comp = Context.Render<MudXSheet>(p => p
             .Add(p => p.EnableDragToSize, true)
             .Add(p => p.CurrentSize, 25)
             .Add(p => p.SnapMode, true)
@@ -386,8 +386,8 @@ public class SheetTests : BunitTest
     public async Task Sheet_TestDragging_NoSnapMode()
     {
         var jsInterop = Context.JSInterop;
-        var provider = Context.RenderComponent<MudPopoverProvider>();
-        var comp = Context.RenderComponent<MudXSheet>(p => p
+        var provider = Context.Render<MudPopoverProvider>();
+        var comp = Context.Render<MudXSheet>(p => p
             .Add(p => p.EnableDragToSize, true)
             .Add(p => p.CurrentSize, 25)
             .Add(p => p.SnapMode, false)
@@ -453,8 +453,8 @@ public class SheetTests : BunitTest
     public async Task Sheet_EnableDrag_PreventsDrag()
     {
         var jsInterop = Context.JSInterop;
-        var provider = Context.RenderComponent<MudPopoverProvider>();
-        var comp = Context.RenderComponent<MudXSheet>(p => p
+        var provider = Context.Render<MudPopoverProvider>();
+        var comp = Context.Render<MudXSheet>(p => p
             .Add(p => p.EnableDragToSize, false));
 
         comp.Instance.Should().NotBeNull();
@@ -485,7 +485,7 @@ public class SheetTests : BunitTest
     [Test]
     public async Task Sheet_TestToggleSize()
     {
-        var comp = Context.RenderComponent<MudXSheet>(p => p
+        var comp = Context.Render<MudXSheet>(p => p
             .Add(p => p.EnableDragToSize, true)
             .Add(p => p.Open, true)
             .Add(p => p.CurrentSize, 25)
@@ -500,7 +500,7 @@ public class SheetTests : BunitTest
         await comp.InvokeAsync(async () => await sheet.ToggleSizeAsync());
         sheet.GetState<bool>(nameof(sheet.Open)).Should().BeFalse();
 
-        comp.SetParametersAndRender(p => p
+        comp.Render(p => p
             .Add(p => p.PresetSizes, [25, 50, 75, 100]));
 
         await comp.InvokeAsync(async () => await sheet.OpenSheetAsync());
@@ -520,7 +520,7 @@ public class SheetTests : BunitTest
     public async Task Sheet_TestDispose()
     {
         // make sure it disposes correctly
-        var comp = Context.RenderComponent<MudXSheet>(p => p
+        var comp = Context.Render<MudXSheet>(p => p
             .Add(p => p.Open, true));
         comp.Instance.Should().NotBeNull();
         var sheet = comp.Instance;
@@ -559,24 +559,24 @@ public class SheetTests : BunitTest
     [Test]
     public void Sheet_OnOpenChanged_And_OnCurrentSizeChanged_Handlers()
     {
-        var comp = Context.RenderComponent<MudXSheet>();
+        var comp = Context.Render<MudXSheet>();
         // Open should be false initially
         comp.Instance.GetState<bool>(nameof(comp.Instance.Open)).Should().BeFalse();
 
-        // Change Open to true via SetParametersAndRender (triggers OnOpenChanged)
-        comp.SetParametersAndRender(p => p.Add(p => p.Open, true));
+        // Change Open to true via Render (triggers OnOpenChanged)
+        comp.Render(p => p.Add(p => p.Open, true));
         comp.Instance.GetState<bool>(nameof(comp.Instance.Open)).Should().BeTrue();
 
-        // Change CurrentSize via SetParametersAndRender (triggers OnCurrentSizeChanged)
-        comp.SetParametersAndRender(p => p.Add(p => p.CurrentSize, 42));
+        // Change CurrentSize via Render (triggers OnCurrentSizeChanged)
+        comp.Render(p => p.Add(p => p.CurrentSize, 42));
         comp.Instance.GetState<int>(nameof(comp.Instance.CurrentSize)).Should().Be(42);
     }
 
     [Test]
     public async Task Sheet_HandleKeyDownAsync_Closes_On_Escape()
     {
-        var provider = Context.RenderComponent<MudPopoverProvider>();
-        var comp = Context.RenderComponent<MudXSheet>(p => p.Add(p => p.Open, true));
+        var provider = Context.Render<MudPopoverProvider>();
+        var comp = Context.Render<MudXSheet>(p => p.Add(p => p.Open, true));
         comp.Instance.GetState<bool>(nameof(comp.Instance.Open)).Should().BeTrue();
 
         // Simulate Escape keydown
@@ -587,7 +587,7 @@ public class SheetTests : BunitTest
         comp.Instance.GetState<bool>(nameof(comp.Instance.Open)).Should().BeFalse();
 
         // reopen
-        comp.SetParametersAndRender(p => p.Add(p => p.CloseOnEscapeKey, false));
+        comp.Render(p => p.Add(p => p.CloseOnEscapeKey, false));
         await comp.InvokeAsync(async () => await comp.Instance.OpenSheetAsync());
         comp.Instance.GetState<bool>(nameof(comp.Instance.Open)).Should().BeTrue();
 
@@ -601,7 +601,7 @@ public class SheetTests : BunitTest
     [Test]
     public async Task Sheet_OnAfterRender_Triggers_ReRender_When_UpdateState()
     {
-        var comp = Context.RenderComponent<MudXSheet>();
+        var comp = Context.Render<MudXSheet>();
         // Use reflection to set _updateState to true
         var field = typeof(MudXSheet).GetField("_updateState", BindingFlags.NonPublic | BindingFlags.Instance);
         field!.SetValue(comp.Instance, true);
@@ -622,7 +622,7 @@ public class SheetTests : BunitTest
     [Test]
     public async Task Sheet_CanDrag()
     {
-        var comp = Context.RenderComponent<MudXSheet>();
+        var comp = Context.Render<MudXSheet>();
 
         var prop = typeof(MudXSheet).GetProperty("CanDrag", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
 
@@ -657,14 +657,14 @@ public class SheetTests : BunitTest
     [Test]
     public async Task Sheet_SetParametersAsync_Clamps_On_Invalid_CurrentSize()
     {
-        var comp = Context.RenderComponent<MudXSheet>();
+        var comp = Context.Render<MudXSheet>();
         // Try to set CurrentSize to an invalid value (<0)
-        comp.SetParametersAndRender(p => p.Add(p => p.CurrentSize, -1));
+        comp.Render(p => p.Add(p => p.CurrentSize, -1));
         await comp.InvokeAsync(async () => await comp.Instance.OpenSheetAsync());
         comp.Instance.GetState<int>(nameof(comp.Instance.CurrentSize)).Should().Be(0);
         await comp.InvokeAsync(async () => await comp.Instance.CloseSheetAsync());
         // Try to set CurrentSize to an invalid value (>100)
-        comp.SetParametersAndRender(p => p.Add(p => p.CurrentSize, 101));
+        comp.Render(p => p.Add(p => p.CurrentSize, 101));
         await comp.InvokeAsync(async () => await comp.Instance.OpenSheetAsync());
         comp.Instance.GetState<int>(nameof(comp.Instance.CurrentSize)).Should().Be(100);
     }
@@ -672,7 +672,7 @@ public class SheetTests : BunitTest
     [Test]
     public async Task Sheet_HandlePointerCancelAsync_ResetsDraggingState()
     {
-        var comp = Context.RenderComponent<MudXSheet>(p => p.Add(p => p.EnableDragToSize, true));
+        var comp = Context.Render<MudXSheet>(p => p.Add(p => p.EnableDragToSize, true));
         await comp.InvokeAsync(async () => await comp.Instance.OpenSheetAsync());
 
         // Set up drag state
@@ -701,7 +701,7 @@ public class SheetTests : BunitTest
     [Test]
     public async Task Sheet_PerformPointerDrag_Math(double startX, double startY, double currentX, double currentY, int baseSize, int expected, Position pos)
     {
-        var comp = Context.RenderComponent<MudXSheet>(p => p
+        var comp = Context.Render<MudXSheet>(p => p
             .Add(p => p.SnapMode, false)
             .Add(p => p.Position, pos));
         await comp.InvokeAsync(async () => await comp.Instance.OpenSheetAsync());

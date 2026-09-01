@@ -23,7 +23,7 @@ namespace MudX.UnitTests.Components
             moduleMock.Setup<bool>("initialize", _ => true);
 
             // Act: Render the component
-            var comp = Context.RenderComponent<MudXProvider>();
+            var comp = Context.Render<MudXProvider>();
             var div = comp.Find(".mudx-provider");
             div.Should().NotBeNull();
 
@@ -40,7 +40,7 @@ namespace MudX.UnitTests.Components
         {
             Assert.Throws<InvalidOperationException>(() =>
             {
-                var comp = Context.RenderComponent<MudXProvider>();
+                var comp = Context.Render<MudXProvider>();
             }, "Failed to initialize MudX");
         }
     }
