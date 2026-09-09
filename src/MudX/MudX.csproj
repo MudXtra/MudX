@@ -4,7 +4,7 @@
         <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Version>9.5.0</Version>
+        <Version>9.9.0</Version>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -75,7 +75,7 @@
       <None Include="wwwroot\prism\prism.js" />
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="MudBlazor" Version="9.5.0" />
+      <PackageReference Include="MudBlazor" Version="9.9.0" />
     </ItemGroup>
    
     <!-- Create item with filename and timestamp metadata -->
