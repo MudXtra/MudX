@@ -1,10 +1,21 @@
 const handledKeys = new Set(["Backspace", "Delete", "ArrowLeft", "ArrowRight"]);
 const deleteDedupeWindowMs = 100;
 const inputRegistrations = new WeakMap();
-const keyboardQueues = new WeakMap();
+const containerStates = new WeakMap();
 
 export function init(dotNetObjRef, container) {
     if (!container) return;
+
+    let state = containerStates.get(container);
+    if (!state || state.disposed) {
+        state = {
+            disposed: false,
+            running: false,
+            queue: [],
+            queuedRepeatKeys: new Set()
+        };
+        containerStates.set(container, state);
+    }
 
     const inputs = container.querySelectorAll("input");
     inputs.forEach((input) => {
@@ -24,6 +35,14 @@ export function init(dotNetObjRef, container) {
 export function cleanup(container) {
     if (!container) return;
 
+    const state = containerStates.get(container);
+    if (state) {
+        state.disposed = true;
+        state.queue.length = 0;
+        state.queuedRepeatKeys.clear();
+        containerStates.delete(container);
+    }
+
     const inputs = container.querySelectorAll("input");
     inputs.forEach((input) => {
         const registration = inputRegistrations.get(input);
@@ -34,7 +53,6 @@ export function cleanup(container) {
         input.removeEventListener("beforeinput", registration.beforeinput);
         inputRegistrations.delete(input);
     });
-    keyboardQueues.delete(container);
 }
 
 function handlePaste(event, input, dotNetObjRef) {
@@ -49,7 +67,7 @@ function handlePaste(event, input, dotNetObjRef) {
 }
 
 function handleKeyDown(event, input, container, dotNetObjRef, registration) {
-    if (!event || !handledKeys.has(event.key)) return;
+    if (!event || event.isComposing || event.keyCode === 229 || !handledKeys.has(event.key)) return;
 
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -59,13 +77,15 @@ function handleKeyDown(event, input, container, dotNetObjRef, registration) {
         registration.deleteKeyDownUntil = performance.now() + deleteDedupeWindowMs;
     }
 
-    queueKeyboardEvent(container, input, dotNetObjRef, event.key);
+    queueKeyboardEvent(container, input, dotNetObjRef, event.key, event.repeat === true);
 }
 
 function handleBeforeInput(event, input, container, dotNetObjRef, registration) {
-    const key = event?.inputType === "deleteContentBackward"
+    if (!event || event.isComposing) return;
+
+    const key = event.inputType === "deleteContentBackward"
         ? "Backspace"
-        : event?.inputType === "deleteContentForward"
+        : event.inputType === "deleteContentForward"
             ? "Delete"
             : null;
     if (!key) return;
@@ -74,26 +94,58 @@ function handleBeforeInput(event, input, container, dotNetObjRef, registration) 
     event.stopImmediatePropagation();
 
     if (registration.deleteKeyDownKey === key && performance.now() <= registration.deleteKeyDownUntil) return;
-    queueKeyboardEvent(container, input, dotNetObjRef, key);
+    queueKeyboardEvent(container, input, dotNetObjRef, key, false);
 }
 
-function queueKeyboardEvent(container, input, dotNetObjRef, key) {
-    const previous = keyboardQueues.get(container) || Promise.resolve();
-    const dispatch = previous.then(() => {
-        const activeInput = container.contains(document.activeElement) && document.activeElement?.tagName === "INPUT"
-            ? document.activeElement
-            : input;
-        return dotNetObjRef.invokeMethodAsync("HandleKeyboardEvent", activeInput.id, key)
-            .then(inputId => new Promise(resolve => {
-                requestAnimationFrame(() => {
-                    if (inputId) {
-                        focusBlock(container, inputId);
-                    }
-                    resolve();
-                });
-            }));
-    });
-    keyboardQueues.set(container, dispatch.catch(() => { }));
+function queueKeyboardEvent(container, input, dotNetObjRef, key, repeat) {
+    const state = containerStates.get(container);
+    if (!state || state.disposed) return;
+
+    const repeatKey = repeat ? `${input.id}:${key}` : null;
+    if (repeatKey && state.queuedRepeatKeys.has(repeatKey)) return;
+
+    state.queue.push({ container, input, dotNetObjRef, key, repeatKey });
+    if (repeatKey) state.queuedRepeatKeys.add(repeatKey);
+    void drainKeyboardQueue(state);
+}
+
+async function drainKeyboardQueue(state) {
+    if (state.running || state.disposed) return;
+
+    state.running = true;
+    try {
+        while (!state.disposed && state.queue.length > 0) {
+            const action = state.queue.shift();
+            if (action.repeatKey) state.queuedRepeatKeys.delete(action.repeatKey);
+
+            try {
+                await dispatchKeyboardAction(state, action);
+            }
+            catch (error) {
+                if (!state.disposed) {
+                    console.error("MudXSecurityCode keyboard bridge failed.", error);
+                }
+            }
+        }
+    }
+    finally {
+        state.running = false;
+    }
+}
+
+async function dispatchKeyboardAction(state, action) {
+    if (state.disposed) return;
+
+    const activeInput = action.container.contains(document.activeElement) && document.activeElement?.tagName === "INPUT"
+        ? document.activeElement
+        : action.input;
+    const inputId = await action.dotNetObjRef.invokeMethodAsync("HandleKeyboardEvent", activeInput.id, action.key);
+    if (state.disposed) return;
+
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    if (!state.disposed && inputId) {
+        focusBlock(action.container, inputId);
+    }
 }
 
 export function focusBlock(container, inputId) {

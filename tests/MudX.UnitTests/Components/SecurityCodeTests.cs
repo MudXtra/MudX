@@ -1,7 +1,7 @@
-﻿using AngleSharp.Dom;
+﻿using System.Reflection;
+using AngleSharp.Dom;
 using AwesomeAssertions;
 using Bunit;
-using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
 using MudX.UnitTests.Viewer.TestComponents.SecurityCode;
 using MudX.Utilities;
@@ -222,13 +222,14 @@ namespace MudX.UnitTests.Components
                 .Add(x => x.CodeChanged, value => notifications.Add(value)));
             SetValues(comp.Instance, (0, "1"), (1, "2"), (3, "3"), (4, "4"), (6, "5"));
 
-            await comp.Find($"#{comp.Instance.CodeItems[7].InputId}").KeyDownAsync(new KeyboardEventArgs { Key = "Backspace" });
+            var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, comp.Instance.CodeItems[7].InputId, "Backspace"));
 
             comp.Instance.CodeItems[6].Value.Should().BeEmpty();
             comp.Instance.CodeItems[5].Value.Should().Be("-");
             comp.Instance._codeState.Value.Should().Be("12-34-");
             notifications.Should().Equal("12-34-");
-            module.VerifyInvoke("focusBlock").Arguments[1].Should().Be(comp.Instance.CodeItems[6].InputId);
+            focusTarget.Should().Be(comp.Instance.CodeItems[6].InputId);
+            module.VerifyNotInvoke("focusBlock");
         }
 
         /// <summary>
@@ -246,13 +247,14 @@ namespace MudX.UnitTests.Components
                 .Add(x => x.CodeChanged, value => notifications.Add(value)));
             SetValues(comp.Instance, (0, "1"), (1, "2"), (3, "3"), (4, "4"), (6, "5"), (7, "6"));
 
-            await comp.Find($"#{comp.Instance.CodeItems[7].InputId}").KeyDownAsync(new KeyboardEventArgs { Key = "Backspace" });
+            var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, comp.Instance.CodeItems[7].InputId, "Backspace"));
 
             comp.Instance.CodeItems[7].Value.Should().BeEmpty();
             comp.Instance.CodeItems[6].Value.Should().Be("5");
             comp.Instance._codeState.Value.Should().Be("12-34-5");
             notifications.Should().Equal("12-34-5");
-            module.VerifyInvoke("focusBlock").Arguments[1].Should().Be(comp.Instance.CodeItems[6].InputId);
+            focusTarget.Should().Be(comp.Instance.CodeItems[6].InputId);
+            module.VerifyNotInvoke("focusBlock");
         }
 
         /// <summary>
@@ -270,14 +272,15 @@ namespace MudX.UnitTests.Components
                 .Add(x => x.CodeChanged, value => notifications.Add(value)));
             SetValues(comp.Instance, (0, "1"), (1, "2"), (3, "3"), (4, "4"), (6, "5"), (7, "6"));
 
-            await comp.Find($"#{comp.Instance.CodeItems[4].InputId}").KeyDownAsync(new KeyboardEventArgs { Key = "Delete" });
+            var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, comp.Instance.CodeItems[4].InputId, "Delete"));
 
             comp.Instance.CodeItems[4].Value.Should().BeEmpty();
             comp.Instance.CodeItems[3].Value.Should().Be("3");
             comp.Instance.CodeItems[6].Value.Should().Be("5");
             comp.Instance._codeState.Value.Should().Be("12-3-56");
             notifications.Should().Equal("12-3-56");
-            module.VerifyInvoke("focusBlock").Arguments[1].Should().Be(comp.Instance.CodeItems[4].InputId);
+            focusTarget.Should().Be(comp.Instance.CodeItems[4].InputId);
+            module.VerifyNotInvoke("focusBlock");
         }
 
         /// <summary>
@@ -296,11 +299,12 @@ namespace MudX.UnitTests.Components
                 .Add(x => x.CodeChanged, value => notifications.Add(value)));
             SetValues(comp.Instance, (0, "1"), (1, "2"), (3, "3"), (4, "4"), (6, "5"), (7, "6"));
 
-            await comp.Find($"#{comp.Instance.CodeItems[currentIndex].InputId}").KeyDownAsync(new KeyboardEventArgs { Key = key });
+            var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, comp.Instance.CodeItems[currentIndex].InputId, key));
 
             comp.Instance.CodeItems.Where(x => x.IsEditable).Select(x => x.Value).Should().Equal("1", "2", "3", "4", "5", "6");
             notifications.Should().BeEmpty();
-            module.VerifyInvoke("focusBlock").Arguments[1].Should().Be(comp.Instance.CodeItems[expectedIndex].InputId);
+            focusTarget.Should().Be(comp.Instance.CodeItems[expectedIndex].InputId);
+            module.VerifyNotInvoke("focusBlock");
         }
 
         /// <summary>
@@ -320,10 +324,11 @@ namespace MudX.UnitTests.Components
                 .Add(x => x.CodeChanged, value => notifications.Add(value)));
             SetValues(comp.Instance, (0, "1"), (1, "2"), (3, "3"), (4, "4"), (6, "5"), (7, "6"));
 
-            await comp.Find($"#{comp.Instance.CodeItems[index].InputId}").KeyDownAsync(new KeyboardEventArgs { Key = key });
+            var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, comp.Instance.CodeItems[index].InputId, key));
 
             comp.Instance.CodeItems.Select(x => x.Value).Should().Equal("1", "2", "-", "3", "4", "-", "5", "6");
             notifications.Should().BeEmpty();
+            focusTarget.Should().BeNull();
             module.VerifyNotInvoke("focusBlock");
         }
 
@@ -342,7 +347,7 @@ namespace MudX.UnitTests.Components
                 .Add(x => x.CodeChanged, value => notifications.Add(value)));
             SetValues(comp.Instance, (0, initialValue));
 
-            await comp.Find($"#{comp.Instance.CodeItems[0].InputId}").KeyDownAsync(new KeyboardEventArgs { Key = "Backspace" });
+            var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, comp.Instance.CodeItems[0].InputId, "Backspace"));
 
             comp.Instance.CodeItems[0].Value.Should().BeEmpty();
             notifications.Should().HaveCount(expectedNotifications);
@@ -350,7 +355,75 @@ namespace MudX.UnitTests.Components
             {
                 notifications.Should().Equal(expectedNotification);
             }
-            module.VerifyInvoke("focusBlock").Arguments[1].Should().Be(comp.Instance.CodeItems[0].InputId);
+            focusTarget.Should().Be(comp.Instance.CodeItems[0].InputId);
+            module.VerifyNotInvoke("focusBlock");
+        }
+
+        /// <summary>
+        /// The keyboard bridge accepts only an exact input identifier owned by this component.
+        /// </summary>
+        [Test]
+        public async Task SecurityCode_KeyboardBridge_RejectsMalformedIds()
+        {
+            var notifications = new List<string?>();
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            SetValues(comp.Instance, (0, "1"));
+            var validId = comp.Instance.CodeItems[0].InputId;
+            var masterId = comp.Instance.CodeItems[0].MasterId;
+            var invalidIds = new[]
+            {
+                $"xxxxxxxxxx0-{masterId}",
+                "mudX-code-0-",
+                $"mudX-code--1-{masterId}",
+                $"mudX-code-999-{masterId}",
+                $"{validId}-extra"
+            };
+
+            foreach (var invalidId in invalidIds)
+            {
+                var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, invalidId, "Backspace"));
+                focusTarget.Should().BeNull();
+            }
+
+            comp.Instance.CodeItems[0].Value.Should().Be("1");
+            notifications.Should().BeEmpty();
+            module.VerifyNotInvoke("focusBlock");
+        }
+
+        /// <summary>
+        /// A real input identifier from another component cannot cross the bridge boundary.
+        /// </summary>
+        [Test]
+        public async Task SecurityCode_KeyboardBridge_RejectsAnotherComponentInputId()
+        {
+            var notifications = new List<string?>();
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            var target = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            var other = Context.RenderComponent<MudXSecurityCode>();
+            SetValues(target.Instance, (0, "1"));
+
+            var focusTarget = await target.InvokeAsync(() => InvokeKeyboardEvent(target.Instance, other.Instance.CodeItems[0].InputId, "Backspace"));
+
+            focusTarget.Should().BeNull();
+            target.Instance.CodeItems[0].Value.Should().Be("1");
+            notifications.Should().BeEmpty();
+            module.VerifyNotInvoke("focusBlock");
+        }
+
+        private static async Task<string?> InvokeKeyboardEvent(MudXSecurityCode component, string inputId, string key)
+        {
+            var method = typeof(MudXSecurityCode).GetMethod("HandleKeyboardEvent", BindingFlags.Instance | BindingFlags.NonPublic);
+            method.Should().NotBeNull();
+            var task = method!.Invoke(component, [inputId, key]) as Task<string?>;
+            task.Should().NotBeNull();
+            return await task!;
         }
 
         private static void SetValues(MudXSecurityCode component, params (int Index, string Value)[] values)

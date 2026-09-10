@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.State;
@@ -208,8 +207,10 @@ namespace MudX
                 _jsBridge = new SecurityCodeJsBridge(this);
                 _dotNetRef = DotNetObjectReference.Create(_jsBridge);
                 _module = await Js.InvokeAsync<IJSObjectReference>("import", AssemblyInfo.ModulePath("mudxSecurityCode.js"));
-                await _module.InvokeVoidAsync("init", _dotNetRef, _elementRef);
             }
+
+            if (_module != null && _dotNetRef != null)
+                await _module.InvokeVoidAsync("init", _dotNetRef, _elementRef);
         }
 
         private IEnumerable<string> CharPatternValidator(int index, string val)
@@ -283,22 +284,10 @@ namespace MudX
             await UpdateCodeValue();
         }
 
-        private async Task OnKeyDown(int index, KeyboardEventArgs e)
-        {
-            var focusInputId = await HandleKeyboardEvent(CodeItems[index].InputId, e.Key);
-            if (focusInputId is null)
-                return;
-
-            await MoveFocus(CodeItems.FindIndex(x => x.InputId == focusInputId));
-        }
-
         private async Task<string?> HandleKeyboardEvent(string fullid, string key)
         {
-            if (string.IsNullOrWhiteSpace(fullid) || fullid.Length <= 10)
-                return null;
-
-            var id = fullid[10..].Split('-')[0];
-            if (!int.TryParse(id, out var index) || index < 0 || index >= CodeItems.Count || !CodeItems[index].IsEditable)
+            var index = CodeItems.FindIndex(item => string.Equals(item.InputId, fullid, StringComparison.Ordinal));
+            if (index < 0 || !CodeItems[index].IsEditable)
                 return null;
 
             switch (key)
