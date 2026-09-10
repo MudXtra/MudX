@@ -381,22 +381,17 @@ namespace MudX
         /// characters in the code items. Editable code items are updated with valid characters from the pasted text,
         /// while fixed code items are set to their predefined values. After processing, the method updates the code
         /// value, moves focus to the next focusable item, and validates the form if applicable.</remarks>
-        /// <param name="fullid">The full identifier string, which must be at least 10 characters long. The substring after the first 10
-        /// characters is used to determine the starting index for processing.</param>
+        /// <param name="fullid">The exact identifier of an editable input owned by this component.</param>
         /// <param name="text">The text pasted from the clipboard. Cannot be null, empty, or consist only of whitespace.</param>
         /// <returns></returns>
         [JSInvokable]
         public async Task ClipboardPasteEvent(string fullid, string text)
         {
-            if (string.IsNullOrWhiteSpace(text) || fullid.Length <= 10)
+            if (string.IsNullOrWhiteSpace(text))
                 return;
 
-            // Extract the substring starting at index 10 and ending before the next dash.
-            var id = fullid[10..];
-            var parts = id.Split("-");
-            id = parts[0];
-
-            if (!int.TryParse(id, out int index))
+            var index = CodeItems.FindIndex(item => item.IsEditable && string.Equals(item.InputId, fullid, StringComparison.Ordinal));
+            if (index < 0)
                 return;
 
             var chars = text.ToCharArray();

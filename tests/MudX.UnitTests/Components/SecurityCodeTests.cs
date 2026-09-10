@@ -168,7 +168,7 @@ namespace MudX.UnitTests.Components
                 parameters => parameters.Add(p => p.Pattern, pattern)
             );
             // starts paste at position 0
-            await comp.InvokeAsync(async () => await comp.Instance.ClipboardPasteEvent("mudx-code-0-random-guid", pasteText));
+            await comp.InvokeAsync(async () => await comp.Instance.ClipboardPasteEvent(comp.Instance.CodeItems[0].InputId, pasteText));
             comp.WaitForAssertion(() => comp.Instance._codeState.Value.Should().Be(expectedValue));
             comp.Instance.CodeItems[0].Value.Should().Be(expectedValue[..1]);
 
@@ -178,9 +178,82 @@ namespace MudX.UnitTests.Components
             comp.Instance.CodeItems[0].Value = string.Empty; // make sure items are reset
 
             // start paste at position 1
-            await comp.InvokeAsync(async () => await comp.Instance.ClipboardPasteEvent("mudx-code-1-random-guid", pasteText));
+            await comp.InvokeAsync(async () => await comp.Instance.ClipboardPasteEvent(comp.Instance.CodeItems[1].InputId, pasteText));
             comp.WaitForAssertion(() => comp.Instance._codeState.Value.Should().Be(expectedValue2));
             comp.Instance.CodeItems[1].Value.Should().Be(expectedValue[..1]);
+        }
+
+        /// <summary>
+        /// The paste bridge accepts only an exact editable input identifier owned by this component.
+        /// </summary>
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("xxxxxxxxxx0-foreign")]
+        [TestCase("mudX-code-0-")]
+        [TestCase("mudX-code--1-foreign")]
+        [TestCase("mudX-code-999-foreign")]
+        [TestCase("mudX-code-0-foreign-extra")]
+        public async Task SecurityCode_PasteBridge_RejectsMalformedIds(string? invalidId)
+        {
+            var notifications = new List<string?>();
+            var validationCalls = 0;
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            module.Setup<bool>("focusNextAfterContainer", _ => true);
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            SetValues(comp.Instance, (0, "1"));
+            typeof(MudFormComponent<string, string>)
+                .GetProperty(nameof(MudFormComponent<string, string>.Validation))!
+                .SetValue(comp.Instance.CodeItems[0].TextFieldRef, new Func<string, string?>(_ =>
+                {
+                    validationCalls++;
+                    return null;
+                }));
+
+            await comp.InvokeAsync(() => comp.Instance.ClipboardPasteEvent(invalidId!, "9"));
+
+            comp.Instance.CodeItems.Select(x => x.Value).Should().Equal("1", "", "", "");
+            comp.Instance._codeState.Value.Should().BeNull();
+            notifications.Should().BeEmpty();
+            validationCalls.Should().Be(0);
+            module.VerifyNotInvoke("focusBlock");
+            module.VerifyNotInvoke("focusNextAfterContainer");
+        }
+
+        /// <summary>
+        /// A real paste input identifier from another component cannot cross the bridge boundary.
+        /// </summary>
+        [Test]
+        public async Task SecurityCode_PasteBridge_RejectsAnotherComponentInputId()
+        {
+            var notifications = new List<string?>();
+            var validationCalls = 0;
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            module.Setup<bool>("focusNextAfterContainer", _ => true);
+            var target = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            var other = Context.RenderComponent<MudXSecurityCode>();
+            SetValues(target.Instance, (0, "1"));
+            typeof(MudFormComponent<string, string>)
+                .GetProperty(nameof(MudFormComponent<string, string>.Validation))!
+                .SetValue(target.Instance.CodeItems[0].TextFieldRef, new Func<string, string?>(_ =>
+                {
+                    validationCalls++;
+                    return null;
+                }));
+
+            await target.InvokeAsync(() => target.Instance.ClipboardPasteEvent(other.Instance.CodeItems[0].InputId, "9"));
+
+            target.Instance.CodeItems.Select(x => x.Value).Should().Equal("1", "", "", "");
+            target.Instance._codeState.Value.Should().BeNull();
+            notifications.Should().BeEmpty();
+            validationCalls.Should().Be(0);
+            module.VerifyNotInvoke("focusBlock");
+            module.VerifyNotInvoke("focusNextAfterContainer");
         }
 
         /// <summary>
