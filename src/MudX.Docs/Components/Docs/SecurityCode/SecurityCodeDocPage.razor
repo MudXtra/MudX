@@ -12,9 +12,12 @@
                 Typically, you would use <CodeInline>MudXSecurityCode</CodeInline> to display a series of text fields that match a
                 customizable pattern (e.g., <CodeInline>####</CodeInline> or <CodeInline>##-##</CodeInline>). Each placeholder accepts
                 numeric, alphabetic, symbolic, or any <c>UTF-8</c> character types based on your configuration. Entering text in a code
-                box will automatically move to the next code box. Pressing backspace will clear the box and once cleared it will move
-                to the previous code box. Both of these actions skip non-placeholders. When the final box is filled, it will automatically
-                focus the first focusable element after the last code box.
+                box automatically moves to the next editable box. <CodeInline Tag="false">Backspace</CodeInline> clears a filled box and
+                moves to the previous editable box; from an empty box, it clears and focuses the previous editable box in one operation.
+                <CodeInline Tag="false">Delete</CodeInline> clears only the current box. The left and right arrow keys move between editable
+                boxes without changing the code, while <CodeInline Tag="false">Tab</CodeInline> and <CodeInline Tag="false">Shift+Tab</CodeInline>
+                keep their normal browser behavior. Navigation and deletion skip literal pattern characters. When the final box is filled,
+                it automatically focuses the first focusable element after the last code box.
             </Description>
         </DocsPageHeader>
 

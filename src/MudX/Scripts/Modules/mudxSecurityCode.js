@@ -1,12 +1,23 @@
+const handledKeys = new Set(["Backspace", "Delete", "ArrowLeft", "ArrowRight"]);
+const deleteDedupeWindowMs = 100;
+const inputRegistrations = new WeakMap();
+const keyboardQueues = new WeakMap();
+
 export function init(dotNetObjRef, container) {
     if (!container) return;
 
     const inputs = container.querySelectorAll("input");
     inputs.forEach((input) => {
-        if (!input._pasteHandler) {
-            input._pasteHandler = (event) => handlePaste(event, input, dotNetObjRef);
-            input.addEventListener("paste", input._pasteHandler);
-        }
+        if (inputRegistrations.has(input)) return;
+
+        const registration = {};
+        registration.paste = (event) => handlePaste(event, input, dotNetObjRef);
+        registration.keydown = (event) => handleKeyDown(event, input, container, dotNetObjRef, registration);
+        registration.beforeinput = (event) => handleBeforeInput(event, input, container, dotNetObjRef, registration);
+        input.addEventListener("paste", registration.paste);
+        input.addEventListener("keydown", registration.keydown);
+        input.addEventListener("beforeinput", registration.beforeinput);
+        inputRegistrations.set(input, registration);
     });
 }
 
@@ -15,16 +26,19 @@ export function cleanup(container) {
 
     const inputs = container.querySelectorAll("input");
     inputs.forEach((input) => {
-        if (input._pasteHandler) {
-            input.removeEventListener("paste", input._pasteHandler);
-            delete input._pasteHandler;
-        }
+        const registration = inputRegistrations.get(input);
+        if (!registration) return;
+
+        input.removeEventListener("paste", registration.paste);
+        input.removeEventListener("keydown", registration.keydown);
+        input.removeEventListener("beforeinput", registration.beforeinput);
+        inputRegistrations.delete(input);
     });
+    keyboardQueues.delete(container);
 }
 
 function handlePaste(event, input, dotNetObjRef) {
     if (!event || !input || !dotNetObjRef) return;
-
     event.preventDefault();
 
     const paste = (event.clipboardData || window.clipboardData)?.getData("Text");
@@ -34,13 +48,61 @@ function handlePaste(event, input, dotNetObjRef) {
     }
 }
 
+function handleKeyDown(event, input, container, dotNetObjRef, registration) {
+    if (!event || !handledKeys.has(event.key)) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    if (event.key === "Backspace" || event.key === "Delete") {
+        registration.deleteKeyDownKey = event.key;
+        registration.deleteKeyDownUntil = performance.now() + deleteDedupeWindowMs;
+    }
+
+    queueKeyboardEvent(container, input, dotNetObjRef, event.key);
+}
+
+function handleBeforeInput(event, input, container, dotNetObjRef, registration) {
+    const key = event?.inputType === "deleteContentBackward"
+        ? "Backspace"
+        : event?.inputType === "deleteContentForward"
+            ? "Delete"
+            : null;
+    if (!key) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    if (registration.deleteKeyDownKey === key && performance.now() <= registration.deleteKeyDownUntil) return;
+    queueKeyboardEvent(container, input, dotNetObjRef, key);
+}
+
+function queueKeyboardEvent(container, input, dotNetObjRef, key) {
+    const previous = keyboardQueues.get(container) || Promise.resolve();
+    const dispatch = previous.then(() => {
+        const activeInput = container.contains(document.activeElement) && document.activeElement?.tagName === "INPUT"
+            ? document.activeElement
+            : input;
+        return dotNetObjRef.invokeMethodAsync("HandleKeyboardEvent", activeInput.id, key)
+            .then(inputId => new Promise(resolve => {
+                requestAnimationFrame(() => {
+                    if (inputId) {
+                        focusBlock(container, inputId);
+                    }
+                    resolve();
+                });
+            }));
+    });
+    keyboardQueues.set(container, dispatch.catch(() => { }));
+}
+
 export function focusBlock(container, inputId) {
     if (!container || !inputId) return;
     const input = container.querySelector("#" + inputId);
-    if (input) {        
+    if (input) {
         try {
             input.focus();
-            input.select(); // Select the input content if applicable
+            input.select();
         }
         catch { }
     }
@@ -48,7 +110,6 @@ export function focusBlock(container, inputId) {
 
 export function focusNextAfterContainer(container) {
     if (!container) return;
-
     setTimeout(() => focusNextElement(), 0);
 }
 
@@ -57,7 +118,6 @@ function focusNextElement() {
 
     if (!document.activeElement) return;
 
-    // Get all focusable elements in the document (or form if within a form)
     const container = document.activeElement.form || document;
     const focusableElements = Array.from(container.querySelectorAll(focusableSelector))
         .filter(element => {
@@ -67,16 +127,13 @@ function focusNextElement() {
     const currentIndex = focusableElements.indexOf(document.activeElement);
     const nextIndex = currentIndex + 1;
 
-    // Focus next element if it exists
-    if (nextIndex < focusableElements.length) {        
+    if (nextIndex < focusableElements.length) {
         const el = focusableElements[nextIndex];
         if (el) {
             el.focus();
             if (typeof el.select === 'function') {
-                el.select(); // Select the input content if applicable
+                el.select();
             }
         }
     }
 }
-
-

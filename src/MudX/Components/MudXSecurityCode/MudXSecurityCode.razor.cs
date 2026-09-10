@@ -15,7 +15,8 @@ namespace MudX
     {
         private ElementReference? _elementRef;
         private readonly string Id = $"mudx-code-id-{Guid.NewGuid()}";
-        private DotNetObjectReference<MudXSecurityCode>? _dotNetRef;
+        private DotNetObjectReference<SecurityCodeJsBridge>? _dotNetRef;
+        private SecurityCodeJsBridge? _jsBridge;
         private readonly Dictionary<string, object?> _attributes = [];
         internal ParameterState<string?> _codeState;
         private bool _isInternalChange = false;
@@ -204,7 +205,8 @@ namespace MudX
             await base.OnAfterRenderAsync(firstRender);
             if (firstRender)
             {
-                _dotNetRef = DotNetObjectReference.Create(this);
+                _jsBridge = new SecurityCodeJsBridge(this);
+                _dotNetRef = DotNetObjectReference.Create(_jsBridge);
                 _module = await Js.InvokeAsync<IJSObjectReference>("import", AssemblyInfo.ModulePath("mudxSecurityCode.js"));
                 await _module.InvokeVoidAsync("init", _dotNetRef, _elementRef);
             }
@@ -283,19 +285,72 @@ namespace MudX
 
         private async Task OnKeyDown(int index, KeyboardEventArgs e)
         {
-            if (e.Key == "Backspace" && string.IsNullOrEmpty(CodeItems[index].Value) && index > 0)
-            {
-                int prev = index - 1;
-                while (prev >= 0 && !CodeItems[prev].IsEditable)
-                {
-                    prev--;
-                }
+            var focusInputId = await HandleKeyboardEvent(CodeItems[index].InputId, e.Key);
+            if (focusInputId is null)
+                return;
 
-                if (prev >= 0)
-                {
-                    await MoveFocus(prev);
-                }
+            await MoveFocus(CodeItems.FindIndex(x => x.InputId == focusInputId));
+        }
+
+        private async Task<string?> HandleKeyboardEvent(string fullid, string key)
+        {
+            if (string.IsNullOrWhiteSpace(fullid) || fullid.Length <= 10)
+                return null;
+
+            var id = fullid[10..].Split('-')[0];
+            if (!int.TryParse(id, out var index) || index < 0 || index >= CodeItems.Count || !CodeItems[index].IsEditable)
+                return null;
+
+            switch (key)
+            {
+                case "Backspace":
+                    var currentWasEmpty = string.IsNullOrEmpty(CodeItems[index].Value);
+                    var valueIndex = currentWasEmpty ? FindPreviousEditable(index) : index;
+                    if (valueIndex < 0)
+                        return CodeItems[index].InputId;
+
+                    CodeItems[valueIndex].Value = string.Empty;
+                    await UpdateCodeValue();
+                    var focusIndex = currentWasEmpty ? valueIndex : FindPreviousEditable(index);
+                    return CodeItems[focusIndex >= 0 ? focusIndex : index].InputId;
+                case "Delete":
+                    if (!string.IsNullOrEmpty(CodeItems[index].Value))
+                    {
+                        CodeItems[index].Value = string.Empty;
+                        await UpdateCodeValue();
+                    }
+                    return CodeItems[index].InputId;
+                case "ArrowLeft":
+                    var previous = FindPreviousEditable(index);
+                    return CodeItems[previous >= 0 ? previous : index].InputId;
+                case "ArrowRight":
+                    var next = FindNextEditable(index);
+                    return CodeItems[next >= 0 ? next : index].InputId;
+                default:
+                    return null;
             }
+        }
+
+        private int FindPreviousEditable(int index)
+        {
+            for (var previous = index - 1; previous >= 0; previous--)
+            {
+                if (CodeItems[previous].IsEditable)
+                    return previous;
+            }
+
+            return -1;
+        }
+
+        private int FindNextEditable(int index)
+        {
+            for (var next = index + 1; next < CodeItems.Count; next++)
+            {
+                if (CodeItems[next].IsEditable)
+                    return next;
+            }
+
+            return -1;
         }
 
         private async Task MoveFocus(int index)
@@ -454,7 +509,6 @@ namespace MudX
 
             _isInternalChange = true;
             await _codeState.SetValueAsync(result);
-            await CodeChanged.InvokeAsync(_codeState.Value);
             _isInternalChange = false;
             StateHasChanged();
         }
@@ -493,8 +547,20 @@ namespace MudX
                 }
                 _dotNetRef?.Dispose();
                 _dotNetRef = null;
+                _jsBridge = null;
             }
             GC.SuppressFinalize(this);
+        }
+
+        private sealed class SecurityCodeJsBridge(MudXSecurityCode owner)
+        {
+            [JSInvokable]
+            public Task<string?> HandleKeyboardEvent(string fullid, string key)
+                => owner.HandleKeyboardEvent(fullid, key);
+
+            [JSInvokable]
+            public Task ClipboardPasteEvent(string fullid, string text)
+                => owner.ClipboardPasteEvent(fullid, text);
         }
     }
 }
