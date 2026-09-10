@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.State;
@@ -15,7 +14,8 @@ namespace MudX
     {
         private ElementReference? _elementRef;
         private readonly string Id = $"mudx-code-id-{Guid.NewGuid()}";
-        private DotNetObjectReference<MudXSecurityCode>? _dotNetRef;
+        private DotNetObjectReference<SecurityCodeJsBridge>? _dotNetRef;
+        private SecurityCodeJsBridge? _jsBridge;
         private readonly Dictionary<string, object?> _attributes = [];
         internal ParameterState<string?> _codeState;
         private bool _isInternalChange = false;
@@ -204,10 +204,13 @@ namespace MudX
             await base.OnAfterRenderAsync(firstRender);
             if (firstRender)
             {
-                _dotNetRef = DotNetObjectReference.Create(this);
+                _jsBridge = new SecurityCodeJsBridge(this);
+                _dotNetRef = DotNetObjectReference.Create(_jsBridge);
                 _module = await Js.InvokeAsync<IJSObjectReference>("import", AssemblyInfo.ModulePath("mudxSecurityCode.js"));
-                await _module.InvokeVoidAsync("init", _dotNetRef, _elementRef);
             }
+
+            if (_module != null && _dotNetRef != null)
+                await _module.InvokeVoidAsync("init", _dotNetRef, _elementRef);
         }
 
         private IEnumerable<string> CharPatternValidator(int index, string val)
@@ -281,21 +284,62 @@ namespace MudX
             await UpdateCodeValue();
         }
 
-        private async Task OnKeyDown(int index, KeyboardEventArgs e)
+        private async Task<string?> HandleKeyboardEvent(string fullid, string key)
         {
-            if (e.Key == "Backspace" && string.IsNullOrEmpty(CodeItems[index].Value) && index > 0)
-            {
-                int prev = index - 1;
-                while (prev >= 0 && !CodeItems[prev].IsEditable)
-                {
-                    prev--;
-                }
+            var index = CodeItems.FindIndex(item => string.Equals(item.InputId, fullid, StringComparison.Ordinal));
+            if (index < 0 || !CodeItems[index].IsEditable)
+                return null;
 
-                if (prev >= 0)
-                {
-                    await MoveFocus(prev);
-                }
+            switch (key)
+            {
+                case "Backspace":
+                    var currentWasEmpty = string.IsNullOrEmpty(CodeItems[index].Value);
+                    var valueIndex = currentWasEmpty ? FindPreviousEditable(index) : index;
+                    if (valueIndex < 0)
+                        return CodeItems[index].InputId;
+
+                    CodeItems[valueIndex].Value = string.Empty;
+                    await UpdateCodeValue();
+                    var focusIndex = currentWasEmpty ? valueIndex : FindPreviousEditable(index);
+                    return CodeItems[focusIndex >= 0 ? focusIndex : index].InputId;
+                case "Delete":
+                    if (!string.IsNullOrEmpty(CodeItems[index].Value))
+                    {
+                        CodeItems[index].Value = string.Empty;
+                        await UpdateCodeValue();
+                    }
+                    return CodeItems[index].InputId;
+                case "ArrowLeft":
+                    var previous = FindPreviousEditable(index);
+                    return CodeItems[previous >= 0 ? previous : index].InputId;
+                case "ArrowRight":
+                    var next = FindNextEditable(index);
+                    return CodeItems[next >= 0 ? next : index].InputId;
+                default:
+                    return null;
             }
+        }
+
+        private int FindPreviousEditable(int index)
+        {
+            for (var previous = index - 1; previous >= 0; previous--)
+            {
+                if (CodeItems[previous].IsEditable)
+                    return previous;
+            }
+
+            return -1;
+        }
+
+        private int FindNextEditable(int index)
+        {
+            for (var next = index + 1; next < CodeItems.Count; next++)
+            {
+                if (CodeItems[next].IsEditable)
+                    return next;
+            }
+
+            return -1;
         }
 
         private async Task MoveFocus(int index)
@@ -337,22 +381,17 @@ namespace MudX
         /// characters in the code items. Editable code items are updated with valid characters from the pasted text,
         /// while fixed code items are set to their predefined values. After processing, the method updates the code
         /// value, moves focus to the next focusable item, and validates the form if applicable.</remarks>
-        /// <param name="fullid">The full identifier string, which must be at least 10 characters long. The substring after the first 10
-        /// characters is used to determine the starting index for processing.</param>
+        /// <param name="fullid">The exact identifier of an editable input owned by this component.</param>
         /// <param name="text">The text pasted from the clipboard. Cannot be null, empty, or consist only of whitespace.</param>
         /// <returns></returns>
         [JSInvokable]
         public async Task ClipboardPasteEvent(string fullid, string text)
         {
-            if (string.IsNullOrWhiteSpace(text) || fullid.Length <= 10)
+            if (string.IsNullOrWhiteSpace(text))
                 return;
 
-            // Extract the substring starting at index 10 and ending before the next dash.
-            var id = fullid[10..];
-            var parts = id.Split("-");
-            id = parts[0];
-
-            if (!int.TryParse(id, out int index))
+            var index = CodeItems.FindIndex(item => item.IsEditable && string.Equals(item.InputId, fullid, StringComparison.Ordinal));
+            if (index < 0)
                 return;
 
             var chars = text.ToCharArray();
@@ -454,7 +493,6 @@ namespace MudX
 
             _isInternalChange = true;
             await _codeState.SetValueAsync(result);
-            await CodeChanged.InvokeAsync(_codeState.Value);
             _isInternalChange = false;
             StateHasChanged();
         }
@@ -493,8 +531,20 @@ namespace MudX
                 }
                 _dotNetRef?.Dispose();
                 _dotNetRef = null;
+                _jsBridge = null;
             }
             GC.SuppressFinalize(this);
+        }
+
+        private sealed class SecurityCodeJsBridge(MudXSecurityCode owner)
+        {
+            [JSInvokable]
+            public Task<string?> HandleKeyboardEvent(string fullid, string key)
+                => owner.HandleKeyboardEvent(fullid, key);
+
+            [JSInvokable]
+            public Task ClipboardPasteEvent(string fullid, string text)
+                => owner.ClipboardPasteEvent(fullid, text);
         }
     }
 }

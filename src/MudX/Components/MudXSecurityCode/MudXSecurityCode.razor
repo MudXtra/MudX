@@ -24,7 +24,6 @@
                               Variant="@(!item.IsEditable ? ReadOnlyVariant : Variant)"
                               Margin="@Margin"
                               Underline="@(item.IsEditable ? Underline : false)"
-                              OnKeyDown="@(e => OnKeyDown(item.Index, e))"
                               ReadOnly="!item.IsEditable" />
             }
 

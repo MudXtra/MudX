@@ -1,4 +1,5 @@
-﻿using AngleSharp.Dom;
+﻿using System.Reflection;
+using AngleSharp.Dom;
 using AwesomeAssertions;
 using Bunit;
 using MudBlazor;
@@ -167,7 +168,7 @@ namespace MudX.UnitTests.Components
                 parameters => parameters.Add(p => p.Pattern, pattern)
             );
             // starts paste at position 0
-            await comp.InvokeAsync(async () => await comp.Instance.ClipboardPasteEvent("mudx-code-0-random-guid", pasteText));
+            await comp.InvokeAsync(async () => await comp.Instance.ClipboardPasteEvent(comp.Instance.CodeItems[0].InputId, pasteText));
             comp.WaitForAssertion(() => comp.Instance._codeState.Value.Should().Be(expectedValue));
             comp.Instance.CodeItems[0].Value.Should().Be(expectedValue[..1]);
 
@@ -177,48 +178,333 @@ namespace MudX.UnitTests.Components
             comp.Instance.CodeItems[0].Value = string.Empty; // make sure items are reset
 
             // start paste at position 1
-            await comp.InvokeAsync(async () => await comp.Instance.ClipboardPasteEvent("mudx-code-1-random-guid", pasteText));
+            await comp.InvokeAsync(async () => await comp.Instance.ClipboardPasteEvent(comp.Instance.CodeItems[1].InputId, pasteText));
             comp.WaitForAssertion(() => comp.Instance._codeState.Value.Should().Be(expectedValue2));
             comp.Instance.CodeItems[1].Value.Should().Be(expectedValue[..1]);
         }
 
-        [Test]
-        [Ignore("Skipping this test temporarily")]
-        public async Task SecurityCode_ShouldUpdateCodeWhenCodeItemIsRemoved()
+        /// <summary>
+        /// The paste bridge accepts only an exact editable input identifier owned by this component.
+        /// </summary>
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("xxxxxxxxxx0-foreign")]
+        [TestCase("mudX-code-0-")]
+        [TestCase("mudX-code--1-foreign")]
+        [TestCase("mudX-code-999-foreign")]
+        [TestCase("mudX-code-0-foreign-extra")]
+        public async Task SecurityCode_PasteBridge_RejectsMalformedIds(string? invalidId)
         {
-            // Arrange
-            var comp = Context.RenderComponent<SecurityCodeBasicTest>();
-            var codeComp = comp.FindComponent<MudXSecurityCode>();
+            var notifications = new List<string?>();
+            var validationCalls = 0;
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            module.Setup<bool>("focusNextAfterContainer", _ => true);
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            SetValues(comp.Instance, (0, "1"));
+            typeof(MudFormComponent<string, string>)
+                .GetProperty(nameof(MudFormComponent<string, string>.Validation))!
+                .SetValue(comp.Instance.CodeItems[0].TextFieldRef, new Func<string, string?>(_ =>
+                {
+                    validationCalls++;
+                    return null;
+                }));
 
-            // Assert
-            codeComp.Should().NotBeNull();
-            codeComp.Instance.CodeItems.Count.Should().Be(4);
+            await comp.InvokeAsync(() => comp.Instance.ClipboardPasteEvent(invalidId!, "9"));
 
-            var inputs = await comp.InvokeAsync(() => comp.FindAll(".mudx-code-item input"));
-            inputs.Count.Should().Be(4);
+            comp.Instance.CodeItems.Select(x => x.Value).Should().Equal("1", "", "", "");
+            comp.Instance._codeState.Value.Should().BeNull();
+            notifications.Should().BeEmpty();
+            validationCalls.Should().Be(0);
+            module.VerifyNotInvoke("focusBlock");
+            module.VerifyNotInvoke("focusNextAfterContainer");
+        }
 
-            await comp.InvokeAsync(() => inputs[0].Input("1"));
-            await comp.InvokeAsync(() => inputs[1].Input("2"));
-            await comp.InvokeAsync(() => inputs[2].Input("3"));
-            await comp.InvokeAsync(() => inputs[3].Input("4"));
+        /// <summary>
+        /// A real paste input identifier from another component cannot cross the bridge boundary.
+        /// </summary>
+        [Test]
+        public async Task SecurityCode_PasteBridge_RejectsAnotherComponentInputId()
+        {
+            var notifications = new List<string?>();
+            var validationCalls = 0;
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            module.Setup<bool>("focusNextAfterContainer", _ => true);
+            var target = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            var other = Context.RenderComponent<MudXSecurityCode>();
+            SetValues(target.Instance, (0, "1"));
+            typeof(MudFormComponent<string, string>)
+                .GetProperty(nameof(MudFormComponent<string, string>.Validation))!
+                .SetValue(target.Instance.CodeItems[0].TextFieldRef, new Func<string, string?>(_ =>
+                {
+                    validationCalls++;
+                    return null;
+                }));
 
-            comp.WaitForAssertion(() => comp.Find(".mud-info-text").GetInnerText().Should().Be("Security Code: 1234"));
-            codeComp.Instance._codeState.Value.Should().Be("1234");
+            await target.InvokeAsync(() => target.Instance.ClipboardPasteEvent(other.Instance.CodeItems[0].InputId, "9"));
 
-            inputs = await comp.InvokeAsync(() => comp.FindAll(".mudx-code-item input"));
-            await comp.InvokeAsync(() => inputs[3].Change(string.Empty)); // remove last item
+            target.Instance.CodeItems.Select(x => x.Value).Should().Equal("1", "", "", "");
+            target.Instance._codeState.Value.Should().BeNull();
+            notifications.Should().BeEmpty();
+            validationCalls.Should().Be(0);
+            module.VerifyNotInvoke("focusBlock");
+            module.VerifyNotInvoke("focusNextAfterContainer");
+        }
 
-            // Re-fetch inputs after re-render
-            comp.WaitForAssertion(() =>
+        /// <summary>
+        /// A code mutation emits exactly one <see cref="MudXSecurityCode.CodeChanged"/> notification.
+        /// </summary>
+        [Test]
+        public async Task SecurityCode_CodeMutation_NotifiesOnce()
+        {
+            var notifications = new List<string?>();
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+
+            await comp.InvokeAsync(async () =>
             {
-                inputs = comp.FindAll(".mudx-code-item input");
-                inputs.Count.Should().Be(3);
+                comp.Instance.CodeItems[0].Value = "1";
+                await comp.Instance.OnAfterChange(0);
             });
 
-            await comp.InvokeAsync(() => inputs[^1].Change(string.Empty)); // remove last item
+            notifications.Should().Equal("1");
+        }
 
-            comp.WaitForAssertion(() => comp.Find(".mud-info-text").GetInnerText().Should().Be("Security Code: 123"));
-            comp.WaitForAssertion(() => comp.Find(".mud-input-error").Should().NotBeNull()); // should have an error class
+        /// <summary>
+        /// Backspace on an empty slot removes the previous editable value in the same operation, including across literals.
+        /// </summary>
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task SecurityCode_BackspaceOnEmpty_RemovesPreviousEditableValue(bool password)
+        {
+            var notifications = new List<string?>();
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.Pattern, "##-##-##")
+                .Add(x => x.Password, password)
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            SetValues(comp.Instance, (0, "1"), (1, "2"), (3, "3"), (4, "4"), (6, "5"));
+
+            var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, comp.Instance.CodeItems[7].InputId, "Backspace"));
+
+            comp.Instance.CodeItems[6].Value.Should().BeEmpty();
+            comp.Instance.CodeItems[5].Value.Should().Be("-");
+            comp.Instance._codeState.Value.Should().Be("12-34-");
+            notifications.Should().Equal("12-34-");
+            focusTarget.Should().Be(comp.Instance.CodeItems[6].InputId);
+            module.VerifyNotInvoke("focusBlock");
+        }
+
+        /// <summary>
+        /// Backspace on a filled slot clears only that slot and focuses the previous editable slot.
+        /// </summary>
+        [Test]
+        public async Task SecurityCode_BackspaceOnFilled_RemovesCurrentValue()
+        {
+            var notifications = new List<string?>();
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.Pattern, "##-##-##")
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            SetValues(comp.Instance, (0, "1"), (1, "2"), (3, "3"), (4, "4"), (6, "5"), (7, "6"));
+
+            var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, comp.Instance.CodeItems[7].InputId, "Backspace"));
+
+            comp.Instance.CodeItems[7].Value.Should().BeEmpty();
+            comp.Instance.CodeItems[6].Value.Should().Be("5");
+            comp.Instance._codeState.Value.Should().Be("12-34-5");
+            notifications.Should().Equal("12-34-5");
+            focusTarget.Should().Be(comp.Instance.CodeItems[6].InputId);
+            module.VerifyNotInvoke("focusBlock");
+        }
+
+        /// <summary>
+        /// Delete clears only the current editable slot and retains focus there.
+        /// </summary>
+        [Test]
+        public async Task SecurityCode_Delete_RemovesCurrentValueOnly()
+        {
+            var notifications = new List<string?>();
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.Pattern, "##-##-##")
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            SetValues(comp.Instance, (0, "1"), (1, "2"), (3, "3"), (4, "4"), (6, "5"), (7, "6"));
+
+            var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, comp.Instance.CodeItems[4].InputId, "Delete"));
+
+            comp.Instance.CodeItems[4].Value.Should().BeEmpty();
+            comp.Instance.CodeItems[3].Value.Should().Be("3");
+            comp.Instance.CodeItems[6].Value.Should().Be("5");
+            comp.Instance._codeState.Value.Should().Be("12-3-56");
+            notifications.Should().Equal("12-3-56");
+            focusTarget.Should().Be(comp.Instance.CodeItems[4].InputId);
+            module.VerifyNotInvoke("focusBlock");
+        }
+
+        /// <summary>
+        /// Arrow keys navigate editable neighbors across literal segments without changing the code.
+        /// </summary>
+        [TestCase("ArrowLeft", 6, 4)]
+        [TestCase("ArrowRight", 4, 6)]
+        public async Task SecurityCode_ArrowKey_NavigatesWithoutMutation(string key, int currentIndex, int expectedIndex)
+        {
+            var notifications = new List<string?>();
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.Pattern, "##-##-##")
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            SetValues(comp.Instance, (0, "1"), (1, "2"), (3, "3"), (4, "4"), (6, "5"), (7, "6"));
+
+            var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, comp.Instance.CodeItems[currentIndex].InputId, key));
+
+            comp.Instance.CodeItems.Where(x => x.IsEditable).Select(x => x.Value).Should().Equal("1", "2", "3", "4", "5", "6");
+            notifications.Should().BeEmpty();
+            focusTarget.Should().Be(comp.Instance.CodeItems[expectedIndex].InputId);
+            module.VerifyNotInvoke("focusBlock");
+        }
+
+        /// <summary>
+        /// Tab and key events targeting literal segments do not mutate values or steal focus.
+        /// </summary>
+        [TestCase("Tab", 4)]
+        [TestCase("Backspace", 2)]
+        [TestCase("Delete", 2)]
+        public async Task SecurityCode_UnhandledOrLiteralKey_DoesNothing(string key, int index)
+        {
+            var notifications = new List<string?>();
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.Pattern, "##-##-##")
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            SetValues(comp.Instance, (0, "1"), (1, "2"), (3, "3"), (4, "4"), (6, "5"), (7, "6"));
+
+            var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, comp.Instance.CodeItems[index].InputId, key));
+
+            comp.Instance.CodeItems.Select(x => x.Value).Should().Equal("1", "2", "-", "3", "4", "-", "5", "6");
+            notifications.Should().BeEmpty();
+            focusTarget.Should().BeNull();
+            module.VerifyNotInvoke("focusBlock");
+        }
+
+        /// <summary>
+        /// Backspace stops at the first editable boundary and clears at most that first value.
+        /// </summary>
+        [TestCase("1", "", 1)]
+        [TestCase("", null, 0)]
+        public async Task SecurityCode_BackspaceAtFirstEditable_StopsAtBoundary(string initialValue, string? expectedNotification, int expectedNotifications)
+        {
+            var notifications = new List<string?>();
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            SetValues(comp.Instance, (0, initialValue));
+
+            var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, comp.Instance.CodeItems[0].InputId, "Backspace"));
+
+            comp.Instance.CodeItems[0].Value.Should().BeEmpty();
+            notifications.Should().HaveCount(expectedNotifications);
+            if (expectedNotifications > 0)
+            {
+                notifications.Should().Equal(expectedNotification);
+            }
+            focusTarget.Should().Be(comp.Instance.CodeItems[0].InputId);
+            module.VerifyNotInvoke("focusBlock");
+        }
+
+        /// <summary>
+        /// The keyboard bridge accepts only an exact input identifier owned by this component.
+        /// </summary>
+        [Test]
+        public async Task SecurityCode_KeyboardBridge_RejectsMalformedIds()
+        {
+            var notifications = new List<string?>();
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            SetValues(comp.Instance, (0, "1"));
+            var validId = comp.Instance.CodeItems[0].InputId;
+            var masterId = comp.Instance.CodeItems[0].MasterId;
+            var invalidIds = new[]
+            {
+                $"xxxxxxxxxx0-{masterId}",
+                "mudX-code-0-",
+                $"mudX-code--1-{masterId}",
+                $"mudX-code-999-{masterId}",
+                $"{validId}-extra"
+            };
+
+            foreach (var invalidId in invalidIds)
+            {
+                var focusTarget = await comp.InvokeAsync(() => InvokeKeyboardEvent(comp.Instance, invalidId, "Backspace"));
+                focusTarget.Should().BeNull();
+            }
+
+            comp.Instance.CodeItems[0].Value.Should().Be("1");
+            notifications.Should().BeEmpty();
+            module.VerifyNotInvoke("focusBlock");
+        }
+
+        /// <summary>
+        /// A real input identifier from another component cannot cross the bridge boundary.
+        /// </summary>
+        [Test]
+        public async Task SecurityCode_KeyboardBridge_RejectsAnotherComponentInputId()
+        {
+            var notifications = new List<string?>();
+            var module = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            module.Setup<bool>("init", _ => true);
+            module.Setup<bool>("focusBlock", _ => true);
+            var target = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(x => x.CodeChanged, value => notifications.Add(value)));
+            var other = Context.RenderComponent<MudXSecurityCode>();
+            SetValues(target.Instance, (0, "1"));
+
+            var focusTarget = await target.InvokeAsync(() => InvokeKeyboardEvent(target.Instance, other.Instance.CodeItems[0].InputId, "Backspace"));
+
+            focusTarget.Should().BeNull();
+            target.Instance.CodeItems[0].Value.Should().Be("1");
+            notifications.Should().BeEmpty();
+            module.VerifyNotInvoke("focusBlock");
+        }
+
+        private static async Task<string?> InvokeKeyboardEvent(MudXSecurityCode component, string inputId, string key)
+        {
+            var method = typeof(MudXSecurityCode).GetMethod("HandleKeyboardEvent", BindingFlags.Instance | BindingFlags.NonPublic);
+            method.Should().NotBeNull();
+            var task = method!.Invoke(component, [inputId, key]) as Task<string?>;
+            task.Should().NotBeNull();
+            return await task!;
+        }
+
+        private static void SetValues(MudXSecurityCode component, params (int Index, string Value)[] values)
+        {
+            foreach (var (index, value) in values)
+            {
+                component.CodeItems[index].Value = value;
+            }
         }
     }
 }
