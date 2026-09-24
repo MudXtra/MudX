@@ -1,0 +1,39 @@
+<MudStack Spacing="3">
+    <MudStack Row="true" AlignItems="AlignItems.Center">
+        <MudSwitch id="password-toggle" @bind-Value="_password" Label="Password" />
+        <MudButton id="reset-code" OnClick="Reset">Reset</MudButton>
+    </MudStack>
+
+    <MudXSecurityCode @key="_instanceKey"
+                      Class="keyboard-contract-code"
+                      Code="_code"
+                      CodeChanged="OnCodeChanged"
+                      Pattern="##-##-##"
+                      Password="_password" />
+
+    <div id="keyboard-code">@(_code ?? string.Empty)</div>
+    <div id="keyboard-callback-count">@_callbackCount</div>
+    <MudTextField T="string" id="after-code" Label="After code" />
+</MudStack>
+
+@code {
+    public static string __description__ = "Physical keyboard, mobile beforeinput, focus, masking, paste, and callback-count contract for MudXSecurityCode.";
+
+    private string? _code;
+    private bool _password;
+    private int _callbackCount;
+    private int _instanceKey;
+
+    private void OnCodeChanged(string? value)
+    {
+        _code = value;
+        _callbackCount++;
+    }
+
+    private void Reset()
+    {
+        _code = null;
+        _callbackCount = 0;
+        _instanceKey++;
+    }
+}

@@ -37,7 +37,6 @@
                               Variant="@(!item.IsEditable ? ReadOnlyVariant : Variant)"
                               Margin="@Margin"
                               Underline="@(item.IsEditable ? Underline : false)"
-                              OnKeyDown="@(e => OnKeyDown(item.Index, e))"
                               Required="@(item.IsEditable && Required)"
                               Error="@(item.IsEditable && Error)"
                               HelperId="@GetDescriptionIds(item)"
