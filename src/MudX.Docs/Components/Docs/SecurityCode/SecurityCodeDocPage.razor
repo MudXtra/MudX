@@ -54,6 +54,24 @@
             </ChildContent>
         </DocsPageSection>
 
+        <DocsPageSection Title="Form state and accessibility">
+            <Description>
+                Use <CodeInline Tag="false">Label</CodeInline>, <CodeInline Tag="false">HelperText</CodeInline>, and
+                <CodeInline Tag="false">ErrorText</CodeInline> to describe the segmented control once as one logical field.
+                <CodeInline Tag="false">Required</CodeInline>, <CodeInline Tag="false">Disabled</CodeInline>, and
+                <CodeInline Tag="false">Error</CodeInline> expose the corresponding field state. Use
+                <CodeInline Tag="false">AriaLabel</CodeInline> when the group name should differ from the visible label, and
+                <CodeInline Tag="false">SegmentAriaLabelFormat</CodeInline> to localize the ordinal names announced for editable segments.
+                An <CodeInline Tag="false">aria-label</CodeInline> supplied through <CodeInline Tag="false">UserAttributes</CodeInline>
+                takes precedence over the segment format without replacing the group name.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SecurityCodeFormStateExampleCode.Files">
+                    <SecurityCodeFormStateExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
         <DocsPageSection Title="Orientation">
             <Description>
                 There are several different orientation styles that can be applied to the <CodeInline>MudXSecurityCode</CodeInline> control.
