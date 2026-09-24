@@ -30,7 +30,6 @@ function handlePaste(event, input, dotNetObjRef) {
     const paste = (event.clipboardData || window.clipboardData)?.getData("Text");
     if (paste) {
         dotNetObjRef.invokeMethodAsync("ClipboardPasteEvent", input.id, paste);
-        input.blur();
     }
 }
 
@@ -49,26 +48,26 @@ export function focusBlock(container, inputId) {
 export function focusNextAfterContainer(container) {
     if (!container) return;
 
-    setTimeout(() => focusNextElement(), 0);
+    setTimeout(() => focusNextElement(container), 0);
 }
 
-function focusNextElement() {
+function focusNextElement(container) {
+    if (!container.contains(document.activeElement)) return;
+
     const focusableSelector = 'a:not([disabled]), button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([disabled]):not([tabindex="-1"])';
-
-    if (!document.activeElement) return;
-
-    // Get all focusable elements in the document (or form if within a form)
-    const container = document.activeElement.form || document;
-    const focusableElements = Array.from(container.querySelectorAll(focusableSelector))
+    const focusableElements = Array.from(document.querySelectorAll(focusableSelector))
         .filter(element => {
-            return element.offsetWidth > 0 || element.offsetHeight > 0 || element === document.activeElement;
+            return element.offsetWidth > 0 || element.offsetHeight > 0;
         });
 
-    const currentIndex = focusableElements.indexOf(document.activeElement);
+    const containerElements = focusableElements.filter(element => container.contains(element));
+    if (containerElements.length === 0) return;
+
+    const currentIndex = focusableElements.indexOf(containerElements[containerElements.length - 1]);
     const nextIndex = currentIndex + 1;
 
     // Focus next element if it exists
-    if (nextIndex < focusableElements.length) {        
+    if (nextIndex < focusableElements.length) {
         const el = focusableElements[nextIndex];
         if (el) {
             el.focus();
@@ -78,5 +77,3 @@ function focusNextElement() {
         }
     }
 }
-
-

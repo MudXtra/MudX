@@ -13,8 +13,9 @@
                 customizable pattern (e.g., <CodeInline>####</CodeInline> or <CodeInline>##-##</CodeInline>). Each placeholder accepts
                 numeric, alphabetic, symbolic, or any <c>UTF-8</c> character types based on your configuration. Entering text in a code
                 box will automatically move to the next code box. Pressing backspace will clear the box and once cleared it will move
-                to the previous code box. Both of these actions skip non-placeholders. When the final box is filled, it will automatically
-                focus the first focusable element after the last code box.
+                to the previous code box. Both of these actions skip non-placeholders. After the final box completes and asynchronous
+                validation succeeds, the default behavior advances focus to the next focusable element. Binding an
+                <CodeInline Tag="false">OnCompleted</CodeInline> handler opts into consumer-owned follow-up behavior instead.
             </Description>
         </DocsPageHeader>
 
@@ -33,6 +34,22 @@
             <ChildContent>
                 <SectionContent Codes="@SecurityCodeBasicExampleCode.Files">
                     <SecurityCodeBasicExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Completion and Focus">
+            <Description>
+                Without an <CodeInline Tag="false">OnCompleted</CodeInline> handler, a validated completion preserves the component's legacy
+                behavior by advancing focus to the next focusable element. Bind the awaited callback when completion should submit the
+                published code or focus a known consumer-owned target; in that opt-in path, the component does not also perform automatic
+                external focus. The callback receives the immutable value published for the latest current interaction after asynchronous
+                validation succeeds. If a newer interaction supersedes one awaiting publication or validation, only the newer current value
+                completes.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SecurityCodeCompletionExampleCode.Files">
+                    <SecurityCodeCompletionExample />
                 </SectionContent>
             </ChildContent>
         </DocsPageSection>
@@ -72,7 +89,7 @@
             <Description>
                 The browser <CodeInline Tag="false">Paste</CodeInline> command allows you to insert the current value from your clipboard into the
                 <CodeInline>MudXSecurityCode</CodeInline> component. Using a lightweight algorithm, it attempts to intelligently place your
-                pasted value—regardless of whether it includes read-only characters or the position where you start pasting.
+                pasted valueâ€”regardless of whether it includes read-only characters or the position where you start pasting.
 
                 Try copying the example text below and pasting it into the component. Additionally, the <CodeInline>Code</CodeInline> parameter
                 is two-way bound, so it updates as you type and also reflects changes made externally, as if a paste began at position 0.
