@@ -5,7 +5,13 @@
 ## Getting started with MudX is easy:
 
 1. **Step 1:** Install [MudBlazor](https://mudblazor.com/getting-started/installation).
-2. **Step 2:** Add MudX to your project via NuGet.
+2. **Step 2:** Add the active MudX package via NuGet:
+
+   ```shell
+   dotnet add package MudX.MudBlazor.Extension
+   ```
+
+   > **Note:** The plural `MudX.MudBlazor.Extensions` package ID is an older package line and is not the active package documented by this repository.
 3. **Step 3:** Include the `MudXProvider` in your layout **-or-** reference `./_content/MudX.MudBlazor.Extension/_mudx.min.css` and `./_content/MudX.MudBlazor.Extension/mudx.min.js` in your project **-with-** cache busting.
 4. **Step 4:** Start using components - all MudX components are prefixed with `MudX`, such as `MudXOutline`.
 5. **Step 5:** Browse the [documentation](https://mudx.org) to learn how to use each component.
