@@ -65,6 +65,10 @@
                 <CodeInline Tag="false">SegmentAriaLabelFormat</CodeInline> to localize the ordinal names announced for editable segments.
                 An <CodeInline Tag="false">aria-label</CodeInline> supplied through <CodeInline Tag="false">UserAttributes</CodeInline>
                 takes precedence over the segment format without replacing the group name.
+                <CodeInline Tag="false">Error</CodeInline> remains active during editing and validation until the consumer clears it,
+                for example in <CodeInline Tag="false">CodeChanged</CodeInline> when retrying a rejected code. While it is set,
+                validation does not pass, so completion and automatic external focus do not occur. Clearing the error alone does not
+                trigger <CodeInline Tag="false">OnCompleted</CodeInline>.
             </Description>
             <ChildContent>
                 <SectionContent Codes="@SecurityCodeFormStateExampleCode.Files">

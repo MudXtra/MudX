@@ -100,6 +100,9 @@ namespace MudX
                 .WithParameter(() => Code)
                 .WithEventCallback(() => CodeChanged)
                 .WithChangeHandler(OnChangeHandler);
+            registerScope.RegisterParameter<bool>(nameof(Error))
+                .WithParameter(() => Error)
+                .WithChangeHandler(OnErrorChangedAsync);
         }
 
         [Inject]
@@ -352,6 +355,12 @@ namespace MudX
                 await _module.InvokeVoidAsync("init", _dotNetRef, _elementRef);
         }
 
+        private async Task OnErrorChangedAsync()
+        {
+            if (_form is not null)
+                await _form.ValidateAsync();
+        }
+
         private IEnumerable<string> CharPatternValidator(int index, string val)
         {
             if (string.IsNullOrEmpty(val))
@@ -359,8 +368,13 @@ namespace MudX
                 if (Required && CodeItems[index].IsEditable)
                     yield return "*";
             }
-            else if (val.Length > 1 && !IsValidInput(CodeItems[index].PatternChar, val))
+            else if (CodeItems[index].IsEditable && !IsValidInput(CodeItems[index].PatternChar, val))
                 yield return "*";
+
+            // MudTextField validation owns its error state and ignores empty messages.
+            // Keep the group error in that result without repeating the wrapper's ErrorText.
+            if (Error && CodeItems[index].IsEditable)
+                yield return " ";
         }
 
         private void GenerateFromPattern(string pattern)

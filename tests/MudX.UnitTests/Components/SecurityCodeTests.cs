@@ -814,7 +814,7 @@ namespace MudX.UnitTests.Components
             inputs.Should().OnlyContain(input => input.GetAttribute("aria-invalid") == "true");
             inputs.Should().OnlyContain(input => input.GetAttribute("aria-describedby")!
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                .Select(id => comp.Find($"#{id}").TextContent)
+                .Select(id => comp.Find($"[id='{id}']").TextContent)
                 .Contains("The code is invalid."));
             comp.FindAll("[role='alert']").Should().ContainSingle()
                 .Which.TextContent.Should().Be("The code is invalid.");
@@ -918,6 +918,103 @@ namespace MudX.UnitTests.Components
             // Assert
             comp.FindAll("input:not([readonly])")
                 .Should().OnlyContain(input => input.GetAttribute("aria-label") == "Custom segment");
+        }
+
+        [TestCase("typing", "Invalid code.")]
+        [TestCase("paste", "Invalid code.")]
+        [TestCase("validate", "Invalid code.")]
+        [TestCase("typing", null)]
+        [TestCase("paste", null)]
+        [TestCase("validate", null)]
+        public async Task SecurityCode_ShouldRetainExternalErrorThroughValidation(string interaction, string? errorText)
+        {
+            var completed = new List<string?>();
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.Pattern, "##-##")
+                .Add(p => p.Error, true)
+                .Add(p => p.ErrorText, errorText)
+                .Add(p => p.HelperText, "Enter the code.")
+                .Add(p => p.OnCompleted, value => completed.Add(value)));
+
+            comp.FindAll("input:not([readonly])").Should().OnlyContain(input => input.GetAttribute("aria-invalid") == "true");
+            switch (interaction)
+            {
+                case "typing":
+                    await comp.Find("input:not([readonly])").InputAsync(new ChangeEventArgs { Value = "1" });
+                    break;
+                case "paste":
+                    await comp.InvokeAsync(() => comp.Instance.ClipboardPasteEvent(comp.Find("input:not([readonly])").Id!, "1234"));
+                    break;
+                case "validate":
+                    await comp.InvokeAsync(() => comp.FindComponent<MudForm>().Instance.ValidateAsync());
+                    break;
+            }
+
+            comp.Instance.Error.Should().BeTrue();
+            comp.FindAll("input:not([readonly])").Should().OnlyContain(input =>
+                input.GetAttribute("aria-invalid") == "true" && input.Closest(".mud-input")!.ClassList.Contains("mud-input-error"));
+            foreach (var input in comp.FindAll("input:not([readonly])"))
+            {
+                var descriptions = input.GetAttribute("aria-describedby")!.Split(' ').Select(id => comp.Find($"[id='{id}']").TextContent).ToArray();
+                descriptions.Should().Contain("Enter the code.");
+                if (errorText is not null)
+                    descriptions.Should().Contain(errorText);
+            }
+            comp.FindAll("[role='alert']").Should().HaveCount(errorText is null ? 0 : 1);
+            comp.FindAll(".mudx-code-item .mud-input-control-helper-container").Should().OnlyContain(element => string.IsNullOrWhiteSpace(element.TextContent));
+            comp.Find("input[readonly]").GetAttribute("aria-invalid").Should().Be("false");
+            completed.Should().BeEmpty("completion requires the internal form to pass validation");
+        }
+
+        [Test]
+        public async Task SecurityCode_ShouldClearExternalErrorWithoutAnotherEdit()
+        {
+            var completed = new List<string?>();
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.Pattern, "##")
+                .Add(p => p.Error, true)
+                .Add(p => p.ErrorText, "Invalid code.")
+                .Add(p => p.HelperText, "Enter the code.")
+                .Add(p => p.OnCompleted, value => completed.Add(value)));
+            await comp.InvokeAsync(() => comp.Instance.ClipboardPasteEvent(comp.Find("input").Id!, "12"));
+
+            await comp.InvokeAsync(() => comp.SetParametersAndRender(parameters => parameters.Add(p => p.Error, false)));
+
+            comp.FindAll("input").Should().OnlyContain(input => input.GetAttribute("aria-invalid") == "false");
+            comp.FindAll(".mud-input-error").Should().BeEmpty();
+            comp.FindAll("[role='alert']").Should().BeEmpty();
+            foreach (var input in comp.FindAll("input"))
+                input.GetAttribute("aria-describedby").Should().Be(comp.Find(".mudx-code-helper-text").Id);
+            comp.FindComponent<MudForm>().Instance.IsValid.Should().BeTrue();
+            completed.Should().BeEmpty("a parameter update must not manufacture a completion");
+
+            await comp.FindAll("input")[1].InputAsync(new ChangeEventArgs { Value = "3" });
+            completed.Should().Equal("13");
+        }
+
+        [Test]
+        public async Task SecurityCode_ShouldKeepCharacterValidationAfterExternalErrorClears()
+        {
+            var completed = new List<string?>();
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.Pattern, "#")
+                .Add(p => p.Required, true)
+                .Add(p => p.Error, true)
+                .Add(p => p.ErrorText, "Invalid code.")
+                .Add(p => p.OnCompleted, value => completed.Add(value)));
+            await comp.Find("input").InputAsync(new ChangeEventArgs { Value = "x" });
+            await comp.InvokeAsync(() => comp.SetParametersAndRender(parameters => parameters.Add(p => p.Error, false)));
+
+            comp.Instance.CodeItems[0].Value.Should().BeEmpty();
+            comp.Find("input").GetAttribute("aria-invalid").Should().Be("true");
+            comp.FindComponent<MudForm>().Instance.IsValid.Should().BeFalse();
+            comp.FindAll("[role='alert']").Should().BeEmpty();
+            completed.Should().BeEmpty();
+
+            await comp.Find("input").InputAsync(new ChangeEventArgs { Value = "7" });
+            comp.Find("input").GetAttribute("aria-invalid").Should().Be("false");
+            comp.FindComponent<MudForm>().Instance.IsValid.Should().BeTrue();
+            completed.Should().Equal("7");
         }
 
         [Test]
