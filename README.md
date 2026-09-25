@@ -5,7 +5,13 @@
 ## Getting started with MudX is easy:
 
 1. **Step 1:** Install [MudBlazor](https://mudblazor.com/getting-started/installation).
-2. **Step 2:** Add MudX to your project via NuGet.
+2. **Step 2:** Add the active MudX package via NuGet:
+
+   ```shell
+   dotnet add package MudX.MudBlazor.Extension
+   ```
+
+   > **Note:** The plural `MudX.MudBlazor.Extensions` package ID is an older package line and is not the active package documented by this repository.
 3. **Step 3:** Include the `MudXProvider` in your layout **-or-** reference `./_content/MudX.MudBlazor.Extension/_mudx.min.css` and `./_content/MudX.MudBlazor.Extension/mudx.min.js` in your project **-with-** cache busting.
 4. **Step 4:** Start using components - all MudX components are prefixed with `MudX`, such as `MudXOutline`.
 5. **Step 5:** Browse the [documentation](https://mudx.org) to learn how to use each component.
@@ -15,12 +21,14 @@
 
 ## Table of Contents
 - [MudXSecurityCode](#mudxsecuritycode)
+- [MudXSheet](#mudxsheet)
 - [MudXChat](#mudxchat)
 - [MudXOutline](#mudxoutline)
 - [MudXCodeBlock](#mudxcodeblock)
 - [MudXCopyToClipboard](#mudxcopytoclipboard)
 - [MudXBreadcrumbs](#mudxbreadcrumbs)
 - [Blazor Lottie Player](#blazor-lottie-player)]
+- [IdMasker](#idmasker)
 
 ---
 
@@ -38,8 +46,18 @@ A component for creating a chat interface with customizable MudXChatBubble compo
 ### MudXSecurityCode
 ![status](https://img.shields.io/badge/status-new-red)
 
-A component for entering security codes, such as SMS or email verification codes.  
+A segmented input component for security codes, such as SMS or email verification codes. Configurable placeholders and fixed characters also support segmented pattern masks for values such as dates and formatted identifiers.
+
 ![MudXSecurityCode Image](https://github.com/MudXtra/Mudx/raw/dev/images/MudXSecurityCode.png)  
+[Back to top](#table-of-contents)
+
+---
+
+### MudXSheet
+![status](https://img.shields.io/badge/status-new-red)
+
+A sheet component that displays contextual content from the top, bottom, left, right, or center of the screen for mobile and desktop layouts.
+
 [Back to top](#table-of-contents)
 
 ---
@@ -86,4 +104,14 @@ A self-navigating breadcrumb navigation component that supports custom separator
 A Blazor component for rendering Lottie animations, downloadable separately from MudX but designed and
 maintained by the MudX team.
 ![Blazor Lottie Player Image](https://github.com/MudXtra/Mudx/raw/dev/images/BlazorLottiePlayer.png)  
+[Back to top](#table-of-contents)
+
+---
+
+## Utilities
+
+### IdMasker
+
+A static utility for creating human-friendly obfuscated IDs with `IdMasker.MaskId` and restoring them with `IdMasker.UnMaskId`. The masked values are not cryptographically secure.
+
 [Back to top](#table-of-contents)
