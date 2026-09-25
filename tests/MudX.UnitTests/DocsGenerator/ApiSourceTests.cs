@@ -6,6 +6,46 @@ namespace MudX.UnitTests.DocsGenerator;
 public class ApiSourceTests
 {
     [Fact]
+    public void FindPackageXmlPath_SelectsRequestedVersionAndFramework()
+    {
+        var packageRoot = Directory.CreateTempSubdirectory();
+        var expectedPath = Path.Combine(packageRoot.FullName, "9.10.0", "lib", "net10.0", "MudBlazor.xml");
+        var stalePath = Path.Combine(packageRoot.FullName, "8.0.0", "lib", "net10.0", "MudBlazor.xml");
+        var otherFrameworkPath = Path.Combine(packageRoot.FullName, "9.10.0", "lib", "net9.0", "MudBlazor.xml");
+        Directory.CreateDirectory(Path.GetDirectoryName(stalePath)!);
+        Directory.CreateDirectory(Path.GetDirectoryName(otherFrameworkPath)!);
+        Directory.CreateDirectory(Path.GetDirectoryName(expectedPath)!);
+        File.WriteAllText(stalePath, "8.0.0");
+        File.WriteAllText(otherFrameworkPath, "wrong framework");
+        File.WriteAllText(expectedPath, "9.10.0");
+
+        try
+        {
+            var apiSourceType = Assembly.LoadFrom(GetDocsGeneratorAssemblyPath())
+                .GetType("MudX.Docs.Generator.ApiSource", throwOnError: true)!;
+            var findPackageXmlPath = apiSourceType.GetMethod(
+                "FindPackageXmlPath",
+                BindingFlags.NonPublic | BindingFlags.Static);
+
+            findPackageXmlPath.Should().NotBeNull();
+            var selectedPath = (string?)findPackageXmlPath!.Invoke(
+                null,
+                [packageRoot.FullName, "9.10.0", "net10.0", "MudBlazor.xml"]);
+
+            selectedPath.Should().Be(expectedPath);
+
+            File.Delete(expectedPath);
+            findPackageXmlPath.Invoke(
+                null,
+                [packageRoot.FullName, "9.10.0", "net10.0", "MudBlazor.xml"]).Should().BeNull();
+        }
+        finally
+        {
+            packageRoot.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
     public void LoadXmlDocumentation_PreservesReadableTextForSeeCrefElements()
     {
         var xmlPath = Path.GetTempFileName();
