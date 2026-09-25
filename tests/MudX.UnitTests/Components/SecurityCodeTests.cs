@@ -629,6 +629,141 @@ namespace MudX.UnitTests.Components
                 .Should().OnlyContain(input => input.GetAttribute("aria-label") == "Custom segment");
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task SecurityCode_ShouldUpdateSegmentAriaLabelWhenUserAttributesChange(bool mutateInPlace)
+        {
+            var attributes = new Dictionary<string, object?> { ["aria-label"] = "Initial segment" };
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.AriaLabel, "Account verification code")
+                .Add(p => p.UserAttributes, attributes));
+            var inputIds = comp.FindAll("input").Select(input => input.Id).ToArray();
+            comp.FindAll("input:not([readonly])")
+                .Should().OnlyContain(input => input.GetAttribute("aria-label") == "Initial segment");
+
+            await comp.InvokeAsync(() =>
+            {
+                if (mutateInPlace)
+                    attributes["aria-label"] = "Updated segment";
+                else
+                    attributes = new Dictionary<string, object?> { ["aria-label"] = "Updated segment" };
+                comp.SetParametersAndRender(parameters => parameters.Add(p => p.UserAttributes, attributes));
+            });
+
+            comp.FindAll("input:not([readonly])")
+                .Should().OnlyContain(input => input.GetAttribute("aria-label") == "Updated segment");
+            comp.FindAll("input").Select(input => input.Id).Should().Equal(inputIds);
+            comp.Find(".mudx-code-container[role='group']")
+                .GetAttribute("aria-label").Should().Be("Account verification code");
+            attributes.Should().ContainSingle().Which.Value.Should().Be("Updated segment");
+        }
+
+        [TestCase("remove")]
+        [TestCase("clear")]
+        [TestCase("replace")]
+        [TestCase("null-label")]
+        [TestCase("null-dictionary")]
+        public async Task SecurityCode_ShouldRestoreOrdinalLabelsWhenUserAttributesAreRemoved(string removal)
+        {
+            var attributes = new Dictionary<string, object?> { ["aria-label"] = "Initial segment" };
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.UserAttributes, attributes));
+            comp.FindAll("input:not([readonly])")
+                .Should().OnlyContain(input => input.GetAttribute("aria-label") == "Initial segment");
+
+            await comp.InvokeAsync(() =>
+            {
+                switch (removal)
+                {
+                    case "remove":
+                        attributes.Remove("aria-label");
+                        break;
+                    case "clear":
+                        attributes.Clear();
+                        break;
+                    case "replace":
+                        attributes = new Dictionary<string, object?>();
+                        break;
+                    case "null-label":
+                        attributes["aria-label"] = null;
+                        break;
+                    case "null-dictionary":
+                        attributes = null!;
+                        break;
+                }
+                comp.SetParametersAndRender(parameters => parameters.Add(p => p.UserAttributes, attributes));
+            });
+
+            comp.FindAll("input:not([readonly])")
+                .Select(input => input.GetAttribute("aria-label"))
+                .Should().Equal("Character 1 of 4", "Character 2 of 4", "Character 3 of 4", "Character 4 of 4");
+            comp.FindAll("input").Should().OnlyContain(input => input.GetAttribute("autocomplete") == "off");
+        }
+
+        [Test]
+        public async Task SecurityCode_ShouldUpdateAutocompleteWithoutOverridingLiteralOrFormState()
+        {
+            var attributes = new Dictionary<string, object?>
+            {
+                ["autocomplete"] = "one-time-code",
+                ["tabindex"] = "3",
+                ["aria-hidden"] = "false"
+            };
+            var comp = Context.RenderComponent<MudXSecurityCode>(parameters => parameters
+                .Add(p => p.Pattern, "##-##")
+                .Add(p => p.Required, true)
+                .Add(p => p.Disabled, true)
+                .Add(p => p.Error, true)
+                .Add(p => p.HelperText, "Enter the code.")
+                .Add(p => p.ErrorText, "Invalid code.")
+                .Add(p => p.UserAttributes, attributes));
+            var inputIds = comp.FindAll("input").Select(input => input.Id).ToArray();
+            comp.FindAll("input").Should().OnlyContain(input => input.GetAttribute("autocomplete") == "one-time-code");
+
+            await comp.InvokeAsync(() =>
+            {
+                attributes["autocomplete"] = "on";
+                attributes["tabindex"] = "4";
+                comp.SetParametersAndRender(parameters => parameters.Add(p => p.UserAttributes, attributes));
+            });
+
+            comp.FindAll("input").Should().OnlyContain(input => input.GetAttribute("autocomplete") == "on");
+            comp.FindAll("input:not([readonly])").Should().OnlyContain(input =>
+                input.GetAttribute("tabindex") == "4"
+                && input.GetAttribute("aria-hidden") == "false"
+                && input.GetAttribute("aria-required") == "true"
+                && input.GetAttribute("aria-invalid") == "true"
+                && input.HasAttribute("disabled"));
+            foreach (var input in comp.FindAll("input:not([readonly])"))
+            {
+                input.GetAttribute("aria-describedby")!.Split(' ')
+                    .Select(id => comp.Find($"#{id}").TextContent)
+                    .Should().BeEquivalentTo("Enter the code.", "Invalid code.");
+            }
+            comp.Find("input[readonly]").GetAttribute("tabindex").Should().Be("-1");
+            comp.Find("input[readonly]").GetAttribute("aria-hidden").Should().Be("true");
+            comp.Find("input[readonly]").HasAttribute("inert").Should().BeTrue();
+            comp.Find("input[readonly]").HasAttribute("disabled").Should().BeFalse();
+            comp.FindAll("[role='alert']").Should().ContainSingle();
+
+            await comp.InvokeAsync(() =>
+            {
+                attributes.Clear();
+                comp.SetParametersAndRender(parameters => parameters.Add(p => p.UserAttributes, attributes));
+            });
+
+            comp.FindAll("input").Should().OnlyContain(input => input.GetAttribute("autocomplete") == "off");
+            comp.FindAll("input:not([readonly])").Should().OnlyContain(input =>
+                !input.HasAttribute("tabindex") && !input.HasAttribute("aria-hidden"));
+            comp.FindAll("input:not([readonly])").Select(input => input.GetAttribute("aria-label"))
+                .Should().Equal("Character 1 of 4", "Character 2 of 4", "Character 3 of 4", "Character 4 of 4");
+            comp.Find("input[readonly]").GetAttribute("tabindex").Should().Be("-1");
+            comp.Find("input[readonly]").GetAttribute("aria-hidden").Should().Be("true");
+            comp.Find("input[readonly]").HasAttribute("inert").Should().BeTrue();
+            comp.FindAll("input").Select(input => input.Id).Should().Equal(inputIds);
+            attributes.Should().BeEmpty();
+        }
+
         [Test]
         public void SecurityCode_ShouldAssociateVisibleLabelWithFirstEditableSegment()
         {

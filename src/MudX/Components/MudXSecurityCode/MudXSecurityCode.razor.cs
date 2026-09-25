@@ -32,9 +32,9 @@ namespace MudX
 
         private Dictionary<string, object?> GetContainerAttributes()
         {
-            return UserAttributes
+            return UserAttributes?
                 .Where(attribute => !string.Equals(attribute.Key, "aria-label", StringComparison.OrdinalIgnoreCase))
-                .ToDictionary(attribute => attribute.Key, attribute => attribute.Value);
+                .ToDictionary(attribute => attribute.Key, attribute => attribute.Value) ?? [];
         }
 
         private Dictionary<string, object?> GetInputAttributes(CodeItem item)
@@ -315,10 +315,12 @@ namespace MudX
         protected override void OnParametersSet()
         {
             base.OnParametersSet();
+            _attributes.Clear();
+            _attributes.Add("autocomplete", "off");
             if (UserAttributes is { Count: > 0 })
             {
                 foreach (KeyValuePair<string, object?> attr in UserAttributes)
-                    _attributes.TryAdd(attr.Key, attr.Value);
+                    _attributes[attr.Key] = attr.Value;
             }
 
             StateHasChanged();
@@ -330,9 +332,6 @@ namespace MudX
         protected override void OnInitialized()
         {
             base.OnInitialized();
-            _attributes.Add("autocomplete", "off");
-            foreach (KeyValuePair<string, object?> attr in UserAttributes)
-                _attributes.Add(attr.Key, attr.Value);
             GenerateFromPattern(Pattern);
         }
 
