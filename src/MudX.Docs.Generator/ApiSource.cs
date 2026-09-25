@@ -41,10 +41,16 @@ namespace MudX.Docs.Generator
 
                 if (Directory.Exists(nugetPath))
                 {
-                    var xmlFiles = Directory.GetFiles(nugetPath, "MudBlazor.xml", SearchOption.AllDirectories);
-                    if (xmlFiles.Length > 0)
+                    var packageVersion = mudAssembly.GetName().Version?.ToString(3);
+                    var targetFramework = Path.GetFileName(Path.GetDirectoryName(mudAssembly.Location));
+                    var packageXmlPath = FindPackageXmlPath(
+                        nugetPath,
+                        packageVersion,
+                        targetFramework,
+                        "MudBlazor.xml");
+                    if (packageXmlPath is not null)
                     {
-                        xmlPath = xmlFiles[0];
+                        xmlPath = packageXmlPath;
                         CopyIfDifferent(xmlPath, fallbackPath);
                     }
                     else
@@ -246,6 +252,19 @@ namespace MudX.Docs.Generator
             // Normalize line endings to LF and trim trailing whitespace
             var lines = text.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n');
             return string.Join("\n", lines.Select(l => l.TrimEnd()));
+        }
+
+        private static string? FindPackageXmlPath(
+            string packageRoot,
+            string? packageVersion,
+            string? targetFramework,
+            string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(packageVersion) || string.IsNullOrWhiteSpace(targetFramework))
+                return null;
+
+            var exactPath = Path.Combine(packageRoot, packageVersion, "lib", targetFramework, fileName);
+            return File.Exists(exactPath) ? exactPath : null;
         }
 
         private static void CopyIfDifferent(string sourcePath, string destinationPath)

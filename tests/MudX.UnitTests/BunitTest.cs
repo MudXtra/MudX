@@ -7,7 +7,7 @@ namespace MudX.UnitTests
 {
     public abstract class BunitTest
     {
-        protected Bunit.TestContext Context { get; private set; } = null!;
+        protected Bunit.BunitContext Context { get; private set; } = null!;
 
         [SetUp]
         public virtual void Setup()
@@ -17,12 +17,12 @@ namespace MudX.UnitTests
         }
 
         [TearDown]
-        public void TearDown() => Context.Dispose();
+        public async Task TearDown() => await Context.DisposeAsync();
     }
 
     public static class TestContextExtensions
     {
-        public static void AddTestServices(this Bunit.TestContext ctx)
+        public static void AddTestServices(this Bunit.BunitContext ctx)
         {
             ctx.JSInterop.Mode = JSRuntimeMode.Loose;
             ctx.Services.AddMudServices(options =>
