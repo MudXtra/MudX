@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+state="$MUDX_STATE_DIR"
+printf '%s\n' "$*" >> "$state/docker.log"
+if [[ "$1" == pull && -e "$state/inject-pull-failure" ]]; then exit 1; fi

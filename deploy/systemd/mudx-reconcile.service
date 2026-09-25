@@ -1,0 +1,13 @@
+[Unit]
+Description=Reconcile interrupted MudX deployment before container start
+Requires=docker.service
+After=docker.service
+Before=mudx-container.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/mudx-deploy reconcile
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
