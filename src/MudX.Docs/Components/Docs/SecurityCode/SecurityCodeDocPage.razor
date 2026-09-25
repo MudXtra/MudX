@@ -12,9 +12,11 @@
                 Typically, you would use <CodeInline>MudXSecurityCode</CodeInline> to display a series of text fields that match a
                 customizable pattern (e.g., <CodeInline>####</CodeInline> or <CodeInline>##-##</CodeInline>). Each placeholder accepts
                 numeric, alphabetic, symbolic, or any <c>UTF-8</c> character types based on your configuration. Entering text in a code
-                box will automatically move to the next code box. Pressing backspace will clear the box and once cleared it will move
-                to the previous code box. Both of these actions skip non-placeholders. When the final box is filled, it will automatically
-                focus the first focusable element after the last code box.
+                box will automatically move to the next code box. Backspace clears a filled box and moves to the previous editable box;
+                on an empty box it clears the previous editable box. Delete clears only the focused box. Left and right arrows skip
+                literal segments without changing the code, while Tab and IME composition keep their native behavior. After the code completes and asynchronous
+                validation succeeds, the default behavior advances focus to the next focusable element. Binding an
+                <CodeInline Tag="false">OnCompleted</CodeInline> handler opts into consumer-owned follow-up behavior instead.
             </Description>
         </DocsPageHeader>
 
@@ -33,6 +35,44 @@
             <ChildContent>
                 <SectionContent Codes="@SecurityCodeBasicExampleCode.Files">
                     <SecurityCodeBasicExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Completion and Focus">
+            <Description>
+                Without an <CodeInline Tag="false">OnCompleted</CodeInline> handler, a validated completion preserves the component's legacy
+                behavior by advancing focus to the next focusable element. Bind the awaited callback when completion should submit the
+                published code or focus a known consumer-owned target; in that opt-in path, the component does not also perform automatic
+                external focus. The callback receives the immutable value published for the latest current interaction after asynchronous
+                validation succeeds. If a newer interaction supersedes one awaiting publication or validation, only the newer current value
+                completes.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SecurityCodeCompletionExampleCode.Files">
+                    <SecurityCodeCompletionExample />
+                </SectionContent>
+            </ChildContent>
+        </DocsPageSection>
+
+        <DocsPageSection Title="Form state and accessibility">
+            <Description>
+                Use <CodeInline Tag="false">Label</CodeInline>, <CodeInline Tag="false">HelperText</CodeInline>, and
+                <CodeInline Tag="false">ErrorText</CodeInline> to describe the segmented control once as one logical field.
+                <CodeInline Tag="false">Required</CodeInline>, <CodeInline Tag="false">Disabled</CodeInline>, and
+                <CodeInline Tag="false">Error</CodeInline> expose the corresponding field state. Use
+                <CodeInline Tag="false">AriaLabel</CodeInline> when the group name should differ from the visible label, and
+                <CodeInline Tag="false">SegmentAriaLabelFormat</CodeInline> to localize the ordinal names announced for editable segments.
+                An <CodeInline Tag="false">aria-label</CodeInline> supplied through <CodeInline Tag="false">UserAttributes</CodeInline>
+                takes precedence over the segment format without replacing the group name.
+                <CodeInline Tag="false">Error</CodeInline> remains active during editing and validation until the consumer clears it,
+                for example in <CodeInline Tag="false">CodeChanged</CodeInline> when retrying a rejected code. While it is set,
+                validation does not pass, so completion and automatic external focus do not occur. Clearing the error alone does not
+                trigger <CodeInline Tag="false">OnCompleted</CodeInline>.
+            </Description>
+            <ChildContent>
+                <SectionContent Codes="@SecurityCodeFormStateExampleCode.Files">
+                    <SecurityCodeFormStateExample />
                 </SectionContent>
             </ChildContent>
         </DocsPageSection>
@@ -72,7 +112,7 @@
             <Description>
                 The browser <CodeInline Tag="false">Paste</CodeInline> command allows you to insert the current value from your clipboard into the
                 <CodeInline>MudXSecurityCode</CodeInline> component. Using a lightweight algorithm, it attempts to intelligently place your
-                pasted value—regardless of whether it includes read-only characters or the position where you start pasting.
+                pasted valueâ€”regardless of whether it includes read-only characters or the position where you start pasting.
 
                 Try copying the example text below and pasting it into the component. Additionally, the <CodeInline>Code</CodeInline> parameter
                 is two-way bound, so it updates as you type and also reflects changes made externally, as if a paste began at position 0.

@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
+﻿using System.Globalization;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.State;
@@ -15,11 +15,80 @@ namespace MudX
     {
         private ElementReference? _elementRef;
         private readonly string Id = $"mudx-code-id-{Guid.NewGuid()}";
-        private DotNetObjectReference<MudXSecurityCode>? _dotNetRef;
+        private DotNetObjectReference<SecurityCodeJsBridge>? _dotNetRef;
+        private SecurityCodeJsBridge? _jsBridge;
         private readonly Dictionary<string, object?> _attributes = [];
         internal ParameterState<string?> _codeState;
         private bool _isInternalChange = false;
+        private bool _isDisposed;
         private MudForm? _form = null!;
+        private long _completionGeneration;
+
+        private string LabelId => $"{Id}-label";
+        private string HelperTextId => $"{Id}-helper-text";
+        private string ErrorTextId => $"{Id}-error-text";
+        private string? FirstEditableInputId => CodeItems.FirstOrDefault(item => item.IsEditable)?.InputId;
+        private const string DefaultSegmentAriaLabelFormat = "Character {0} of {1}";
+
+        private Dictionary<string, object?> GetContainerAttributes()
+        {
+            return UserAttributes?
+                .Where(attribute => !string.Equals(attribute.Key, "aria-label", StringComparison.OrdinalIgnoreCase))
+                .ToDictionary(attribute => attribute.Key, attribute => attribute.Value) ?? [];
+        }
+
+        private Dictionary<string, object?> GetInputAttributes(CodeItem item)
+        {
+            var attributes = new Dictionary<string, object?>(_attributes);
+            var hasExplicitAriaLabel = attributes.TryGetValue("aria-label", out var ariaLabel)
+                && !string.IsNullOrWhiteSpace(ariaLabel?.ToString());
+            if (item.IsEditable)
+            {
+                var ordinal = CodeItems.Take(item.Index + 1).Count(codeItem => codeItem.IsEditable);
+                var total = CodeItems.Count(codeItem => codeItem.IsEditable);
+                if (!hasExplicitAriaLabel)
+                    attributes["aria-label"] = FormatSegmentAriaLabel(ordinal, total);
+            }
+            else
+            {
+                attributes["tabindex"] = "-1";
+                attributes["aria-hidden"] = "true";
+                attributes["inert"] = string.Empty;
+            }
+
+            return attributes;
+        }
+
+        private string FormatSegmentAriaLabel(int ordinal, int total)
+        {
+            var format = string.IsNullOrWhiteSpace(SegmentAriaLabelFormat)
+                ? DefaultSegmentAriaLabelFormat
+                : SegmentAriaLabelFormat;
+            try
+            {
+                return string.Format(CultureInfo.CurrentCulture, format, ordinal, total);
+            }
+            catch (FormatException)
+            {
+                return string.Format(CultureInfo.CurrentCulture, DefaultSegmentAriaLabelFormat, ordinal, total);
+            }
+        }
+
+        private string? GetDescriptionIds(CodeItem item)
+        {
+            if (!item.IsEditable)
+                return null;
+
+            var helperId = !string.IsNullOrWhiteSpace(HelperText) ? HelperTextId : null;
+            var errorId = Error && !string.IsNullOrWhiteSpace(ErrorText) ? ErrorTextId : null;
+            return (helperId, errorId) switch
+            {
+                (not null, not null) => $"{helperId} {errorId}",
+                (not null, null) => helperId,
+                (null, not null) => errorId,
+                _ => null
+            };
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MudXSecurityCode"/> class.
@@ -31,6 +100,9 @@ namespace MudX
                 .WithParameter(() => Code)
                 .WithEventCallback(() => CodeChanged)
                 .WithChangeHandler(OnChangeHandler);
+            registerScope.RegisterParameter<bool>(nameof(Error))
+                .WithParameter(() => Error)
+                .WithChangeHandler(OnErrorChangedAsync);
         }
 
         [Inject]
@@ -115,10 +187,81 @@ namespace MudX
         public string? Code { get; set; }
 
         /// <summary>
+        /// The visible label for the security code group.
+        /// </summary>
+        /// <remarks>Defaults to <c>null</c>.</remarks>
+        [Parameter]
+        public string? Label { get; set; }
+
+        /// <summary>
+        /// The helper text displayed beneath the security code group.
+        /// </summary>
+        /// <remarks>Defaults to <c>null</c>.</remarks>
+        [Parameter]
+        public string? HelperText { get; set; }
+
+        /// <summary>
+        /// Whether a value is required for every editable segment.
+        /// </summary>
+        /// <remarks>Defaults to <c>false</c>.</remarks>
+        [Parameter]
+        public bool Required { get; set; }
+
+        /// <summary>
+        /// Whether the editable security code segments are disabled.
+        /// </summary>
+        /// <remarks>Defaults to <c>false</c>.</remarks>
+        [Parameter]
+        public bool Disabled { get; set; }
+
+        /// <summary>
+        /// Whether the security code group is in an error state.
+        /// </summary>
+        /// <remarks>Defaults to <c>false</c>.</remarks>
+        [Parameter]
+        public bool Error { get; set; }
+
+        /// <summary>
+        /// The error text displayed when <see cref="Error" /> is <c>true</c>.
+        /// </summary>
+        /// <remarks>Defaults to <c>null</c>.</remarks>
+        [Parameter]
+        public string? ErrorText { get; set; }
+
+        /// <summary>
+        /// The accessible name for the security code group.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to <c>null</c>. When set, this value takes precedence over <see cref="Label" /> for the group's accessible name.
+        /// </remarks>
+        [Parameter]
+        public string? AriaLabel { get; set; }
+
+        /// <summary>
+        /// The format used for each editable segment's accessible name.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to <c>"Character {0} of {1}"</c>, where <c>{0}</c> is the segment position and <c>{1}</c> is the editable segment count.
+        /// An <c>aria-label</c> supplied through <see cref="MudComponentBase.UserAttributes" /> labels each editable segment and takes precedence.
+        /// It does not replace the group's accessible name.
+        /// Null, blank, or malformed formats fall back to the default so every editable segment remains named.
+        /// </remarks>
+        [Parameter]
+        public string? SegmentAriaLabelFormat { get; set; } = DefaultSegmentAriaLabelFormat;
+
+        /// <summary>
         /// Called when the value of the security code changes.
         /// </summary>
         [Parameter]
         public EventCallback<string?> CodeChanged { get; set; }
+
+        /// <summary>
+        /// Occurs after a complete security code has been published and the component's form has passed asynchronous validation.
+        /// </summary>
+        /// <remarks>When a handler is provided, it is awaited and owns any follow-up behavior, including focus. Without a handler,
+        /// the component preserves its default behavior by advancing focus to the next focusable element.</remarks>
+        [Parameter]
+        public EventCallback<string?> OnCompleted { get; set; }
 
         /// <summary>
         /// If true, each input will be masked as a password.
@@ -175,10 +318,12 @@ namespace MudX
         protected override void OnParametersSet()
         {
             base.OnParametersSet();
+            _attributes.Clear();
+            _attributes.Add("autocomplete", "off");
             if (UserAttributes is { Count: > 0 })
             {
                 foreach (KeyValuePair<string, object?> attr in UserAttributes)
-                    _attributes.TryAdd(attr.Key, attr.Value);
+                    _attributes[attr.Key] = attr.Value;
             }
 
             StateHasChanged();
@@ -190,9 +335,6 @@ namespace MudX
         protected override void OnInitialized()
         {
             base.OnInitialized();
-            _attributes.Add("autocomplete", "off");
-            foreach (KeyValuePair<string, object?> attr in UserAttributes)
-                _attributes.Add(attr.Key, attr.Value);
             GenerateFromPattern(Pattern);
         }
 
@@ -204,18 +346,35 @@ namespace MudX
             await base.OnAfterRenderAsync(firstRender);
             if (firstRender)
             {
-                _dotNetRef = DotNetObjectReference.Create(this);
+                _jsBridge = new SecurityCodeJsBridge(this);
+                _dotNetRef = DotNetObjectReference.Create(_jsBridge);
                 _module = await Js.InvokeAsync<IJSObjectReference>("import", AssemblyInfo.ModulePath("mudxSecurityCode.js"));
-                await _module.InvokeVoidAsync("init", _dotNetRef, _elementRef);
             }
+
+            if (_module != null && _dotNetRef != null)
+                await _module.InvokeVoidAsync("init", _dotNetRef, _elementRef);
+        }
+
+        private async Task OnErrorChangedAsync()
+        {
+            if (_form is not null)
+                await _form.ValidateAsync();
         }
 
         private IEnumerable<string> CharPatternValidator(int index, string val)
         {
             if (string.IsNullOrEmpty(val))
+            {
+                if (Required && CodeItems[index].IsEditable)
+                    yield return "*";
+            }
+            else if (CodeItems[index].IsEditable && !IsValidInput(CodeItems[index].PatternChar, val))
                 yield return "*";
-            else if (val.Length > 1 && !IsValidInput(CodeItems[index].PatternChar, val))
-                yield return "*";
+
+            // MudTextField validation owns its error state and ignores empty messages.
+            // Keep the group error in that result without repeating the wrapper's ErrorText.
+            if (Error && CodeItems[index].IsEditable)
+                yield return " ";
         }
 
         private void GenerateFromPattern(string pattern)
@@ -239,6 +398,9 @@ namespace MudX
 
         internal async Task OnAfterChange(int index)
         {
+            if (_isDisposed || Disabled)
+                return;
+
             var input = CodeItems[index].Value;
             if (string.IsNullOrEmpty(input))
             {
@@ -252,6 +414,12 @@ namespace MudX
             if (IsValidInput(CodeItems[index].PatternChar, val))
             {
                 CodeItems[index].Value = val;
+                if (IsCodeComplete())
+                {
+                    await CompleteInteractionAsync();
+                    return;
+                }
+
                 // Find next editable index
                 int next = index + 1;
                 while (next < CodeItems.Count && !CodeItems[next].IsEditable)
@@ -263,9 +431,6 @@ namespace MudX
                 {
                     await MoveFocus(next);
                 }
-                // We're at the last editable index — move to the next focusable element
-                else if (index == CodeItems.Count - 1 && _module != null && (_form?.IsValid ?? false))
-                    await _module.InvokeVoidAsync("focusNextAfterContainer", _elementRef);
             }
             else
             {
@@ -274,28 +439,72 @@ namespace MudX
             var textFieldRef = CodeItems[index].TextFieldRef;
             if (textFieldRef != null && index < CodeItems.Count - 1)
                 await textFieldRef.ValidateAsync();
-            else
+            else if (_form is not null)
             {
-                _form?.Validate().CatchAndLog();
+                await _form.ValidateAsync();
             }
             await UpdateCodeValue();
         }
 
-        private async Task OnKeyDown(int index, KeyboardEventArgs e)
+        private async Task<string?> HandleKeyboardEvent(string fullid, string key)
         {
-            if (e.Key == "Backspace" && string.IsNullOrEmpty(CodeItems[index].Value) && index > 0)
-            {
-                int prev = index - 1;
-                while (prev >= 0 && !CodeItems[prev].IsEditable)
-                {
-                    prev--;
-                }
+            if (_isDisposed || Disabled)
+                return null;
 
-                if (prev >= 0)
-                {
-                    await MoveFocus(prev);
-                }
+            var index = CodeItems.FindIndex(item => string.Equals(item.InputId, fullid, StringComparison.Ordinal));
+            if (index < 0 || !CodeItems[index].IsEditable)
+                return null;
+
+            switch (key)
+            {
+                case "Backspace":
+                    var currentWasEmpty = string.IsNullOrEmpty(CodeItems[index].Value);
+                    var valueIndex = currentWasEmpty ? FindPreviousEditable(index) : index;
+                    if (valueIndex < 0)
+                        return CodeItems[index].InputId;
+
+                    CodeItems[valueIndex].Value = string.Empty;
+                    await UpdateCodeValue();
+                    var focusIndex = currentWasEmpty ? valueIndex : FindPreviousEditable(index);
+                    return CodeItems[focusIndex >= 0 ? focusIndex : index].InputId;
+                case "Delete":
+                    if (!string.IsNullOrEmpty(CodeItems[index].Value))
+                    {
+                        CodeItems[index].Value = string.Empty;
+                        await UpdateCodeValue();
+                    }
+                    return CodeItems[index].InputId;
+                case "ArrowLeft":
+                    var previous = FindPreviousEditable(index);
+                    return CodeItems[previous >= 0 ? previous : index].InputId;
+                case "ArrowRight":
+                    var next = FindNextEditable(index);
+                    return CodeItems[next >= 0 ? next : index].InputId;
+                default:
+                    return null;
             }
+        }
+
+        private int FindPreviousEditable(int index)
+        {
+            for (var previous = index - 1; previous >= 0; previous--)
+            {
+                if (CodeItems[previous].IsEditable)
+                    return previous;
+            }
+
+            return -1;
+        }
+
+        private int FindNextEditable(int index)
+        {
+            for (var next = index + 1; next < CodeItems.Count; next++)
+            {
+                if (CodeItems[next].IsEditable)
+                    return next;
+            }
+
+            return -1;
         }
 
         private async Task MoveFocus(int index)
@@ -330,33 +539,38 @@ namespace MudX
             return false;
         }
 
+        private bool IsCodeComplete()
+        {
+            var editableItems = CodeItems.Where(item => item.IsEditable).ToList();
+            return editableItems.Count > 0 && editableItems.All(item =>
+                !string.IsNullOrEmpty(item.Value) && IsValidInput(item.PatternChar, item.Value));
+        }
+
         /// <summary>
         /// Handles the clipboard paste event triggered in javascript by processing the pasted text and updating the corresponding code items.
         /// </summary>
         /// <remarks>This method processes the pasted text by matching it against the editable and fixed
         /// characters in the code items. Editable code items are updated with valid characters from the pasted text,
-        /// while fixed code items are set to their predefined values. After processing, the method updates the code
-        /// value, moves focus to the next focusable item, and validates the form if applicable.</remarks>
-        /// <param name="fullid">The full identifier string, which must be at least 10 characters long. The substring after the first 10
-        /// characters is used to determine the starting index for processing.</param>
+        /// while fixed code items are set to their predefined values. A partial paste advances focus to the next internal
+        /// editable item. A complete valid paste publishes the value and validates the form asynchronously. When an
+        /// <c>OnCompleted</c> handler is provided, it is awaited and owns follow-up behavior; otherwise, focus advances to
+        /// the next focusable element.</remarks>
+        /// <param name="fullid">The exact identifier of an editable input owned by this component.</param>
         /// <param name="text">The text pasted from the clipboard. Cannot be null, empty, or consist only of whitespace.</param>
         /// <returns></returns>
         [JSInvokable]
         public async Task ClipboardPasteEvent(string fullid, string text)
         {
-            if (string.IsNullOrWhiteSpace(text) || fullid.Length <= 10)
+            if (_isDisposed || Disabled || string.IsNullOrWhiteSpace(text))
                 return;
 
-            // Extract the substring starting at index 10 and ending before the next dash.
-            var id = fullid[10..];
-            var parts = id.Split("-");
-            id = parts[0];
-
-            if (!int.TryParse(id, out int index))
+            var index = CodeItems.FindIndex(item => item.IsEditable && string.Equals(item.InputId, fullid, StringComparison.Ordinal));
+            if (index < 0)
                 return;
 
             var chars = text.ToCharArray();
             int charIndex = 0;
+            int changedEditableCount = 0;
 
             for (int i = index; i < CodeItems.Count && charIndex < chars.Length; i++)
             {
@@ -378,6 +592,8 @@ namespace MudX
                         break;
 
                     pasteChar = chars[charIndex].ToString();
+                    if (CodeItems[i].Value != pasteChar)
+                        changedEditableCount++;
                     CodeItems[i].Value = pasteChar;
                     charIndex++;
                 }
@@ -403,24 +619,54 @@ namespace MudX
                 }
             }
 
+            if (changedEditableCount > 0 && IsCodeComplete())
+            {
+                await CompleteInteractionAsync();
+                return;
+            }
+
             await UpdateCodeValue();
 
-            // Move to next focusable item
-            int nextIndex = CodeItems.FindLastIndex(ci => !string.IsNullOrEmpty(ci.Value)) + 1;
-            if (nextIndex < CodeItems.Count)
+            var nextIndex = CodeItems.FindIndex(item => item.IsEditable && string.IsNullOrEmpty(item.Value));
+            if (nextIndex >= 0)
             {
                 await MoveFocus(nextIndex);
             }
-            else if (_module != null)
-            {
-                await _module.InvokeVoidAsync("focusNextAfterContainer", _elementRef);
-            }
 
-            if (_form != null)
-                await _form.Validate();
+            if (_form is not null)
+                await _form.ValidateAsync();
         }
 
-        private async Task UpdateCodeValue()
+        private async Task CompleteInteractionAsync()
+        {
+            if (_isDisposed)
+                return;
+
+            // A duplicate input must not cancel a completion already awaiting its consumer.
+            var completedValue = string.Concat(CodeItems.Select(item => item.IsEditable ? item.Value : item.PatternChar.ToString()));
+            if (_codeState.Value == completedValue)
+                return;
+
+            var interactionGeneration = ++_completionGeneration;
+            var publishedValue = await UpdateCodeValue();
+
+            if (_form is null || !IsCurrentCompletion(interactionGeneration, publishedValue))
+                return;
+
+            await _form.ValidateAsync();
+            if (!_form.IsValid || !IsCurrentCompletion(interactionGeneration, publishedValue))
+                return;
+
+            if (OnCompleted.HasDelegate)
+                await OnCompleted.InvokeAsync(publishedValue);
+            else if (_module is not null)
+                await _module.InvokeVoidAsync("focusNextAfterContainer", _elementRef);
+        }
+
+        private bool IsCurrentCompletion(long interactionGeneration, string? publishedValue)
+            => !_isDisposed && !Disabled && interactionGeneration == _completionGeneration && _codeState.Value == publishedValue && IsCodeComplete();
+
+        private async Task<string> UpdateCodeValue()
         {
             var result = string.Empty;
 
@@ -431,6 +677,7 @@ namespace MudX
                 .Select(x => x.index)
                 .DefaultIfEmpty(-1)
                 .Max();
+            var includeAllFixedItems = IsCodeComplete();
 
             for (int i = 0; i < CodeItems.Count; i++)
             {
@@ -440,9 +687,10 @@ namespace MudX
                 {
                     result += item.Value;
                 }
-                // Show fixed characters only if they appear before or at the last filled editable,
-                // or if they are the first fixed character immediately after the last filled editable
-                else if (i <= lastFilledEditableIndex ||
+                // Once complete, publish every fixed item in the rendered value. While incomplete,
+                // show fixed items through the first one immediately after the last filled editable.
+                else if (includeAllFixedItems ||
+                         i <= lastFilledEditableIndex ||
                          (i > lastFilledEditableIndex &&
                           lastFilledEditableIndex >= 0 &&
                           CodeItems[i - 1].IsEditable &&
@@ -452,11 +700,17 @@ namespace MudX
                 }
             }
 
-            _isInternalChange = true;
-            await _codeState.SetValueAsync(result);
-            await CodeChanged.InvokeAsync(_codeState.Value);
-            _isInternalChange = false;
+            try
+            {
+                _isInternalChange = true;
+                await _codeState.SetValueAsync(result);
+            }
+            finally
+            {
+                _isInternalChange = false;
+            }
             StateHasChanged();
+            return result;
         }
 
         private void OnChangeHandler(ParameterChangedEventArgs<string?> args)
@@ -483,6 +737,7 @@ namespace MudX
         /// </summary>
         public async ValueTask DisposeAsync()
         {
+            _isDisposed = true;
             if (IsJSRuntimeAvailable)
             {
                 if (_module != null)
@@ -493,8 +748,20 @@ namespace MudX
                 }
                 _dotNetRef?.Dispose();
                 _dotNetRef = null;
+                _jsBridge = null;
             }
             GC.SuppressFinalize(this);
+        }
+
+        private sealed class SecurityCodeJsBridge(MudXSecurityCode owner)
+        {
+            [JSInvokable]
+            public Task<string?> HandleKeyboardEvent(string fullid, string key)
+                => owner.HandleKeyboardEvent(fullid, key);
+
+            [JSInvokable]
+            public Task ClipboardPasteEvent(string fullid, string text)
+                => owner.ClipboardPasteEvent(fullid, text);
         }
     }
 }

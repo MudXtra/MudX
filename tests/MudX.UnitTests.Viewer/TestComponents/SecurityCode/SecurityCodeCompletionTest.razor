@@ -1,0 +1,109 @@
+<style>
+    .completion-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+        gap: 16px;
+    }
+
+    .completion-card {
+        min-width: 0;
+    }
+
+    .completion-target {
+        min-height: 44px;
+        padding: 8px 16px;
+        border: 2px solid var(--mud-palette-primary);
+        border-radius: var(--mud-default-borderradius);
+        color: var(--mud-palette-text-primary);
+        background: var(--mud-palette-surface);
+    }
+
+    .completion-target:focus-visible {
+        outline: 3px solid var(--mud-palette-warning);
+        outline-offset: 3px;
+    }
+</style>
+
+<MudStack Spacing="2">
+    <MudText Typo="Typo.h5">Security code completion contract</MudText>
+    <MudText Typo="Typo.body2">
+        Completion publishes and validates first. Without a handler, focus advances automatically; with a handler, follow-up focus is consumer-owned.
+    </MudText>
+
+    <div class="completion-grid">
+        <MudPaper id="explicit-case" Class="completion-card pa-4" Outlined>
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h6">Explicit callback focus</MudText>
+                <MudXSecurityCode @bind-Code="_explicitCode" Pattern="####" OnCompleted="HandleExplicitCompleted" />
+                <MudText data-testid="explicit-value">Value: @_explicitCode</MudText>
+                <MudText data-testid="explicit-completion">Completed: @_explicitCompletedValue (@_explicitCompletionCount)</MudText>
+                <button @ref="_explicitTarget" id="explicit-target" class="completion-target" type="button">
+                    Consumer-owned next target
+                </button>
+            </MudStack>
+        </MudPaper>
+
+        <MudPaper id="no-handler-case" Class="completion-card pa-4" Outlined>
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h6">Legacy automatic focus</MudText>
+                <MudXSecurityCode @bind-Code="_noHandlerCode" Pattern="####" />
+                <MudText data-testid="no-handler-value">Value: @_noHandlerCode</MudText>
+                <button id="legacy-target" class="completion-target" type="button">
+                    Legacy automatic next target
+                </button>
+            </MudStack>
+        </MudPaper>
+
+        <MudPaper id="partial-invalid-case" Class="completion-card pa-4" Outlined>
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h6">Partial and invalid input</MudText>
+                <MudXSecurityCode @bind-Code="_partialCode" Pattern="####" OnCompleted="HandlePartialCompleted" />
+                <MudText data-testid="partial-value">Value: @_partialCode</MudText>
+                <MudText data-testid="partial-completion">Completion count: @_partialCompletionCount</MudText>
+            </MudStack>
+        </MudPaper>
+
+        <MudPaper id="trailing-case" Class="completion-card pa-4" Outlined>
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h6">Trailing literal</MudText>
+                <MudXSecurityCode @bind-Code="_trailingCode" Pattern="##/" OnCompleted="HandleTrailingCompleted" />
+                <MudText data-testid="trailing-value">Value: @_trailingCode</MudText>
+                <MudText data-testid="trailing-completion">Completed: @_trailingCompletedValue (@_trailingCompletionCount)</MudText>
+            </MudStack>
+        </MudPaper>
+    </div>
+</MudStack>
+
+@code {
+    public static string __description__ = "Security code completion focus compatibility";
+
+    private ElementReference _explicitTarget;
+    private string? _explicitCode;
+    private string? _explicitCompletedValue;
+    private int _explicitCompletionCount;
+    private string? _noHandlerCode;
+    private string? _partialCode;
+    private int _partialCompletionCount;
+    private string? _trailingCode;
+    private string? _trailingCompletedValue;
+    private int _trailingCompletionCount;
+
+    private async Task HandleExplicitCompleted(string? value)
+    {
+        await Task.Yield();
+        _explicitCompletedValue = value;
+        _explicitCompletionCount++;
+        await _explicitTarget.FocusAsync();
+    }
+
+    private void HandlePartialCompleted(string? value)
+    {
+        _partialCompletionCount++;
+    }
+
+    private void HandleTrailingCompleted(string? value)
+    {
+        _trailingCompletedValue = value;
+        _trailingCompletionCount++;
+    }
+}
