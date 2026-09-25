@@ -12,7 +12,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXChat_DefaultValues()
         {
-            var comp = Context.RenderComponent<MudXChat>();
+            var comp = Context.Render<MudXChat>();
             comp.Instance.Color.Should().Be(Color.Default);
             comp.Instance.ChatPosition.Should().Be(ChatBubblePosition.Start);
             comp.Instance.Elevation.Should().Be(0);
@@ -24,7 +24,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXChat_CssClasses()
         {
-            var comp = Context.RenderComponent<MudXChat>(parameters => parameters
+            var comp = Context.Render<MudXChat>(parameters => parameters
                 .Add(p => p.ChatPosition, ChatBubblePosition.End)
                 .Add(p => p.ArrowPosition, ChatArrowPosition.Middle)
                 .Add(p => p.Square, true)
@@ -43,7 +43,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXChatBubble_CssClasses()
         {
-            var comp = Context.RenderComponent<MudXChatBubble>(parameters => parameters
+            var comp = Context.Render<MudXChatBubble>(parameters => parameters
                  .Add(p => p.Color, Color.Success)
                  .Add(p => p.Variant, Variant.Outlined));
 
@@ -55,7 +55,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXChatBubble_InheritsParentValues()
         {
-            var comp = Context.RenderComponent<MudXChat>(parameters => parameters
+            var comp = Context.Render<MudXChat>(parameters => parameters
                 .Add(p => p.Color, Color.Primary)
                 .Add(p => p.Variant, Variant.Filled)
                 .Add(p => p.ArrowPosition, ChatArrowPosition.Middle)
@@ -75,7 +75,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXChatBubble_HasElementReference()
         {
-            var comp = Context.RenderComponent<MudXChatBubble>();
+            var comp = Context.Render<MudXChatBubble>();
             var elementRef = comp.Instance.ElementReference;
             elementRef.Should().NotBeNull();
         }
@@ -83,7 +83,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXChatBubble_OverridesParentValues()
         {
-            var comp = Context.RenderComponent<MudXChat>(parameters => parameters
+            var comp = Context.Render<MudXChat>(parameters => parameters
                 .Add(p => p.Color, Color.Primary)
                 .Add(p => p.Variant, Variant.Filled)
                 .Add(p => p.ChildContent, builder =>
@@ -104,7 +104,7 @@ namespace MudX.UnitTests.Components
             var clicked = false;
             var rightClicked = false;
 
-            var comp = Context.RenderComponent<MudXChatBubble>(parameters => parameters
+            var comp = Context.Render<MudXChatBubble>(parameters => parameters
                 .Add(p => p.OnClick, (MouseEventArgs e) => { clicked = true; })
                 .Add(p => p.OnContextClick, (MouseEventArgs e) => { rightClicked = true; }));
 
@@ -118,7 +118,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXChat_RightToLeft()
         {
-            var comp = Context.RenderComponent<MudXChat>(parameters => parameters
+            var comp = Context.Render<MudXChat>(parameters => parameters
                 .Add(p => p.RightToLeft, true));
 
             comp.Markup.Should().Contain("mudx-chat-rtl");
@@ -127,7 +127,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXChat_CustomStyles()
         {
-            var comp = Context.RenderComponent<MudXChat>(parameters => parameters
+            var comp = Context.Render<MudXChat>(parameters => parameters
                 .Add(p => p.Style, "background-color: red;")
                 .Add(p => p.Class, "custom-class"));
 
@@ -138,7 +138,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXChatHeader_Parameters()
         {
-            var comp = Context.RenderComponent<MudXChatHeader>(parameters => parameters
+            var comp = Context.Render<MudXChatHeader>(parameters => parameters
                 .Add(p => p.Name, "John Doe")
                 .Add(p => p.Time, "12:00 PM")
                 .Add(p => p.Class, "custom-header-class"));
@@ -152,7 +152,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXChatHeader_ChildContent()
         {
-            var comp = Context.RenderComponent<MudXChatHeader>(parameters => parameters
+            var comp = Context.Render<MudXChatHeader>(parameters => parameters
                 .Add(p => p.ChildContent, builder =>
                 {
                     builder.AddContent(0, "Custom Header Content");
@@ -164,7 +164,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXChatFooter_Parameters()
         {
-            var comp = Context.RenderComponent<MudXChatFooter>(parameters => parameters
+            var comp = Context.Render<MudXChatFooter>(parameters => parameters
                 .Add(p => p.Text, "Typing...")
                 .Add(p => p.Class, "custom-footer-class"));
 
@@ -176,7 +176,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXChatFooter_ChildContent()
         {
-            var comp = Context.RenderComponent<MudXChatFooter>(parameters => parameters
+            var comp = Context.Render<MudXChatFooter>(parameters => parameters
                 .Add(p => p.ChildContent, builder =>
                 {
                     builder.AddContent(0, "Custom Footer Content");

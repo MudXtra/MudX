@@ -68,7 +68,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXCodeBlock_ShouldRenderSuccessfully()
         {
-            var comp = Context.RenderComponent<CodeBlockBasicTest>();
+            var comp = Context.Render<CodeBlockBasicTest>();
 
             // Act: Find elements and execute interactions
             var preElement = comp.Find("pre");
@@ -94,7 +94,7 @@ namespace MudX.UnitTests.Components
             // Setup the initialize call to return true
             moduleMock.Setup<bool>("initialize", _ => true);
 
-            var comp = Context.RenderComponent<MudXCodeBlock>(parameters => parameters
+            var comp = Context.Render<MudXCodeBlock>(parameters => parameters
                 .Add(p => p.Codes, codeFiles)
                 .Add(p => p.Theme, CodeTheme.Dark));
 
@@ -119,8 +119,8 @@ namespace MudX.UnitTests.Components
         [Test]
         public void MudXCodeBlock_ShouldRenderCopyButton()
         {
-            var provider = Context.RenderComponent<MudPopoverProvider>();
-            var comp = Context.RenderComponent<CodeBlockCopyTest>();
+            var provider = Context.Render<MudPopoverProvider>();
+            var comp = Context.Render<CodeBlockCopyTest>();
 
             // Act: Find elements and execute interactions
             var preElement = comp.Find("pre");
@@ -136,8 +136,8 @@ namespace MudX.UnitTests.Components
         [Test]
         public void CodeBlock_ReturnCopyMessage()
         {
-            var provider = Context.RenderComponent<MudPopoverProvider>();
-            var comp = Context.RenderComponent<CodeBlockCopyTest>();
+            var provider = Context.Render<MudPopoverProvider>();
+            var comp = Context.Render<CodeBlockCopyTest>();
 
             // Act: Find elements and execute interactions
             var preElement = comp.Find("pre");
@@ -158,7 +158,7 @@ namespace MudX.UnitTests.Components
         public void Classname_ShouldContainExpectedClasses()
         {
             var codeFiles = new[] { new CodeFile("Test", "code", CodeLanguage.CSharp) };
-            var comp = Context.RenderComponent<MudXCodeBlock>(p =>
+            var comp = Context.Render<MudXCodeBlock>(p =>
                 p.Add(x => x.Codes, codeFiles)
                  .Add(x => x.Class, "custom-class"));
             var div = comp.Find("div.mudx-code-display");
@@ -171,7 +171,7 @@ namespace MudX.UnitTests.Components
         public void Stylename_ShouldContainStyle_WhenSet()
         {
             var codeFiles = new[] { new CodeFile("Test", "code", CodeLanguage.CSharp) };
-            var comp = Context.RenderComponent<MudXCodeBlock>(p => p
+            var comp = Context.Render<MudXCodeBlock>(p => p
                 .Add(x => x.Codes, codeFiles)
                 .Add(x => x.Style, "color: red;"));
             var div = comp.Find("div.mudx-code-display");
@@ -182,8 +182,8 @@ namespace MudX.UnitTests.Components
         [Test]
         public void CodeBlock_ShouldSwitchToTabs_MultipleCodeFiles()
         {
-            var comp1 = Context.RenderComponent<CodeBlockBasicTest>();
-            var comp2 = Context.RenderComponent<CodeBlockThemeLanguageTest>();
+            var comp1 = Context.Render<CodeBlockBasicTest>();
+            var comp2 = Context.Render<CodeBlockThemeLanguageTest>();
             comp1.FindAll("div.mud-tabs").Count.Should().Be(0);
             comp2.FindAll("div.mud-tabs").Count.Should().Be(1);
             comp2.FindAll("div.mud-tab").Count.Should().Be(27);
@@ -192,7 +192,7 @@ namespace MudX.UnitTests.Components
         [Test]
         public void CodeBlock_ShouldToggle_Line_Invisibles_Braces()
         {
-            var comp = Context.RenderComponent<CodeBlockCustomizedTest>();
+            var comp = Context.Render<CodeBlockCustomizedTest>();
 
             // turn match case off so all are off
             var caseSwitch = comp.Find(".case-switch input.mud-switch-input");
@@ -240,7 +240,7 @@ namespace MudX.UnitTests.Components
         public async Task DisposeAsync_ShouldDisposeResources()
         {
             var codeFiles = new[] { new CodeFile("Test", "code", CodeLanguage.CSharp) };
-            var comp = Context.RenderComponent<MudXCodeBlock>(p => p.Add(x => x.Codes, codeFiles));
+            var comp = Context.Render<MudXCodeBlock>(p => p.Add(x => x.Codes, codeFiles));
             var disposeTask = comp.Instance.DisposeAsync();
             await disposeTask;
             // No exception means success; further resource checks would require more setup/mocking
