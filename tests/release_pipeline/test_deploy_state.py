@@ -5,6 +5,7 @@ class Tests(unittest.TestCase):
  def invoke(self,state,*args,fail=None,ok=True):
   env=os.environ|{'MUDX_TEST_MODE':'1','MUDX_STATE_DIR':str(state),'MUDX_DOCKER_BIN':str(ROOT/'tests/release_pipeline/fake-docker')}
   if fail: env['MUDX_FAIL_AFTER']=fail
+  if 'no-prior' in args: env['MUDX_NO_PRIOR']='1'; args=tuple(x for x in args if x!='no-prior')
   if (Path(state)/'allowlist.json').exists(): env['MUDX_RUNTIME_ALLOWLIST']=str(Path(state)/'allowlist.json')
   r=subprocess.run([str(DEPLOY),*args],env=env,text=True,capture_output=True); self.assertEqual(ok,r.returncode==0,r.stderr); return r
  def test_grammar_stale_duplicate(self):
@@ -24,6 +25,13 @@ class Tests(unittest.TestCase):
    with self.subTest(stage=s),tempfile.TemporaryDirectory() as d:
     self.invoke(d,'deploy',str(i),f'9.10.{i}','c'*40,'sha256:'+format(i,'064x'),fail=s,ok=False); self.invoke(d,'reconcile')
     self.assertEqual(1,len(Path(d,'restart-eligible').read_text().splitlines()))
+ def test_first_install_without_prior_container(self):
+  with tempfile.TemporaryDirectory() as d:
+   self.invoke(d,'no-prior','deploy','1','9.10.1','c'*40,'sha256:'+'a'*64)
+   self.assertEqual('candidate',Path(d,'active').read_text().strip())
+  with tempfile.TemporaryDirectory() as d:
+   Path(d,'inject-health-failure').touch(); self.invoke(d,'no-prior','deploy','1','9.10.1','c'*40,'sha256:'+'a'*64,ok=False)
+   self.assertEqual('none',Path(d,'active').read_text().strip())
  def test_failures_restore_prior(self):
   for marker in ('inject-pull-failure','inject-health-failure'):
    with tempfile.TemporaryDirectory() as d:

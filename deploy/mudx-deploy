@@ -35,7 +35,7 @@ def validate_runtime():
    if unsafe: raise RuntimeError('existing container violates reviewed fixed runtime baseline')
  return cfg
 def rollback(j):
- if TEST: set_test('prior'); return
+ if TEST: set_test('prior' if j.get('prior_name') else 'none'); return
  candidate=j.get('candidate_name')
  if candidate: run('rm','-f',candidate,check=False)
  if j.get('stage') in ('candidate-promote-intent','candidate-promoted'): run('rm','-f',NAME,check=False)
@@ -56,22 +56,23 @@ def deploy(seq_s,ver,sha,digest):
  if current:
   if seq==current.get('sequence') and digest==current.get('digest'): return
   if seq<=current.get('sequence',0): raise RuntimeError('stale or conflicting release identity')
- cfg=validate_runtime(); image=REPO+'@'+digest; j={'sequence':seq,'version':ver,'source_sha':sha,'digest':digest,'image':image,'stage':'new','prior_name':NAME,'prior_restart':'unless-stopped','candidate_name':NAME+'-candidate-'+str(seq)}
- if TEST: set_test('prior')
+ cfg=validate_runtime(); image=REPO+'@'+digest
+ prior_exists=not (TEST and os.environ.get('MUDX_NO_PRIOR')=='1')
+ if not TEST: prior_exists=run('inspect',NAME,check=False).returncode==0
+ j={'sequence':seq,'version':ver,'source_sha':sha,'digest':digest,'image':image,'stage':'new','prior_name':NAME if prior_exists else None,'prior_restart':'no','candidate_name':NAME+'-candidate-'+str(seq)}
+ if TEST: set_test('prior' if prior_exists else 'none')
  try:
   if TEST and (STATE/'inject-pull-failure').exists(): raise RuntimeError('injected pull failure')
   run('pull',image); stage(j,'prepared')
-  if not TEST:
-   inspected=run('inspect','--format','{{.HostConfig.RestartPolicy.Name}}',NAME,check=False)
-   if inspected.returncode==0: j['prior_restart']=inspected.stdout.strip() or 'no'
+  if not TEST and prior_exists:
+   inspected=run('inspect','--format','{{.HostConfig.RestartPolicy.Name}}',NAME); j['prior_restart']=inspected.stdout.strip() or 'no'
   stage(j,'prior-policy-intent')
-  if not TEST: run('update','--restart','no',NAME)
+  if not TEST and prior_exists: run('update','--restart','no',NAME)
   stage(j,'prior-policy-disabled'); stage(j,'prior-stop-intent')
-  if not TEST: run('stop','--time','30',NAME)
+  if not TEST and prior_exists: run('stop','--time','30',NAME)
   stage(j,'prior-stopped')
-  prior=NAME+'-prior-'+str(seq); j['prior_name']=prior; stage(j,'prior-rename-intent')
-  if not TEST:
-   run('rename',NAME,prior)
+  prior=NAME+'-prior-'+str(seq) if prior_exists else None; j['prior_name']=prior; stage(j,'prior-rename-intent')
+  if not TEST and prior_exists: run('rename',NAME,prior)
   stage(j,'prior-renamed')
   if not TEST:
    run('create','--name',j['candidate_name'],'--restart','no','-p',cfg['ports'][0],'--label','org.opencontainers.image.version='+ver,'--label','org.opencontainers.image.revision='+sha,image)

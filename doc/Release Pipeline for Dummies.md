@@ -14,6 +14,8 @@ This guide explains the repository's release workflow. The workflow and host-sid
 6. Approve publication and deployment only if those identities are correct.
 7. Read the final result. A package upload, image upload, or started SSH command is not by itself a successful release.
 
+To resume partial publication, dispatch the same workflow in **resume** mode and enter the original producer run ID and attempt. Resume downloads that retained artifact, authenticates its original run, manifest, paths, checksums, version, source SHA, and image digest, and never runs the build or version-allocation jobs.
+
 ## What the workflow binds together
 
 A release has one stable version and one merged source SHA. The build produces:
@@ -23,7 +25,9 @@ A release has one stable version and one merged source SHA. The build produces:
 - a website image labeled with the exact source revision;
 - a manifest containing the source SHA, version, producer run/attempt, image digest, and file checksums.
 
-The protected publication job accepts only that producer-bound manifest. It publishes the immutable image, then NuGet and symbols, deploys the same digest, creates the GitHub release, and only then updates the compatibility `latest` tag. A failure after an irreversible upload is reported as partial completion; it is not described as a rollback.
+The protected publication job accepts only that producer-bound manifest. It reconciles the immutable image and main NuGet package before publishing anything missing. Published NuGet content must match every package entry exactly; only NuGet's documented repository-signature entry, `.signature.p7s`, may differ. It creates an authenticated draft release containing the exact package assets, publishes symbols explicitly, records the symbol package checksum in that draft, deploys the same digest, verifies and finalizes the GitHub release, and only then updates the compatibility `latest` tag from the immutable digest. A failure after an irreversible upload is reported as partial completion; it is not described as a rollback.
+
+All third-party Actions used by this workflow are pinned to immutable commit SHAs with readable major-version comments.
 
 ## Version pull-request safety
 
@@ -35,7 +39,7 @@ The generated pull request is not trusted because of its title or label. Before 
 - the complete diff changes only the single `<Version>` value in `src/MudX/MudX.csproj`;
 - the value is canonical stable SemVer and matches the calculated release.
 
-A changed head invalidates the authorization. If checks or merge protection take too long, resume the same release identity instead of allocating another version.
+The fetched pull-request commit and fresh API head are checked against the expected SHA before approval, and the head is queried again immediately before auto-merge. A changed head invalidates the authorization. If checks or merge protection take too long, continue the same pull request instead of allocating another version.
 
 ## Server deployment model
 
@@ -44,29 +48,34 @@ Deployment remains SSH-based. The key is restricted to the fixed `mudx-deploy` c
 The host transaction does the following:
 
 1. takes a host-wide lock and rejects stale or conflicting releases;
-2. pulls the candidate digest while the current container is still available;
+2. pulls the candidate digest while the current container is still available, or records an explicit no-prior state for a first installation;
 3. journals each stage durably;
 4. disables the previous container's restart policy before stopping it;
 5. starts the candidate with restart policy `no`, checks `/healthz`, and records the committed state;
 6. restores the retained previous container if candidate verification fails.
 
-The supplied systemd units make systemd—not Docker restart policy—the only boot-time starter. Docker starts first, journal reconciliation runs next, and only then may the committed MudX container start. This avoids old and candidate containers racing for port 4560 after a reboot.
+The supplied systemd units are designed for systemd—not Docker restart policy—to become the only boot-time starter. The wrapper commits managed containers with Docker restart policy `no`; after Docker starts, journal reconciliation precedes the repository's container-start unit.
 
-The checked-in wrapper and unit files are installation sources, not proof of host installation. Dedicated account creation, forced-command SSH policy, root ownership, registry credentials, firewall reachability, systemd installation, and the first live release require separate operational approval and verification.
+The units alone cannot stop Docker from auto-starting an older container that still has `always` or `unless-stopped` while the daemon itself starts. Before enabling these units, a separately approved cutover must disable and verify every existing MudX Docker restart policy. A disposable Docker/systemd reboot test must then prove port ownership and reconciliation across daemon restarts and host boots. Until that proof exists, the deployment source is not production-ready.
+
+The checked-in wrapper and unit files are installation sources, not proof of host installation. Dedicated account creation, forced-command SSH policy, root ownership, registry credentials, recovery-automation interlock, firewall reachability, systemd installation, and the first live release require separate operational approval and verification.
 
 ## Honest failure states
 
 - **Version PR pending:** wait or resume the same PR/run identity.
 - **Build or test failure:** nothing publishes.
 - **Image published, NuGet failed:** image publication succeeded; package publication did not.
-- **Packages published, deployment failed:** packages remain published; retry only the retained approved candidate.
-- **SSH disconnected:** outcome is unknown until the host journal and live revision are checked.
+- **Main package published, symbols missing:** resume the original producer run/attempt; it reuses the retained artifact and attempts only the missing symbol stage.
+- **Symbol upload returned an immutable conflict without a finalized exact release:** public NuGet APIs cannot prove symbol-package identity, so stop for manual reconciliation; never use skip-duplicate as proof.
+- **Packages published, deployment failed:** resume only the original producer run/attempt. The workflow downloads and revalidates that retained artifact; the authenticated draft checksum proves a completed symbol stage so deployment can continue without republishing symbols. It never rebuilds or allocates another version.
+- **Retained artifact missing or expired:** stop. Do not rebuild the supposedly same release.
+- **SSH disconnected:** the workflow checks the cache-busted public revision; if it still cannot prove the target SHA, inspect the host journal before retrying.
 - **Candidate unhealthy:** the wrapper attempts to restore the retained prior container; failed recovery is an incident.
 - **Manifest, producer, or checksum mismatch:** stop before credentials are used.
 
 ## Required repository and environment configuration
 
-Before enabling production use, reviewers must verify the protected `mudx-production-release` environment, release actor and bot-login variables, distinct coordinator and MudXBot credentials, package/registry credentials, SSH host-key pinning, the restricted deploy key, and repository branch/ruleset behavior. No secret values belong in documentation or workflow logs.
+Before enabling production use, reviewers must verify the protected `mudx-release-coordination` and `mudx-production-release` environments, release actor and bot-login variables, distinct coordinator and MudXBot credentials, package/registry credentials, SSH host-key pinning, the restricted deploy key, and repository branch/ruleset behavior. No secret values belong in documentation or workflow logs.
 
 ## Maintainer checks
 
