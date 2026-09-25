@@ -11,9 +11,18 @@ export function init(dotNetObjRef, container) {
         state = {
             disposed: false,
             running: false,
+            focusVersion: 0,
+            keyboardFocusTarget: null,
             queue: [],
             queuedRepeatKeys: new Set()
         };
+        // Only bridge-owned focus transitions may keep queued focus requests current.
+        state.focusout = (event) => {
+            if (!state.keyboardFocusTarget || event.relatedTarget !== state.keyboardFocusTarget) {
+                state.focusVersion++;
+            }
+        };
+        container.addEventListener("focusout", state.focusout);
         containerStates.set(container, state);
     }
 
@@ -40,6 +49,7 @@ export function cleanup(container) {
         state.disposed = true;
         state.queue.length = 0;
         state.queuedRepeatKeys.clear();
+        container.removeEventListener("focusout", state.focusout);
         containerStates.delete(container);
     }
 
@@ -103,7 +113,7 @@ function queueKeyboardEvent(container, input, dotNetObjRef, key, repeat) {
     const repeatKey = repeat ? `${input.id}:${key}` : null;
     if (repeatKey && state.queuedRepeatKeys.has(repeatKey)) return;
 
-    state.queue.push({ container, input, dotNetObjRef, key, repeatKey });
+    state.queue.push({ container, input, dotNetObjRef, key, repeatKey, focusVersion: state.focusVersion });
     if (repeatKey) state.queuedRepeatKeys.add(repeatKey);
     void drainKeyboardQueue(state);
 }
@@ -135,15 +145,21 @@ async function drainKeyboardQueue(state) {
 async function dispatchKeyboardAction(state, action) {
     if (state.disposed) return;
 
-    const activeInput = action.container.contains(document.activeElement) && document.activeElement?.tagName === "INPUT"
+    const activeInput = action.focusVersion === state.focusVersion && action.container.contains(document.activeElement) && document.activeElement?.tagName === "INPUT"
         ? document.activeElement
         : action.input;
     const inputId = await action.dotNetObjRef.invokeMethodAsync("HandleKeyboardEvent", activeInput.id, action.key);
     if (state.disposed) return;
 
     await new Promise(resolve => requestAnimationFrame(resolve));
-    if (!state.disposed && inputId) {
-        focusBlock(action.container, inputId);
+    if (!state.disposed && inputId && action.focusVersion === state.focusVersion) {
+        state.keyboardFocusTarget = action.container.querySelector("#" + inputId);
+        try {
+            focusBlock(action.container, inputId);
+        }
+        finally {
+            state.keyboardFocusTarget = null;
+        }
     }
 }
 
