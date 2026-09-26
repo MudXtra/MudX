@@ -25,6 +25,9 @@ else
     app.UseHsts();
 }
 
+app.MapGet("/healthz", () => Results.Ok(new { status = "healthy" }));
+app.MapGet("/revision", () => Results.Text(Environment.GetEnvironmentVariable("MUDX_SOURCE_REVISION") ?? "unknown"));
+
 app.UseHttpsRedirection();
 
 app.UseAntiforgery();

@@ -1,0 +1,13 @@
+[Unit]
+Description=Start the single committed MudX container
+Requires=docker.service mudx-reconcile.service
+After=docker.service mudx-reconcile.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker start mudxdocwebsite
+ExecStop=/usr/bin/docker stop --time 30 mudxdocwebsite
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

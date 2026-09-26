@@ -1,0 +1,11 @@
+{
+  "ports": ["4560:8080"],
+  "restart_policy": "no",
+  "privileged": false,
+  "docker_socket": false,
+  "host_pid": false,
+  "host_ipc": false,
+  "devices": [],
+  "extra_capabilities": [],
+  "sensitive_writable_mounts": []
+}

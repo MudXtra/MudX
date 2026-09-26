@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+import fcntl, json, os, re, subprocess, sys, tempfile, time, urllib.request
+from pathlib import Path
+REPO='ghcr.io/mudxtra/mudx/mudxdocwebsite'; NAME='mudxdocwebsite'
+SEMVER=re.compile(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z'); SHA=re.compile(r'[0-9a-f]{40}\Z'); DIGEST=re.compile(r'sha256:[0-9a-f]{64}\Z')
+TEST=os.environ.get('MUDX_TEST_MODE')=='1'; STATE=Path(os.environ.get('MUDX_STATE_DIR','/var/lib/mudx-deploy') if TEST else '/var/lib/mudx-deploy'); DOCKER=os.environ.get('MUDX_DOCKER_BIN','docker') if TEST else '/usr/bin/docker'
+def atomic(path,data):
+ path.parent.mkdir(parents=True,exist_ok=True); fd,tmp=tempfile.mkstemp(dir=path.parent)
+ with os.fdopen(fd,'w') as f: json.dump(data,f,sort_keys=True); f.write('\n'); f.flush(); os.fsync(f.fileno())
+ os.replace(tmp,path); d=os.open(path.parent,os.O_DIRECTORY); os.fsync(d); os.close(d)
+def read(path,default=None):
+ try: return json.loads(path.read_text())
+ except FileNotFoundError: return default
+def run(*args,check=True): return subprocess.run([DOCKER,*args],check=check,text=True,capture_output=True)
+def set_test(active):
+ if TEST:
+  (STATE/'active').write_text(active+'\n'); (STATE/'restart-eligible').write_text(active+'\n')
+def stage(j,name):
+ j['stage']=name; atomic(STATE/'journal.json',j)
+ if os.environ.get('MUDX_FAIL_AFTER')==name: raise RuntimeError('injected interruption after '+name)
+def validate_runtime():
+ allowlist=Path(os.environ['MUDX_RUNTIME_ALLOWLIST']) if TEST and os.environ.get('MUDX_RUNTIME_ALLOWLIST') else Path(__file__).with_name('runtime-allowlist.json')
+ cfg=read(allowlist,{})
+ if cfg.get('ports')!=['4560:8080'] or cfg.get('restart_policy')!='no': raise RuntimeError('runtime allowlist is not reviewed baseline')
+ forbidden=('privileged','docker_socket','host_pid','host_ipc','devices','extra_capabilities','sensitive_writable_mounts')
+ if any(cfg.get(k) for k in forbidden): raise RuntimeError('dangerous runtime configuration rejected')
+ if not TEST:
+  result=run('inspect',NAME,check=False)
+  if result.returncode==0:
+   inspected=json.loads(result.stdout)[0]; host=inspected.get('HostConfig',{}); mounts=inspected.get('Mounts',[])
+   unsafe=host.get('Privileged') or host.get('PidMode')=='host' or host.get('IpcMode')=='host' or host.get('Devices') or host.get('CapAdd') or host.get('Binds') or mounts
+   bindings=(host.get('PortBindings') or {}).get('8080/tcp') or []
+   valid_port=len(bindings)==1 and bindings[0].get('HostPort')=='4560' and bindings[0].get('HostIp','') in ('','0.0.0.0','::')
+   unsafe=unsafe or host.get('NetworkMode') not in ('default','bridge') or not valid_port
+   if unsafe: raise RuntimeError('existing container violates reviewed fixed runtime baseline')
+ return cfg
+def rollback(j):
+ if TEST: set_test('prior' if j.get('prior_name') else 'none'); return
+ candidate=j.get('candidate_name')
+ if candidate: run('rm','-f',candidate,check=False)
+ if j.get('stage') in ('candidate-promote-intent','candidate-promoted'): run('rm','-f',NAME,check=False)
+ prior=j.get('prior_name')
+ if prior:
+  run('rename',prior,NAME,check=False); run('update','--restart',j.get('prior_restart','unless-stopped'),NAME); run('start',NAME)
+def reconcile():
+ j=read(STATE/'journal.json',{}); current=read(STATE/'current.json',{})
+ active='candidate' if j.get('stage')=='committed' or current.get('sequence')==j.get('sequence') else 'prior'
+ if TEST: set_test(active); return
+ if active=='candidate' and current.get('container'):
+  run('update','--restart','no',current['container']); run('start',current['container'])
+ else:
+  rollback(j)
+def deploy(seq_s,ver,sha,digest):
+ if not re.fullmatch(r'[1-9][0-9]*',seq_s) or not SEMVER.fullmatch(ver) or not SHA.fullmatch(sha) or not DIGEST.fullmatch(digest): raise RuntimeError('invalid deploy grammar')
+ seq=int(seq_s); current=read(STATE/'current.json',{})
+ if current:
+  if seq==current.get('sequence') and digest==current.get('digest'): return
+  if seq<=current.get('sequence',0): raise RuntimeError('stale or conflicting release identity')
+ cfg=validate_runtime(); image=REPO+'@'+digest
+ prior_exists=not (TEST and os.environ.get('MUDX_NO_PRIOR')=='1')
+ if not TEST: prior_exists=run('inspect',NAME,check=False).returncode==0
+ j={'sequence':seq,'version':ver,'source_sha':sha,'digest':digest,'image':image,'stage':'new','prior_name':NAME if prior_exists else None,'prior_restart':'no','candidate_name':NAME+'-candidate-'+str(seq)}
+ if TEST: set_test('prior' if prior_exists else 'none')
+ try:
+  if TEST and (STATE/'inject-pull-failure').exists(): raise RuntimeError('injected pull failure')
+  run('pull',image); stage(j,'prepared')
+  if not TEST and prior_exists:
+   inspected=run('inspect','--format','{{.HostConfig.RestartPolicy.Name}}',NAME); j['prior_restart']=inspected.stdout.strip() or 'no'
+  stage(j,'prior-policy-intent')
+  if not TEST and prior_exists: run('update','--restart','no',NAME)
+  stage(j,'prior-policy-disabled'); stage(j,'prior-stop-intent')
+  if not TEST and prior_exists: run('stop','--time','30',NAME)
+  stage(j,'prior-stopped')
+  prior=NAME+'-prior-'+str(seq) if prior_exists else None; j['prior_name']=prior; stage(j,'prior-rename-intent')
+  if not TEST and prior_exists: run('rename',NAME,prior)
+  stage(j,'prior-renamed')
+  if not TEST:
+   run('create','--name',j['candidate_name'],'--restart','no','-p',cfg['ports'][0],'--label','org.opencontainers.image.version='+ver,'--label','org.opencontainers.image.revision='+sha,image)
+  stage(j,'candidate-created'); stage(j,'candidate-start-intent')
+  if not TEST: run('start',j['candidate_name'])
+  stage(j,'candidate-started')
+  if TEST and (STATE/'inject-health-failure').exists(): raise RuntimeError('injected health failure')
+  if not TEST:
+   deadline=time.time()+60
+   while True:
+    try:
+     healthy=urllib.request.urlopen('http://127.0.0.1:4560/healthz',timeout=2).status==200
+     revision=urllib.request.urlopen('http://127.0.0.1:4560/revision',timeout=2).read().decode().strip()
+     if healthy and revision==sha: break
+    except Exception: pass
+    if time.time()>deadline: raise RuntimeError('candidate readiness failed')
+    time.sleep(2)
+  stage(j,'verified'); stage(j,'candidate-promote-intent')
+  if not TEST:
+   run('rename',j['candidate_name'],NAME)
+  j['candidate_name']=NAME; stage(j,'candidate-promoted'); atomic(STATE/'current.json',{'sequence':seq,'version':ver,'source_sha':sha,'digest':digest,'container':NAME}); stage(j,'committed')
+  if TEST: set_test('candidate')
+ except Exception:
+  if j.get('stage')!='committed': rollback(j)
+  raise
+def main():
+ STATE.mkdir(parents=True,exist_ok=True)
+ with open(STATE/'lock','a+') as lock:
+  fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+  if len(sys.argv)==2 and sys.argv[1]=='reconcile': reconcile()
+  elif len(sys.argv)==6 and sys.argv[1]=='deploy': deploy(*sys.argv[2:])
+  else: raise RuntimeError('usage: mudx-deploy deploy SEQUENCE VERSION SOURCE_SHA sha256:DIGEST | reconcile')
+if __name__=='__main__':
+ try: main()
+ except Exception as e: print('mudx-deploy: '+str(e),file=sys.stderr); raise SystemExit(1)

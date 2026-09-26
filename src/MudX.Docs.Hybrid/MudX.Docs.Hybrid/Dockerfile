@@ -11,6 +11,8 @@ EXPOSE 8081
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
+ARG SOURCE_REVISION=unknown
+ARG RELEASE_VERSION=0.0.0
 WORKDIR /src
 COPY ["MudX.Docs.Hybrid/MudX.Docs.Hybrid/MudX.Docs.Hybrid.csproj", "MudX.Docs.Hybrid/MudX.Docs.Hybrid/"]
 COPY ["MudX.Docs.Hybrid/MudX.Docs.Hybrid.Client/MudX.Docs.Hybrid.Client.csproj", "MudX.Docs.Hybrid/MudX.Docs.Hybrid.Client/"]
@@ -32,6 +34,11 @@ RUN dotnet publish "./MudX.Docs.Hybrid.csproj" -c $BUILD_CONFIGURATION -o /app/p
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
+ARG SOURCE_REVISION=unknown
+ARG RELEASE_VERSION=0.0.0
+LABEL org.opencontainers.image.revision=$SOURCE_REVISION \
+      org.opencontainers.image.version=$RELEASE_VERSION
+ENV MUDX_SOURCE_REVISION=$SOURCE_REVISION
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "MudX.Docs.Hybrid.dll"]
