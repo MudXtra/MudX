@@ -10,7 +10,7 @@ ExecStart=/usr/local/libexec/mudx-deploy supervise
 ExecStop=/usr/local/libexec/mudx-deploy stop
 Restart=always
 RestartSec=2
-TimeoutStopSec=45
+TimeoutStopSec=165
 KillMode=control-group
 
 [Install]

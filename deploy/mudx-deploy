@@ -4,6 +4,9 @@ from pathlib import Path
 REPO='ghcr.io/mudxtra/mudx/mudxdocwebsite'; NAME='MudX'
 SEMVER=re.compile(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z'); SHA=re.compile(r'[0-9a-f]{40}\Z'); DIGEST=re.compile(r'sha256:[0-9a-f]{64}\Z')
 TEST=os.environ.get('MUDX_TEST_MODE')=='1'; STATE=Path(os.environ.get('MUDX_STATE_DIR','/var/lib/mudx-deploy') if TEST else '/var/lib/mudx-deploy'); DOCKER=os.environ.get('MUDX_DOCKER_BIN','docker') if TEST else '/usr/bin/docker'
+STOP_LOCK_TIMEOUT=120.0
+STOP_DOCKER_TIMEOUT=40.0
+DOCKER_STOP_GRACE=30
 def atomic(path,data):
  path.parent.mkdir(parents=True,exist_ok=True); fd,tmp=tempfile.mkstemp(dir=path.parent)
  with os.fdopen(fd,'w') as f: json.dump(data,f,sort_keys=True); f.write('\n'); f.flush(); os.fsync(f.fileno())
@@ -20,14 +23,18 @@ def clear(path):
  try: path.unlink()
  except FileNotFoundError: return
  d=os.open(path.parent,os.O_DIRECTORY); os.fsync(d); os.close(d)
-def run(*args,check=True): return subprocess.run([DOCKER,*args],check=check,text=True,capture_output=True)
-def acquire(lock):
- timeout=float(os.environ.get('MUDX_LOCK_TIMEOUT','0.2')) if TEST else 30.0; deadline=time.monotonic()+timeout
+def run(*args,check=True,timeout=None): return subprocess.run([DOCKER,*args],check=check,text=True,capture_output=True,timeout=timeout)
+def acquire(lock,timeout=None):
+ if timeout is None: timeout=float(os.environ.get('MUDX_LOCK_TIMEOUT','0.2')) if TEST else 30.0
+ deadline=time.monotonic()+timeout
  while True:
   try: fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB); return
   except BlockingIOError:
    if time.monotonic()>=deadline: raise RuntimeError('deployment lock is busy')
    time.sleep(.05)
+def acquire_stop_intent(lock):
+ try: fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ except BlockingIOError: raise RuntimeError('stop is in progress')
 def set_test(active):
  if TEST:
   (STATE/'active').write_text(active+'\n'); (STATE/'restart-eligible').write_text(active+'\n')
@@ -139,20 +146,35 @@ def supervise():
   waited=run('wait',NAME,check=False)
   if waited.returncode: time.sleep(2)
 def stop():
- marker(STATE/'stopped'); marker(STATE/'maintenance')
+ marker(STATE/'maintenance')
+ timeout=float(os.environ.get('MUDX_STOP_DOCKER_TIMEOUT',str(STOP_DOCKER_TIMEOUT))) if TEST else STOP_DOCKER_TIMEOUT
+ deadline=time.monotonic()+timeout
+ def remaining():
+  value=deadline-time.monotonic()
+  if value<=0: raise TimeoutError('Docker stop budget exhausted')
+  return value
  try:
-  if run('inspect',NAME,check=False).returncode==0:
-   run('update','--restart','no',NAME); run('stop','--time','30',NAME)
+  if run('inspect',NAME,check=False,timeout=remaining()).returncode==0:
+   run('update','--restart','no',NAME,timeout=remaining())
+   run('stop','--time',str(DOCKER_STOP_GRACE),NAME,timeout=remaining())
   if TEST: set_test('stopped')
  finally: clear(STATE/'maintenance')
 def main():
  STATE.mkdir(parents=True,exist_ok=True)
  if len(sys.argv)==2 and sys.argv[1]=='supervise': supervise(); return
+ if len(sys.argv)==2 and sys.argv[1]=='stop':
+  with open(STATE/'stop-intent.lock','a+') as intent:
+   acquire_stop_intent(intent); marker(STATE/'stopped')
+   with open(STATE/'lock','a+') as lock:
+    timeout=float(os.environ.get('MUDX_STOP_LOCK_TIMEOUT',str(STOP_LOCK_TIMEOUT))) if TEST else STOP_LOCK_TIMEOUT
+    acquire(lock,timeout=timeout); stop()
+  return
  with open(STATE/'lock','a+') as lock:
   acquire(lock)
   if len(sys.argv)==2 and sys.argv[1]=='reconcile': reconcile(start=False); clear(STATE/'maintenance')
-  elif len(sys.argv)==2 and sys.argv[1]=='resume': clear(STATE/'stopped')
-  elif len(sys.argv)==2 and sys.argv[1]=='stop': stop()
+  elif len(sys.argv)==2 and sys.argv[1]=='resume':
+   with open(STATE/'stop-intent.lock','a+') as intent:
+    acquire_stop_intent(intent); clear(STATE/'stopped')
   elif len(sys.argv)==6 and sys.argv[1]=='deploy': deploy(*sys.argv[2:])
   else: raise RuntimeError('usage: mudx-deploy deploy SEQUENCE VERSION SOURCE_SHA sha256:DIGEST | reconcile | resume | supervise | stop')
 if __name__=='__main__':
