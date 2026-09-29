@@ -58,6 +58,7 @@ def validate_runtime():
    if unsafe: raise RuntimeError('existing container violates reviewed fixed runtime baseline')
  return cfg
 def rollback(j,start=True):
+ if TEST and (STATE/'inject-rollback-failure').exists(): raise RuntimeError('injected rollback failure')
  if TEST: set_test('prior' if j.get('prior_name') else 'none'); return
  candidate=j.get('candidate_name')
  if candidate: run('rm','-f',candidate,check=False)
@@ -67,6 +68,7 @@ def rollback(j,start=True):
   run('rename',prior,NAME,check=False); run('update','--restart',j.get('prior_restart','unless-stopped'),NAME)
   if start: run('start',NAME)
 def reconcile(start=False):
+ if TEST and (STATE/'inject-reconcile-failure').exists(): raise RuntimeError('injected reconcile failure')
  j=read(STATE/'journal.json',{}); current=read(STATE/'current.json',{})
  active='candidate' if j.get('stage')=='committed' or current.get('sequence')==j.get('sequence') else 'prior'
  if TEST: set_test(active); return
@@ -124,10 +126,14 @@ def deploy(seq_s,ver,sha,digest):
    run('rename',j['candidate_name'],NAME)
   j['candidate_name']=NAME; stage(j,'candidate-promoted'); atomic(STATE/'current.json',{'sequence':seq,'version':ver,'source_sha':sha,'digest':digest,'container':NAME}); stage(j,'committed')
   if TEST: set_test('candidate')
- except Exception:
-  if j.get('stage')!='committed': rollback(j)
+ except Exception as deployment_error:
+  if j.get('stage')!='committed':
+   try: rollback(j)
+   except Exception as rollback_error:
+    raise RuntimeError(f'deployment failed: {deployment_error}; rollback failed: {rollback_error}') from deployment_error
+   clear(STATE/'maintenance')
   raise
- finally: clear(STATE/'maintenance')
+ else: clear(STATE/'maintenance')
 def supervise():
  once=TEST and os.environ.get('MUDX_SUPERVISOR_ONCE')=='1'
  while True:

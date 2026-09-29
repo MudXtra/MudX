@@ -200,4 +200,26 @@ exit 0
   for marker in ('inject-pull-failure','inject-health-failure'):
    with tempfile.TemporaryDirectory() as d:
     Path(d,marker).touch(); self.invoke(d,'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64,ok=False); self.assertEqual('prior',Path(d,'active').read_text().strip())
+ def test_failed_supervisor_reconciliation_retains_maintenance(self):
+  with tempfile.TemporaryDirectory() as d:
+   Path(d,'maintenance').touch(); Path(d,'inject-reconcile-failure').touch()
+   result=self.invoke(d,'supervise',ok=False,extra_env={'MUDX_SUPERVISOR_ONCE':'1'})
+   self.assertIn('injected reconcile failure',result.stderr)
+   self.assertTrue(Path(d,'maintenance').exists())
+   Path(d,'inject-reconcile-failure').unlink()
+   self.invoke(d,'supervise',extra_env={'MUDX_SUPERVISOR_ONCE':'1'})
+   self.assertFalse(Path(d,'maintenance').exists())
+ def test_rollback_failure_retains_maintenance_until_supervisor_reconciles(self):
+  with tempfile.TemporaryDirectory() as d:
+   Path(d,'inject-health-failure').touch()
+   Path(d,'inject-rollback-failure').touch()
+   result=self.invoke(d,'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64,ok=False)
+   self.assertIn('injected health failure',result.stderr)
+   self.assertIn('injected rollback failure',result.stderr)
+   self.assertTrue(Path(d,'maintenance').exists(),'failed rollback must retain reconciliation intent')
+   Path(d,'inject-health-failure').unlink()
+   Path(d,'inject-rollback-failure').unlink()
+   self.invoke(d,'supervise',extra_env={'MUDX_SUPERVISOR_ONCE':'1'})
+   self.assertFalse(Path(d,'maintenance').exists(),'successful supervisor reconciliation clears intent')
+   self.assertEqual('prior',Path(d,'active').read_text().strip())
 if __name__=='__main__': unittest.main()
