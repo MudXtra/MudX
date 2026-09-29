@@ -11,10 +11,27 @@ class Tests(unittest.TestCase):
   r=subprocess.run([str(DEPLOY),*args],env=env,text=True,capture_output=True); self.assertEqual(ok,r.returncode==0,r.stderr); return r
  def test_actual_container_name_is_preserved_in_journal(self):
   with tempfile.TemporaryDirectory() as d:
+   Path(d,'inject-rollback-failure').touch()
    self.invoke(d,'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64,fail='prepared',ok=False)
    journal=json.loads(Path(d,'journal.json').read_text())
    self.assertEqual('MudX',journal['prior_name'])
    self.assertEqual('MudX-candidate-1',journal['candidate_name'])
+ def test_successful_reconcile_consumes_recovery_journal(self):
+  with tempfile.TemporaryDirectory() as d:
+   journal={'sequence':2,'version':'9.10.2','source_sha':'d'*40,'digest':'sha256:'+'b'*64,'stage':'candidate-started','prior_name':'MudX-prior-2','prior_restart':'no','candidate_name':'MudX-candidate-2'}
+   Path(d,'journal.json').write_text(json.dumps(journal))
+   Path(d,'maintenance').write_text('1\n')
+   self.invoke(d,'reconcile')
+   self.assertFalse(Path(d,'journal.json').exists(),'successful reconciliation must consume its journal')
+   self.invoke(d,'reconcile')
+
+ def test_successful_deploy_rollback_consumes_recovery_journal(self):
+  with tempfile.TemporaryDirectory() as d:
+   Path(d,'inject-health-failure').touch()
+   self.invoke(d,'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64,ok=False)
+   self.assertFalse(Path(d,'journal.json').exists(),'completed rollback must not be replayed at boot')
+   self.assertFalse(Path(d,'maintenance').exists())
+
  def test_supervisor_waits_for_deploy_lock_and_planned_stop_is_sticky(self):
   with tempfile.TemporaryDirectory() as d, open(Path(d,'lock'),'a+') as lock:
    env=os.environ|{'MUDX_TEST_MODE':'1','MUDX_STATE_DIR':d,'MUDX_DOCKER_BIN':str(ROOT/'tests/release_pipeline/fake-docker'),'MUDX_SUPERVISOR_ONCE':'1'}
@@ -125,6 +142,92 @@ exit 0
    self.assertIn('timed out',result.stderr)
    self.assertTrue(Path(d,'stopped').exists())
    self.assertFalse(Path(d,'maintenance').exists())
+ def test_inflight_deploy_aborts_after_a_timed_out_stop_intent(self):
+  with tempfile.TemporaryDirectory() as d:
+   fake=Path(d,'docker'); fake.write_text("""#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >> "$MUDX_STATE_DIR/docker-calls"
+if [[ "$1" == pull ]]; then
+ touch "$MUDX_STATE_DIR/pull-entered"
+ while [[ ! -e "$MUDX_STATE_DIR/pull-release" ]]; do sleep .01; done
+elif [[ "$1" == inspect && "$2" == --format ]]; then
+ printf 'unless-stopped\n'
+fi
+"""); fake.chmod(0o755)
+   env=os.environ|{'MUDX_TEST_MODE':'1','MUDX_STATE_DIR':d,'MUDX_DOCKER_BIN':str(fake),'MUDX_LOCK_TIMEOUT':'2'}
+   deploy=subprocess.Popen([str(DEPLOY),'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64],env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+   try:
+    deadline=time.monotonic()+2
+    while not Path(d,'pull-entered').exists() and time.monotonic()<deadline: time.sleep(.01)
+    self.assertTrue(Path(d,'pull-entered').exists(),'deploy never entered its blocking pull')
+    stop_env=env|{'MUDX_STOP_LOCK_TIMEOUT':'0.1'}
+    stopped=subprocess.run([str(DEPLOY),'stop'],env=stop_env,text=True,capture_output=True,timeout=2)
+    self.assertNotEqual(0,stopped.returncode,stopped.stderr)
+    self.assertIn('deployment lock is busy',stopped.stderr)
+    self.assertTrue(Path(d,'stopped').exists(),'timed-out stop intent must remain authoritative')
+    Path(d,'pull-release').touch()
+    _,stderr=deploy.communicate(timeout=3)
+    self.assertNotEqual(0,deploy.returncode,'in-flight deployment must not commit after a newer stopped marker')
+    self.assertIn('service stop requested during deployment',stderr)
+    self.assertFalse(Path(d,'current.json').exists(),'stopped deployment must not commit release identity')
+    self.assertEqual('prior-stopped',Path(d,'active').read_text().strip(),'rollback may restore but must not restart the prior container')
+    self.assertEqual('no',Path(d,'rollback-policy').read_text().strip(),'stopped rollback must leave Docker restart disabled')
+   finally:
+    if deploy.poll() is None: deploy.kill(); deploy.communicate()
+ def test_stop_preserves_preexisting_maintenance_marker(self):
+  with tempfile.TemporaryDirectory() as d:
+   Path(d,'maintenance').write_text('recovery-owned\n')
+   self.invoke(d,'stop')
+   self.assertEqual('recovery-owned\n',Path(d,'maintenance').read_text())
+ def test_recovery_pending_deploy_rejects_even_an_exact_duplicate(self):
+  with tempfile.TemporaryDirectory() as d:
+   identity={'sequence':1,'version':'9.10.1','source_sha':'c'*40,'digest':'sha256:'+'a'*64,'container':'MudX'}
+   Path(d,'current.json').write_text(json.dumps(identity))
+   Path(d,'maintenance').write_text('1\n')
+   result=self.invoke(d,'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64,ok=False)
+   self.assertIn('deployment recovery is pending',result.stderr)
+   self.assertFalse(Path(d,'docker.log').exists(),'recovery-pending rejection must precede Docker calls')
+   self.assertTrue(Path(d,'maintenance').exists())
+ def test_supervisor_throttles_a_successful_docker_wait(self):
+  with tempfile.TemporaryDirectory() as d:
+   fake=Path(d,'docker'); fake.write_text("""#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >> "$MUDX_STATE_DIR/docker-calls"
+if [[ "$1" == inspect ]]; then printf 'false\n'; fi
+if [[ "$1" == wait ]]; then touch "$MUDX_STATE_DIR/wait-returned"; printf '137\n'; fi
+"""); fake.chmod(0o755)
+   env=os.environ|{'MUDX_TEST_MODE':'1','MUDX_STATE_DIR':d,'MUDX_DOCKER_BIN':str(fake),'MUDX_SUPERVISOR_RESTART_DELAY':'0.3'}
+   supervisor=subprocess.Popen([str(DEPLOY),'supervise'],env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+   try:
+    deadline=time.monotonic()+2
+    while not Path(d,'wait-returned').exists() and time.monotonic()<deadline: time.sleep(.01)
+    self.assertTrue(Path(d,'wait-returned').exists(),'supervisor never observed container exit')
+    time.sleep(.1)
+    calls=Path(d,'docker-calls').read_text().splitlines()
+    self.assertEqual(1,sum(call.startswith('start ') for call in calls),'ordinary container exit must be throttled before restart')
+   finally:
+    supervisor.kill(); supervisor.communicate()
+ def test_marker_transition_table(self):
+  cases=(
+   ('new-stop',(),('stop',),True,True,False),
+   ('borrowed-maintenance-stop',('maintenance',),('stop',),True,True,True),
+   ('stopped-deploy',('stopped',),('deploy','1','9.10.1','c'*40,'sha256:'+'a'*64),False,True,False),
+   ('recovery-pending-deploy',('maintenance',),('deploy','1','9.10.1','c'*40,'sha256:'+'a'*64),False,False,True),
+  )
+  for name,markers,args,ok,stopped,maintenance in cases:
+   with self.subTest(name=name),tempfile.TemporaryDirectory() as d:
+    for item in markers: Path(d,item).write_text('owned\n')
+    self.invoke(d,*args,ok=ok)
+    self.assertEqual(stopped,Path(d,'stopped').exists())
+    self.assertEqual(maintenance,Path(d,'maintenance').exists())
+ def test_stop_handoff_budgets_cover_deploy_recovery_and_manager_deadlines(self):
+  source=DEPLOY.read_text(); unit=(ROOT/'deploy/systemd/mudx-container.service').read_text()
+  values={name:float(re.search(rf'^{name}=([0-9.]+)$',source,re.MULTILINE).group(1)) for name in (
+   'STOP_LOCK_TIMEOUT','STOP_DOCKER_TIMEOUT','DEPLOY_DOCKER_TIMEOUT','RECOVERY_DOCKER_TIMEOUT','SUPERVISOR_DOCKER_TIMEOUT')}
+  manager=float(re.search(r'^TimeoutStopSec=([0-9.]+)$',unit,re.MULTILINE).group(1))
+  self.assertGreaterEqual(values['STOP_LOCK_TIMEOUT'],values['DEPLOY_DOCKER_TIMEOUT']+values['RECOVERY_DOCKER_TIMEOUT']+5)
+  self.assertGreaterEqual(values['STOP_LOCK_TIMEOUT'],values['SUPERVISOR_DOCKER_TIMEOUT']+5)
+  self.assertGreaterEqual(manager,values['STOP_LOCK_TIMEOUT']+values['STOP_DOCKER_TIMEOUT']+5)
  def test_systemd_stop_timeout_covers_bounded_lock_and_docker_budgets(self):
   source=DEPLOY.read_text(); unit=(ROOT/'deploy/systemd/mudx-container.service').read_text()
   lock=re.search(r'^STOP_LOCK_TIMEOUT=([0-9.]+)$',source,re.MULTILINE)

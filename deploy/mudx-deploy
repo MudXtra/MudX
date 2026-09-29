@@ -6,7 +6,17 @@ SEMVER=re.compile(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z'); SHA=r
 TEST=os.environ.get('MUDX_TEST_MODE')=='1'; STATE=Path(os.environ.get('MUDX_STATE_DIR','/var/lib/mudx-deploy') if TEST else '/var/lib/mudx-deploy'); DOCKER=os.environ.get('MUDX_DOCKER_BIN','docker') if TEST else '/usr/bin/docker'
 STOP_LOCK_TIMEOUT=120.0
 STOP_DOCKER_TIMEOUT=40.0
+DEPLOY_DOCKER_TIMEOUT=70.0
+RECOVERY_DOCKER_TIMEOUT=40.0
+SUPERVISOR_DOCKER_TIMEOUT=30.0
+SUPERVISOR_RESTART_DELAY=2.0
 DOCKER_STOP_GRACE=30
+class StopRequested(RuntimeError): pass
+def configured(name,default): return float(os.environ.get(name,str(default))) if TEST else default
+def remaining(deadline,message):
+ value=deadline-time.monotonic()
+ if value<=0: raise TimeoutError(message)
+ return value
 def atomic(path,data):
  path.parent.mkdir(parents=True,exist_ok=True); fd,tmp=tempfile.mkstemp(dir=path.parent)
  with os.fdopen(fd,'w') as f: json.dump(data,f,sort_keys=True); f.write('\n'); f.flush(); os.fsync(f.fileno())
@@ -24,31 +34,37 @@ def clear(path):
  except FileNotFoundError: return
  d=os.open(path.parent,os.O_DIRECTORY); os.fsync(d); os.close(d)
 def run(*args,check=True,timeout=None): return subprocess.run([DOCKER,*args],check=check,text=True,capture_output=True,timeout=timeout)
-def acquire(lock,timeout=None):
+def acquire(lock,timeout=None,message='deployment lock is busy'):
  if timeout is None: timeout=float(os.environ.get('MUDX_LOCK_TIMEOUT','0.2')) if TEST else 30.0
  deadline=time.monotonic()+timeout
  while True:
   try: fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB); return
   except BlockingIOError:
-   if time.monotonic()>=deadline: raise RuntimeError('deployment lock is busy')
+   if time.monotonic()>=deadline: raise RuntimeError(message)
    time.sleep(.05)
 def acquire_stop_intent(lock):
  try: fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
- except BlockingIOError: raise RuntimeError('stop is in progress')
+ except BlockingIOError: raise StopRequested('stop is in progress')
+def acquire_running_intent(lock):
+ acquire_stop_intent(lock)
+ if (STATE/'stopped').exists(): raise StopRequested('service stop requested during deployment')
+def ensure_running_intent():
+ if (STATE/'stopped').exists(): raise StopRequested('service stop requested during deployment')
 def set_test(active):
  if TEST:
   (STATE/'active').write_text(active+'\n'); (STATE/'restart-eligible').write_text(active+'\n')
 def stage(j,name):
  j['stage']=name; atomic(STATE/'journal.json',j)
  if os.environ.get('MUDX_FAIL_AFTER')==name: raise RuntimeError('injected interruption after '+name)
-def validate_runtime():
+def validate_runtime(timeout):
  allowlist=Path(os.environ['MUDX_RUNTIME_ALLOWLIST']) if TEST and os.environ.get('MUDX_RUNTIME_ALLOWLIST') else Path(__file__).with_name('runtime-allowlist.json')
  cfg=read(allowlist,{})
  if cfg.get('ports')!=['4560:8080'] or cfg.get('restart_policy')!='no': raise RuntimeError('runtime allowlist is not reviewed baseline')
  forbidden=('privileged','docker_socket','host_pid','host_ipc','devices','extra_capabilities','sensitive_writable_mounts')
  if any(cfg.get(k) for k in forbidden): raise RuntimeError('dangerous runtime configuration rejected')
  if not TEST:
-  result=run('inspect',NAME,check=False)
+  result=run('inspect',NAME,check=False,timeout=timeout)
+  ensure_running_intent()
   if result.returncode==0:
    inspected=json.loads(result.stdout)[0]; host=inspected.get('HostConfig',{}); mounts=inspected.get('Mounts',[])
    unsafe=host.get('Privileged') or host.get('PidMode')=='host' or host.get('IpcMode')=='host' or host.get('Devices') or host.get('CapAdd') or host.get('Binds') or mounts
@@ -57,123 +73,164 @@ def validate_runtime():
    unsafe=unsafe or host.get('NetworkMode') not in ('default','bridge') or not valid_port
    if unsafe: raise RuntimeError('existing container violates reviewed fixed runtime baseline')
  return cfg
-def rollback(j,start=True):
+def rollback(j,start=True,deadline=None):
  if TEST and (STATE/'inject-rollback-failure').exists(): raise RuntimeError('injected rollback failure')
- if TEST: set_test('prior' if j.get('prior_name') else 'none'); return
- candidate=j.get('candidate_name')
- if candidate: run('rm','-f',candidate,check=False)
- if j.get('stage') in ('candidate-promote-intent','candidate-promoted'): run('rm','-f',NAME,check=False)
- prior=j.get('prior_name')
+ if deadline is None: deadline=time.monotonic()+configured('MUDX_RECOVERY_DOCKER_TIMEOUT',RECOVERY_DOCKER_TIMEOUT)
+ if TEST:
+  restart=start and not (STATE/'stopped').exists()
+  if restart:
+   with open(STATE/'stop-intent.lock','a+') as intent:
+    try: acquire_running_intent(intent)
+    except StopRequested: restart=False
+  (STATE/'rollback-policy').write_text((j.get('prior_restart','unless-stopped') if restart else 'no')+'\n')
+  active='prior' if j.get('prior_name') and restart else 'prior-stopped' if j.get('prior_name') else 'none'
+  set_test(active); return
+ def docker(*args,check=True): return run(*args,check=check,timeout=remaining(deadline,'Docker recovery budget exhausted'))
+ def exists(name): return docker('inspect',name,check=False).returncode==0
+ candidate=j.get('candidate_name'); prior=j.get('prior_name')
+ if candidate and candidate!=NAME and exists(candidate): docker('rm','-f',candidate)
+ if candidate==NAME and not prior and exists(NAME): docker('rm','-f',NAME)
  if prior:
-  run('rename',prior,NAME,check=False); run('update','--restart',j.get('prior_restart','unless-stopped'),NAME)
-  if start: run('start',NAME)
+  if prior!=NAME and exists(prior):
+   if exists(NAME): docker('rm','-f',NAME)
+   docker('rename',prior,NAME)
+  elif prior!=NAME and j.get('stage')!='prior-rename-intent': raise RuntimeError('retained prior container is missing')
+  if start:
+   with open(STATE/'stop-intent.lock','a+') as intent:
+    try: acquire_running_intent(intent)
+    except StopRequested: start=False
+    docker('update','--restart',j.get('prior_restart','unless-stopped') if start else 'no',NAME)
+    if start: docker('start',NAME)
+  else: docker('update','--restart','no',NAME)
 def reconcile(start=False):
  if TEST and (STATE/'inject-reconcile-failure').exists(): raise RuntimeError('injected reconcile failure')
  j=read(STATE/'journal.json',{}); current=read(STATE/'current.json',{})
  active='candidate' if j.get('stage')=='committed' or current.get('sequence')==j.get('sequence') else 'prior'
- if TEST: set_test(active); return
+ if TEST:
+  set_test(active); clear(STATE/'journal.json'); return
+ deadline=time.monotonic()+configured('MUDX_RECOVERY_DOCKER_TIMEOUT',RECOVERY_DOCKER_TIMEOUT)
+ def docker(*args,check=True): return run(*args,check=check,timeout=remaining(deadline,'Docker recovery budget exhausted'))
  if active=='candidate' and current.get('container'):
-  run('update','--restart','no',current['container'])
-  if start: run('start',current['container'])
+  docker('update','--restart','no',current['container'])
+  if start:
+   with open(STATE/'stop-intent.lock','a+') as intent:
+    acquire_running_intent(intent); docker('start',current['container'])
  else:
-  rollback(j,start=start)
+  rollback(j,start=start,deadline=deadline)
+ clear(STATE/'journal.json')
 def deploy(seq_s,ver,sha,digest):
  if not re.fullmatch(r'[1-9][0-9]*',seq_s) or not SEMVER.fullmatch(ver) or not SHA.fullmatch(sha) or not DIGEST.fullmatch(digest): raise RuntimeError('invalid deploy grammar')
  if (STATE/'stopped').exists(): raise RuntimeError('service is intentionally stopped; run resume before deployment')
+ if (STATE/'maintenance').exists(): raise RuntimeError('deployment recovery is pending; reconcile before deployment')
  seq=int(seq_s); current=read(STATE/'current.json',{})
  if current:
   identity=(seq,ver,sha,digest)
   recorded=(current.get('sequence'),current.get('version'),current.get('source_sha'),current.get('digest'))
   if identity==recorded: return
   if seq<=current.get('sequence',0): raise RuntimeError('stale or conflicting release identity')
- cfg=validate_runtime(); image=REPO+'@'+digest
- marker(STATE/'maintenance')
+ timeout=configured('MUDX_DEPLOY_DOCKER_TIMEOUT',DEPLOY_DOCKER_TIMEOUT)
+ def docker(*args,check=True):
+  ensure_running_intent(); result=run(*args,check=check,timeout=timeout); ensure_running_intent(); return result
+ cfg=validate_runtime(timeout); image=REPO+'@'+digest
  prior_exists=not (TEST and os.environ.get('MUDX_NO_PRIOR')=='1')
- if not TEST: prior_exists=run('inspect',NAME,check=False).returncode==0
+ if not TEST: prior_exists=docker('inspect',NAME,check=False).returncode==0
+ marker(STATE/'maintenance')
  j={'sequence':seq,'version':ver,'source_sha':sha,'digest':digest,'image':image,'stage':'new','prior_name':NAME if prior_exists else None,'prior_restart':'no','candidate_name':NAME+'-candidate-'+str(seq)}
  if TEST: set_test('prior' if prior_exists else 'none')
  try:
   if TEST and (STATE/'inject-pull-failure').exists(): raise RuntimeError('injected pull failure')
-  run('pull',image); stage(j,'prepared')
+  docker('pull',image); stage(j,'prepared')
   if not TEST and prior_exists:
-   inspected=run('inspect','--format','{{.HostConfig.RestartPolicy.Name}}',NAME); j['prior_restart']=inspected.stdout.strip() or 'no'
-  stage(j,'prior-policy-intent')
-  if not TEST and prior_exists: run('update','--restart','no',NAME)
-  stage(j,'prior-policy-disabled'); stage(j,'prior-stop-intent')
-  if not TEST and prior_exists: run('stop','--time','30',NAME)
+   inspected=docker('inspect','--format','{{.HostConfig.RestartPolicy.Name}}',NAME); j['prior_restart']=inspected.stdout.strip() or 'no'
+  ensure_running_intent(); stage(j,'prior-policy-intent')
+  if not TEST and prior_exists: docker('update','--restart','no',NAME)
+  stage(j,'prior-policy-disabled'); ensure_running_intent(); stage(j,'prior-stop-intent')
+  if not TEST and prior_exists: docker('stop','--time','30',NAME)
   stage(j,'prior-stopped')
-  prior=NAME+'-prior-'+str(seq) if prior_exists else None; j['prior_name']=prior; stage(j,'prior-rename-intent')
-  if not TEST and prior_exists: run('rename',NAME,prior)
-  stage(j,'prior-renamed')
+  prior=NAME+'-prior-'+str(seq) if prior_exists else None; j['prior_name']=prior; ensure_running_intent(); stage(j,'prior-rename-intent')
+  if not TEST and prior_exists: docker('rename',NAME,prior)
+  stage(j,'prior-renamed'); ensure_running_intent()
   if not TEST:
-   run('create','--name',j['candidate_name'],'--restart','no','-p',cfg['ports'][0],'--label','org.opencontainers.image.version='+ver,'--label','org.opencontainers.image.revision='+sha,image)
-  stage(j,'candidate-created'); stage(j,'candidate-start-intent')
-  if not TEST: run('start',j['candidate_name'])
-  stage(j,'candidate-started')
+   docker('create','--name',j['candidate_name'],'--restart','no','-p',cfg['ports'][0],'--label','org.opencontainers.image.version='+ver,'--label','org.opencontainers.image.revision='+sha,image)
+  stage(j,'candidate-created'); ensure_running_intent(); stage(j,'candidate-start-intent')
+  if not TEST: docker('start',j['candidate_name'])
+  stage(j,'candidate-started'); ensure_running_intent()
   if TEST and (STATE/'inject-health-failure').exists(): raise RuntimeError('injected health failure')
   if not TEST:
-   deadline=time.time()+60
+   health_deadline=time.monotonic()+60
    while True:
+    ensure_running_intent()
     try:
      healthy=urllib.request.urlopen('http://127.0.0.1:4560/healthz',timeout=2).status==200
      revision=urllib.request.urlopen('http://127.0.0.1:4560/revision',timeout=2).read().decode().strip()
+     ensure_running_intent()
      if healthy and revision==sha: break
+    except StopRequested: raise
     except Exception: pass
-    if time.time()>deadline: raise RuntimeError('candidate readiness failed')
+    if time.monotonic()>health_deadline: raise RuntimeError('candidate readiness failed')
     time.sleep(2)
-  stage(j,'verified'); stage(j,'candidate-promote-intent')
-  if not TEST:
-   run('rename',j['candidate_name'],NAME)
-  j['candidate_name']=NAME; stage(j,'candidate-promoted'); atomic(STATE/'current.json',{'sequence':seq,'version':ver,'source_sha':sha,'digest':digest,'container':NAME}); stage(j,'committed')
-  if TEST: set_test('candidate')
+  ensure_running_intent(); stage(j,'verified'); stage(j,'candidate-promote-intent')
+  with open(STATE/'stop-intent.lock','a+') as intent:
+   acquire_running_intent(intent)
+   if not TEST: docker('rename',j['candidate_name'],NAME)
+   j['candidate_name']=NAME; stage(j,'candidate-promoted'); atomic(STATE/'current.json',{'sequence':seq,'version':ver,'source_sha':sha,'digest':digest,'container':NAME}); stage(j,'committed')
+   if TEST: set_test('candidate')
+   clear(STATE/'maintenance'); clear(STATE/'journal.json')
  except Exception as deployment_error:
   if j.get('stage')!='committed':
-   try: rollback(j)
+   stop_requested=isinstance(deployment_error,StopRequested) or (STATE/'stopped').exists()
+   try: rollback(j,start=not stop_requested)
    except Exception as rollback_error:
     raise RuntimeError(f'deployment failed: {deployment_error}; rollback failed: {rollback_error}') from deployment_error
-   clear(STATE/'maintenance')
+   clear(STATE/'journal.json'); clear(STATE/'maintenance')
   raise
- else: clear(STATE/'maintenance')
 def supervise():
  once=TEST and os.environ.get('MUDX_SUPERVISOR_ONCE')=='1'
+ timeout=configured('MUDX_SUPERVISOR_DOCKER_TIMEOUT',SUPERVISOR_DOCKER_TIMEOUT)
+ delay=configured('MUDX_SUPERVISOR_RESTART_DELAY',SUPERVISOR_RESTART_DELAY)
  while True:
   with open(STATE/'lock','a+') as lock:
    fcntl.flock(lock,fcntl.LOCK_EX)
    if (STATE/'stopped').exists(): return
    if (STATE/'maintenance').exists(): reconcile(start=False); clear(STATE/'maintenance')
+   if (STATE/'stopped').exists(): return
    if TEST:
-    run('update','--restart','no',NAME,check=False); run('start',NAME,check=False)
+    run('update','--restart','no',NAME,check=False,timeout=timeout)
+    if (STATE/'stopped').exists(): return
+    run('start',NAME,check=False,timeout=timeout)
    else:
-    inspected=run('inspect','--format','{{.State.Running}}',NAME,check=False)
+    inspected=run('inspect','--format','{{.State.Running}}',NAME,check=False,timeout=timeout)
     if inspected.returncode: raise RuntimeError('managed container is missing')
-    run('update','--restart','no',NAME)
-    if inspected.stdout.strip()!='true': run('start',NAME)
+    if (STATE/'stopped').exists(): return
+    run('update','--restart','no',NAME,timeout=timeout)
+    if (STATE/'stopped').exists(): return
+    if inspected.stdout.strip()!='true': run('start',NAME,timeout=timeout)
   if once: return
-  waited=run('wait',NAME,check=False)
-  if waited.returncode: time.sleep(2)
+  run('wait',NAME,check=False)
+  delay_deadline=time.monotonic()+delay
+  while time.monotonic()<delay_deadline:
+   if (STATE/'stopped').exists(): return
+   time.sleep(min(.05,delay_deadline-time.monotonic()))
 def stop():
- marker(STATE/'maintenance')
- timeout=float(os.environ.get('MUDX_STOP_DOCKER_TIMEOUT',str(STOP_DOCKER_TIMEOUT))) if TEST else STOP_DOCKER_TIMEOUT
- deadline=time.monotonic()+timeout
- def remaining():
-  value=deadline-time.monotonic()
-  if value<=0: raise TimeoutError('Docker stop budget exhausted')
-  return value
+ owned_maintenance=not (STATE/'maintenance').exists()
+ if owned_maintenance: marker(STATE/'maintenance')
+ deadline=time.monotonic()+configured('MUDX_STOP_DOCKER_TIMEOUT',STOP_DOCKER_TIMEOUT)
  try:
-  if run('inspect',NAME,check=False,timeout=remaining()).returncode==0:
-   run('update','--restart','no',NAME,timeout=remaining())
-   run('stop','--time',str(DOCKER_STOP_GRACE),NAME,timeout=remaining())
+  if run('inspect',NAME,check=False,timeout=remaining(deadline,'Docker stop budget exhausted')).returncode==0:
+   run('update','--restart','no',NAME,timeout=remaining(deadline,'Docker stop budget exhausted'))
+   run('stop','--time',str(DOCKER_STOP_GRACE),NAME,timeout=remaining(deadline,'Docker stop budget exhausted'))
   if TEST: set_test('stopped')
- finally: clear(STATE/'maintenance')
+ finally:
+  if owned_maintenance: clear(STATE/'maintenance')
 def main():
  STATE.mkdir(parents=True,exist_ok=True)
  if len(sys.argv)==2 and sys.argv[1]=='supervise': supervise(); return
  if len(sys.argv)==2 and sys.argv[1]=='stop':
+  lock_timeout=configured('MUDX_STOP_LOCK_TIMEOUT',STOP_LOCK_TIMEOUT); lock_deadline=time.monotonic()+lock_timeout
   with open(STATE/'stop-intent.lock','a+') as intent:
-   acquire_stop_intent(intent); marker(STATE/'stopped')
+   acquire(intent,timeout=remaining(lock_deadline,'stop lock budget exhausted'),message='stop intent lock is busy'); marker(STATE/'stopped')
    with open(STATE/'lock','a+') as lock:
-    timeout=float(os.environ.get('MUDX_STOP_LOCK_TIMEOUT',str(STOP_LOCK_TIMEOUT))) if TEST else STOP_LOCK_TIMEOUT
-    acquire(lock,timeout=timeout); stop()
+    acquire(lock,timeout=remaining(lock_deadline,'stop lock budget exhausted')); stop()
   return
  with open(STATE/'lock','a+') as lock:
   acquire(lock)
