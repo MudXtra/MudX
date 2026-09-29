@@ -86,15 +86,24 @@ def rollback(j,start=True,deadline=None):
   active='prior' if j.get('prior_name') and restart else 'prior-stopped' if j.get('prior_name') else 'none'
   set_test(active); return
  def docker(*args,check=True): return run(*args,check=check,timeout=remaining(deadline,'Docker recovery budget exhausted'))
- def exists(name): return docker('inspect',name,check=False).returncode==0
- candidate=j.get('candidate_name'); prior=j.get('prior_name')
- if candidate and candidate!=NAME and exists(candidate): docker('rm','-f',candidate)
- if candidate==NAME and not prior and exists(NAME): docker('rm','-f',NAME)
+ def container_id(name):
+  result=docker('inspect','--format','{{.Id}}',name,check=False)
+  return result.stdout.strip() if result.returncode==0 else None
+ candidate=j.get('candidate_name'); candidate_id=j.get('candidate_id'); prior=j.get('prior_name'); prior_id=j.get('prior_id')
+ if candidate and candidate!=NAME and container_id(candidate): docker('rm','-f',candidate)
+ name_id=container_id(NAME)
+ if candidate_id and name_id==candidate_id:
+  docker('rm','-f',NAME); name_id=None
+ elif candidate==NAME and not prior and not candidate_id and name_id:
+  docker('rm','-f',NAME); name_id=None
  if prior:
-  if prior!=NAME and exists(prior):
-   if exists(NAME): docker('rm','-f',NAME)
-   docker('rename',prior,NAME)
-  elif prior!=NAME and j.get('stage')!='prior-rename-intent': raise RuntimeError('retained prior container is missing')
+  prior_location=container_id(prior) if prior!=NAME else name_id
+  if prior!=NAME and prior_location:
+   if name_id: docker('rm','-f',NAME)
+   docker('rename',prior,NAME); name_id=prior_location
+  elif prior!=NAME and prior_id and name_id==prior_id: pass
+  elif prior!=NAME and not prior_id and j.get('stage')=='prior-rename-intent' and name_id: pass
+  elif not name_id: raise RuntimeError('retained prior container is missing')
   if start:
    with open(STATE/'stop-intent.lock','a+') as intent:
     try: acquire_running_intent(intent)
@@ -142,6 +151,8 @@ def deploy(seq_s,ver,sha,digest):
   docker('pull',image); stage(j,'prepared')
   if not TEST and prior_exists:
    inspected=docker('inspect','--format','{{.HostConfig.RestartPolicy.Name}}',NAME); j['prior_restart']=inspected.stdout.strip() or 'no'
+   identity=docker('inspect','--format','{{.Id}}',NAME); j['prior_id']=identity.stdout.strip()
+   if not j['prior_id']: raise RuntimeError('existing container identity is unavailable')
   ensure_running_intent(); stage(j,'prior-policy-intent')
   if not TEST and prior_exists: docker('update','--restart','no',NAME)
   stage(j,'prior-policy-disabled'); ensure_running_intent(); stage(j,'prior-stop-intent')
@@ -151,7 +162,9 @@ def deploy(seq_s,ver,sha,digest):
   if not TEST and prior_exists: docker('rename',NAME,prior)
   stage(j,'prior-renamed'); ensure_running_intent()
   if not TEST:
-   docker('create','--name',j['candidate_name'],'--restart','no','-p',cfg['ports'][0],'--label','org.opencontainers.image.version='+ver,'--label','org.opencontainers.image.revision='+sha,image)
+   created=docker('create','--name',j['candidate_name'],'--restart','no','-p',cfg['ports'][0],'--label','org.opencontainers.image.version='+ver,'--label','org.opencontainers.image.revision='+sha,image)
+   j['candidate_id']=created.stdout.strip()
+   if not j['candidate_id']: raise RuntimeError('candidate container identity is unavailable')
   stage(j,'candidate-created'); ensure_running_intent(); stage(j,'candidate-start-intent')
   if not TEST: docker('start',j['candidate_name'])
   stage(j,'candidate-started'); ensure_running_intent()

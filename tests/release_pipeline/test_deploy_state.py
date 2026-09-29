@@ -1,6 +1,24 @@
-import fcntl, json, os, re, subprocess, tempfile, time, unittest
+import fcntl, json, os, re, runpy, subprocess, tempfile, time, unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]; DEPLOY=ROOT/'deploy/mudx-deploy'
+class DockerModel:
+ def __init__(self,containers,fail_updates=0): self.containers=containers; self.fail_updates=fail_updates; self.calls=[]
+ def __call__(self,*args,check=True,timeout=None):
+  self.calls.append(args); op=args[0]; rc=0; stdout=''
+  if op=='inspect':
+   name=args[-1]; container=self.containers.get(name)
+   if container is None: rc=1
+   elif '--format' in args: stdout=container['id']+'\n'
+  elif op=='rm': self.containers.pop(args[-1],None)
+  elif op=='rename': self.containers[args[2]]=self.containers.pop(args[1])
+  elif op=='update':
+   if self.fail_updates:
+    self.fail_updates-=1; rc=1
+   else: self.containers[args[-1]]['restart']=args[2]
+  elif op=='start': self.containers[args[-1]]['running']=True
+  result=subprocess.CompletedProcess(args,rc,stdout,'')
+  if check and rc: raise subprocess.CalledProcessError(rc,args,stdout,'')
+  return result
 class Tests(unittest.TestCase):
  def invoke(self,state,*args,fail=None,ok=True,extra_env=None):
   env=os.environ|{'MUDX_TEST_MODE':'1','MUDX_STATE_DIR':str(state),'MUDX_DOCKER_BIN':str(ROOT/'tests/release_pipeline/fake-docker')}
@@ -9,6 +27,29 @@ class Tests(unittest.TestCase):
   if 'no-prior' in args: env['MUDX_NO_PRIOR']='1'; args=tuple(x for x in args if x!='no-prior')
   if (Path(state)/'allowlist.json').exists(): env['MUDX_RUNTIME_ALLOWLIST']=str(Path(state)/'allowlist.json')
   r=subprocess.run([str(DEPLOY),*args],env=env,text=True,capture_output=True); self.assertEqual(ok,r.returncode==0,r.stderr); return r
+ def real_rollback(self,state,j,containers,fail_updates=0):
+  module=runpy.run_path(str(DEPLOY)); model=DockerModel(containers,fail_updates)
+  module['rollback'].__globals__.update(STATE=Path(state),TEST=False,run=model)
+  return module['rollback'],model
+ def test_first_install_promote_rename_ambiguity_removes_uncommitted_candidate(self):
+  with tempfile.TemporaryDirectory() as d:
+   candidate_id='candidate-id'; containers={'MudX':{'id':candidate_id,'restart':'no','running':False}}
+   journal={'stage':'candidate-promote-intent','candidate_name':'MudX-candidate-1','candidate_id':candidate_id,'prior_name':None}
+   rollback,model=self.real_rollback(d,journal,containers)
+   rollback(journal)
+   self.assertEqual({},model.containers)
+ def test_rollback_replays_after_prior_rename_then_policy_failure(self):
+  with tempfile.TemporaryDirectory() as d:
+   prior_id='prior-id'; candidate_id='candidate-id'
+   containers={'MudX-prior-2':{'id':prior_id,'restart':'no','running':False},'MudX':{'id':candidate_id,'restart':'no','running':False}}
+   journal={'stage':'candidate-promoted','candidate_name':'MudX','candidate_id':candidate_id,'prior_name':'MudX-prior-2','prior_id':prior_id,'prior_restart':'unless-stopped'}
+   rollback,model=self.real_rollback(d,journal,containers,fail_updates=1)
+   with self.assertRaises(subprocess.CalledProcessError): rollback(journal)
+   self.assertEqual(prior_id,model.containers['MudX']['id'])
+   rollback(journal)
+   self.assertEqual({'MudX'},set(model.containers))
+   self.assertEqual('unless-stopped',model.containers['MudX']['restart'])
+   self.assertTrue(model.containers['MudX']['running'])
  def test_actual_container_name_is_preserved_in_journal(self):
   with tempfile.TemporaryDirectory() as d:
    Path(d,'inject-rollback-failure').touch()
