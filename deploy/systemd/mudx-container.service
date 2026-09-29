@@ -5,6 +5,7 @@ After=docker.service mudx-reconcile.service
 
 [Service]
 Type=simple
+ExecStartPre=/usr/local/libexec/mudx-deploy resume
 ExecStart=/usr/local/libexec/mudx-deploy supervise
 ExecStop=/usr/local/libexec/mudx-deploy stop
 Restart=always

@@ -50,6 +50,22 @@ fi
     self.assertEqual(1,len(starts),'planned stop must not be followed by a restart')
    finally:
     if supervisor.poll() is None: supervisor.kill(); supervisor.communicate()
+ def test_stop_before_supervisor_initialization_remains_dominant(self):
+  with tempfile.TemporaryDirectory() as d:
+   self.invoke(d,'resume')
+   self.invoke(d,'stop')
+   self.invoke(d,'supervise',extra_env={'MUDX_SUPERVISOR_ONCE':'1'})
+   self.assertTrue(Path(d,'stopped').exists())
+   calls=Path(d,'docker.log').read_text().splitlines()
+   self.assertFalse(any(call.startswith('start ') for call in calls),'a newer stop intent must prevent supervisor startup')
+ def test_explicit_resume_clears_prior_stop_before_supervisor_start(self):
+  with tempfile.TemporaryDirectory() as d:
+   self.invoke(d,'stop')
+   self.invoke(d,'resume')
+   self.assertFalse(Path(d,'stopped').exists())
+   self.invoke(d,'supervise',extra_env={'MUDX_SUPERVISOR_ONCE':'1'})
+   calls=Path(d,'docker.log').read_text().splitlines()
+   self.assertEqual(1,sum(call.startswith('start ') for call in calls))
  def test_planned_stop_reports_docker_failure(self):
   with tempfile.TemporaryDirectory() as d:
    fake=Path(d,'docker'); fake.write_text("""#!/usr/bin/env bash
@@ -61,6 +77,7 @@ exit 0
  def test_systemd_unit_owns_continuous_recovery(self):
   unit=(ROOT/'deploy/systemd/mudx-container.service').read_text()
   self.assertIn('Type=simple',unit)
+  self.assertIn('ExecStartPre=/usr/local/libexec/mudx-deploy resume',unit)
   self.assertIn('ExecStart=/usr/local/libexec/mudx-deploy supervise',unit)
   self.assertIn('ExecStop=/usr/local/libexec/mudx-deploy stop',unit)
   self.assertIn('Restart=always',unit)
@@ -69,6 +86,15 @@ exit 0
   with tempfile.TemporaryDirectory() as d:
    self.invoke(d,'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64); self.invoke(d,'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64)
    self.invoke(d,'deploy','0','9.9.9','c'*40,'sha256:'+'b'*64,ok=False); self.invoke(d,'deploy','2;id','9.10.2','c'*40,'sha256:'+'b'*64,ok=False)
+ def test_completed_retry_requires_exact_release_identity(self):
+  with tempfile.TemporaryDirectory() as d:
+   digest='sha256:'+'a'*64; source='c'*40
+   self.invoke(d,'deploy','1','9.10.1',source,digest)
+   before=Path(d,'docker.log').read_text()
+   self.invoke(d,'deploy','1','9.10.1',source,digest)
+   self.assertEqual(before,Path(d,'docker.log').read_text(),'an exact retry must be a no-op')
+   self.invoke(d,'deploy','1','99.99.99',source,digest,ok=False)
+   self.invoke(d,'deploy','1','9.10.1','d'*40,digest,ok=False)
  def test_deploy_waits_for_a_transient_supervisor_lock(self):
   with tempfile.TemporaryDirectory() as d, open(Path(d,'lock'),'a+') as lock:
    env=os.environ|{'MUDX_TEST_MODE':'1','MUDX_STATE_DIR':d,'MUDX_DOCKER_BIN':str(ROOT/'tests/release_pipeline/fake-docker'),'MUDX_LOCK_TIMEOUT':'2'}

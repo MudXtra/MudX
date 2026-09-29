@@ -72,7 +72,9 @@ def deploy(seq_s,ver,sha,digest):
  if not re.fullmatch(r'[1-9][0-9]*',seq_s) or not SEMVER.fullmatch(ver) or not SHA.fullmatch(sha) or not DIGEST.fullmatch(digest): raise RuntimeError('invalid deploy grammar')
  seq=int(seq_s); current=read(STATE/'current.json',{})
  if current:
-  if seq==current.get('sequence') and digest==current.get('digest'): return
+  identity=(seq,ver,sha,digest)
+  recorded=(current.get('sequence'),current.get('version'),current.get('source_sha'),current.get('digest'))
+  if identity==recorded: return
   if seq<=current.get('sequence',0): raise RuntimeError('stale or conflicting release identity')
  cfg=validate_runtime(); image=REPO+'@'+digest
  marker(STATE/'maintenance')
@@ -120,9 +122,6 @@ def deploy(seq_s,ver,sha,digest):
  finally: clear(STATE/'maintenance')
 def supervise():
  once=TEST and os.environ.get('MUDX_SUPERVISOR_ONCE')=='1'
- with open(STATE/'lock','a+') as lock:
-  fcntl.flock(lock,fcntl.LOCK_EX)
-  clear(STATE/'stopped')
  while True:
   with open(STATE/'lock','a+') as lock:
    fcntl.flock(lock,fcntl.LOCK_EX)
@@ -151,9 +150,10 @@ def main():
  with open(STATE/'lock','a+') as lock:
   acquire(lock)
   if len(sys.argv)==2 and sys.argv[1]=='reconcile': reconcile(start=False); clear(STATE/'maintenance')
+  elif len(sys.argv)==2 and sys.argv[1]=='resume': clear(STATE/'stopped')
   elif len(sys.argv)==2 and sys.argv[1]=='stop': stop()
   elif len(sys.argv)==6 and sys.argv[1]=='deploy': deploy(*sys.argv[2:])
-  else: raise RuntimeError('usage: mudx-deploy deploy SEQUENCE VERSION SOURCE_SHA sha256:DIGEST | reconcile | supervise | stop')
+  else: raise RuntimeError('usage: mudx-deploy deploy SEQUENCE VERSION SOURCE_SHA sha256:DIGEST | reconcile | resume | supervise | stop')
 if __name__=='__main__':
  try: main()
  except Exception as e: print('mudx-deploy: '+str(e),file=sys.stderr); raise SystemExit(1)
