@@ -90,27 +90,34 @@ def rollback(j,start=True,deadline=None):
   result=docker('inspect','--format','{{.Id}}',name,check=False)
   return result.stdout.strip() if result.returncode==0 else None
  candidate=j.get('candidate_name'); candidate_id=j.get('candidate_id'); prior=j.get('prior_name'); prior_id=j.get('prior_id')
- if candidate and candidate!=NAME and container_id(candidate): docker('rm','-f',candidate)
+ candidate_location=container_id(candidate) if candidate and candidate!=NAME else None
  name_id=container_id(NAME)
- if candidate_id and name_id==candidate_id:
-  docker('rm','-f',NAME); name_id=None
- elif candidate==NAME and not prior and not candidate_id and name_id:
-  docker('rm','-f',NAME); name_id=None
+ prior_location=container_id(prior) if prior and prior!=NAME else name_id if prior else None
+ if candidate_location and not candidate_id: raise RuntimeError('candidate container identity unavailable')
+ if candidate==NAME and name_id and not prior and not candidate_id: raise RuntimeError('candidate container identity unavailable')
+ if prior and not prior_id: raise RuntimeError('prior container identity unavailable')
+ if candidate_id and candidate_location and candidate_location!=candidate_id: raise RuntimeError('candidate container identity mismatch')
+ if prior_id and prior_location and prior_location!=prior_id: raise RuntimeError('prior container identity mismatch')
+ known_name_ids={identity for identity in (candidate_id,prior_id) if identity}
+ if name_id and known_name_ids and name_id not in known_name_ids:
+  role='prior' if prior==NAME and prior_id else 'candidate'
+  raise RuntimeError(role+' container identity mismatch')
+ if prior and prior_location!=prior_id and name_id!=prior_id: raise RuntimeError('retained prior container is missing')
+ if candidate_id and (candidate_location==candidate_id or name_id==candidate_id):
+  docker('rm','-f',candidate_id)
+  if name_id==candidate_id: name_id=None
  if prior:
-  prior_location=container_id(prior) if prior!=NAME else name_id
-  if prior!=NAME and prior_location:
-   if name_id: docker('rm','-f',NAME)
-   docker('rename',prior,NAME); name_id=prior_location
-  elif prior!=NAME and prior_id and name_id==prior_id: pass
-  elif prior!=NAME and not prior_id and j.get('stage')=='prior-rename-intent' and name_id: pass
-  elif not name_id: raise RuntimeError('retained prior container is missing')
+  if prior!=NAME and prior_location==prior_id:
+   if name_id: raise RuntimeError('canonical container changed during rollback')
+   docker('rename',prior_id,NAME); name_id=prior_id
   if start:
    with open(STATE/'stop-intent.lock','a+') as intent:
     try: acquire_running_intent(intent)
     except StopRequested: start=False
-    docker('update','--restart',j.get('prior_restart','unless-stopped') if start else 'no',NAME)
-    if start: docker('start',NAME)
-  else: docker('update','--restart','no',NAME)
+    docker('update','--restart',j.get('prior_restart','unless-stopped') if start else 'no',prior_id)
+    if start: docker('start',prior_id)
+  else: docker('update','--restart','no',prior_id)
+  if container_id(NAME)!=prior_id: raise RuntimeError('restored prior container lost canonical name')
 def reconcile(start=False):
  if TEST and (STATE/'inject-reconcile-failure').exists(): raise RuntimeError('injected reconcile failure')
  j=read(STATE/'journal.json',{}); current=read(STATE/'current.json',{})

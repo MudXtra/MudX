@@ -2,20 +2,35 @@ import fcntl, json, os, re, runpy, subprocess, tempfile, time, unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]; DEPLOY=ROOT/'deploy/mudx-deploy'
 class DockerModel:
- def __init__(self,containers,fail_updates=0): self.containers=containers; self.fail_updates=fail_updates; self.calls=[]
+ def __init__(self,containers,fail_updates=0,before=None): self.containers=containers; self.fail_updates=fail_updates; self.before=before; self.calls=[]
+ def name_for(self,reference):
+  if reference in self.containers: return reference
+  return next((name for name,container in self.containers.items() if container['id']==reference),None)
  def __call__(self,*args,check=True,timeout=None):
   self.calls.append(args); op=args[0]; rc=0; stdout=''
+  if self.before: self.before(self,args)
   if op=='inspect':
-   name=args[-1]; container=self.containers.get(name)
+   name=self.name_for(args[-1]); container=self.containers.get(name)
    if container is None: rc=1
    elif '--format' in args: stdout=container['id']+'\n'
-  elif op=='rm': self.containers.pop(args[-1],None)
-  elif op=='rename': self.containers[args[2]]=self.containers.pop(args[1])
+  elif op=='rm':
+   name=self.name_for(args[-1])
+   if name is None: rc=1
+   else: self.containers.pop(name)
+  elif op=='rename':
+   name=self.name_for(args[1])
+   if name is None or args[2] in self.containers: rc=1
+   else: self.containers[args[2]]=self.containers.pop(name)
   elif op=='update':
+   name=self.name_for(args[-1])
    if self.fail_updates:
     self.fail_updates-=1; rc=1
-   else: self.containers[args[-1]]['restart']=args[2]
-  elif op=='start': self.containers[args[-1]]['running']=True
+   elif name is None: rc=1
+   else: self.containers[name]['restart']=args[2]
+  elif op=='start':
+   name=self.name_for(args[-1])
+   if name is None: rc=1
+   else: self.containers[name]['running']=True
   result=subprocess.CompletedProcess(args,rc,stdout,'')
   if check and rc: raise subprocess.CalledProcessError(rc,args,stdout,'')
   return result
@@ -27,8 +42,8 @@ class Tests(unittest.TestCase):
   if 'no-prior' in args: env['MUDX_NO_PRIOR']='1'; args=tuple(x for x in args if x!='no-prior')
   if (Path(state)/'allowlist.json').exists(): env['MUDX_RUNTIME_ALLOWLIST']=str(Path(state)/'allowlist.json')
   r=subprocess.run([str(DEPLOY),*args],env=env,text=True,capture_output=True); self.assertEqual(ok,r.returncode==0,r.stderr); return r
- def real_rollback(self,state,j,containers,fail_updates=0):
-  module=runpy.run_path(str(DEPLOY)); model=DockerModel(containers,fail_updates)
+ def real_rollback(self,state,j,containers,fail_updates=0,before=None):
+  module=runpy.run_path(str(DEPLOY)); model=DockerModel(containers,fail_updates,before)
   module['rollback'].__globals__.update(STATE=Path(state),TEST=False,run=model)
   return module['rollback'],model
  def pull_failure_deploy(self,state,containers,stop_on_pull=False):
@@ -79,6 +94,135 @@ class Tests(unittest.TestCase):
    rollback,model=self.real_rollback(d,journal,containers)
    rollback(journal)
    self.assertEqual({},model.containers)
+ def test_rollback_wrong_candidate_id_fails_before_mutation(self):
+  with tempfile.TemporaryDirectory() as d:
+   expected={
+    'MudX-candidate-1':{'id':'replacement-id','restart':'no','running':False},
+    'MudX-prior-1':{'id':'prior-id','restart':'no','running':False},
+   }
+   containers=json.loads(json.dumps(expected))
+   journal={'stage':'candidate-started','candidate_name':'MudX-candidate-1','candidate_id':'candidate-id','prior_name':'MudX-prior-1','prior_id':'prior-id','prior_restart':'unless-stopped'}
+   rollback,model=self.real_rollback(d,journal,containers)
+   with self.assertRaisesRegex(RuntimeError,'candidate container identity mismatch'): rollback(journal)
+   self.assertEqual(expected,containers)
+   self.assertFalse(any(call[0] in ('rm','rename','update','start') for call in model.calls))
+ def test_rollback_wrong_prior_id_fails_before_removing_candidate(self):
+  with tempfile.TemporaryDirectory() as d:
+   expected={
+    'MudX':{'id':'candidate-id','restart':'no','running':False},
+    'MudX-prior-1':{'id':'replacement-id','restart':'no','running':False},
+   }
+   containers=json.loads(json.dumps(expected))
+   journal={'stage':'candidate-promoted','candidate_name':'MudX','candidate_id':'candidate-id','prior_name':'MudX-prior-1','prior_id':'prior-id','prior_restart':'unless-stopped'}
+   rollback,model=self.real_rollback(d,journal,containers)
+   with self.assertRaisesRegex(RuntimeError,'prior container identity mismatch'): rollback(journal)
+   self.assertEqual(expected,containers)
+   self.assertFalse(any(call[0] in ('rm','rename','update','start') for call in model.calls))
+ def test_rollback_wrong_replacement_target_id_fails_before_mutation(self):
+  with tempfile.TemporaryDirectory() as d:
+   expected={
+    'MudX-candidate-1':{'id':'candidate-id','restart':'no','running':False},
+    'MudX-prior-1':{'id':'prior-id','restart':'no','running':False},
+    'MudX':{'id':'replacement-id','restart':'unless-stopped','running':True},
+   }
+   containers=json.loads(json.dumps(expected))
+   journal={'stage':'candidate-started','candidate_name':'MudX-candidate-1','candidate_id':'candidate-id','prior_name':'MudX-prior-1','prior_id':'prior-id','prior_restart':'unless-stopped'}
+   rollback,model=self.real_rollback(d,journal,containers)
+   with self.assertRaisesRegex(RuntimeError,'candidate container identity mismatch'): rollback(journal)
+   self.assertEqual(expected,containers)
+   self.assertFalse(any(call[0] in ('rm','rename','update','start') for call in model.calls))
+ def test_rollback_wrong_retained_prior_id_fails_before_policy_mutation(self):
+  with tempfile.TemporaryDirectory() as d:
+   expected={'MudX':{'id':'replacement-id','restart':'unless-stopped','running':False}}
+   containers=json.loads(json.dumps(expected))
+   journal={'stage':'prior-policy-intent','candidate_name':'MudX-candidate-1','prior_name':'MudX','prior_id':'prior-id','prior_restart':'unless-stopped'}
+   rollback,model=self.real_rollback(d,journal,containers)
+   with self.assertRaisesRegex(RuntimeError,'prior container identity mismatch'): rollback(journal)
+   self.assertEqual(expected,containers)
+   self.assertFalse(any(call[0] in ('rm','rename','update','start') for call in model.calls))
+ def test_rollback_no_id_paths_fail_closed_before_mutation(self):
+  cases=(
+   ({'MudX':{'id':'legacy-candidate','restart':'no','running':False}},{'stage':'candidate-promote-intent','candidate_name':'MudX','prior_name':None},'candidate'),
+   ({'MudX':{'id':'legacy-prior','restart':'no','running':False}},{'stage':'prior-rename-intent','candidate_name':'MudX-candidate-1','prior_name':'MudX-prior-1','prior_restart':'unless-stopped'},'prior'),
+  )
+  for expected,journal,role in cases:
+   with self.subTest(role=role),tempfile.TemporaryDirectory() as d:
+    containers=json.loads(json.dumps(expected)); rollback,model=self.real_rollback(d,journal,containers)
+    with self.assertRaisesRegex(RuntimeError,role+' container identity unavailable'): rollback(journal)
+    self.assertEqual(expected,containers)
+    self.assertFalse(any(call[0] in ('rm','rename','update','start') for call in model.calls))
+ def test_rollback_missing_prior_fails_before_candidate_removal(self):
+  with tempfile.TemporaryDirectory() as d:
+   expected={'MudX-candidate-1':{'id':'candidate-id','restart':'no','running':False}}
+   containers=json.loads(json.dumps(expected))
+   journal={'stage':'candidate-started','candidate_name':'MudX-candidate-1','candidate_id':'candidate-id','prior_name':'MudX-prior-1','prior_id':'prior-id','prior_restart':'unless-stopped'}
+   rollback,model=self.real_rollback(d,journal,containers)
+   with self.assertRaisesRegex(RuntimeError,'retained prior container is missing'): rollback(journal)
+   self.assertEqual(expected,containers)
+   self.assertFalse(any(call[0] in ('rm','rename','update','start') for call in model.calls))
+ def test_rollback_candidate_rebind_before_remove_uses_candidate_id(self):
+  with tempfile.TemporaryDirectory() as d:
+   containers={
+    'MudX-candidate-1':{'id':'candidate-id','restart':'no','running':False},
+    'MudX-prior-1':{'id':'prior-id','restart':'no','running':False},
+   }
+   replacement={'id':'replacement-id','restart':'unless-stopped','running':True}; swapped=[False]
+   def before(model,args):
+    if args[0]=='rm' and not swapped[0]:
+     model.containers['moved-candidate']=model.containers.pop('MudX-candidate-1')
+     model.containers['MudX-candidate-1']=replacement.copy(); swapped[0]=True
+   journal={'stage':'candidate-started','candidate_name':'MudX-candidate-1','candidate_id':'candidate-id','prior_name':'MudX-prior-1','prior_id':'prior-id','prior_restart':'unless-stopped'}
+   rollback,model=self.real_rollback(d,journal,containers,before=before); rollback(journal)
+   self.assertEqual(replacement,model.containers['MudX-candidate-1'])
+   self.assertEqual('prior-id',model.containers['MudX']['id'])
+   self.assertFalse(any(container['id']=='candidate-id' for container in model.containers.values()))
+ def test_rollback_prior_rebind_before_rename_uses_prior_id(self):
+  with tempfile.TemporaryDirectory() as d:
+   containers={
+    'MudX':{'id':'candidate-id','restart':'no','running':False},
+    'MudX-prior-1':{'id':'prior-id','restart':'no','running':False},
+   }
+   replacement={'id':'replacement-id','restart':'unless-stopped','running':True}; swapped=[False]
+   def before(model,args):
+    if args[0]=='rename' and not swapped[0]:
+     model.containers['moved-prior']=model.containers.pop('MudX-prior-1')
+     model.containers['MudX-prior-1']=replacement.copy(); swapped[0]=True
+   journal={'stage':'candidate-promoted','candidate_name':'MudX','candidate_id':'candidate-id','prior_name':'MudX-prior-1','prior_id':'prior-id','prior_restart':'unless-stopped'}
+   rollback,model=self.real_rollback(d,journal,containers,before=before); rollback(journal)
+   self.assertEqual(replacement,model.containers['MudX-prior-1'])
+   self.assertEqual('prior-id',model.containers['MudX']['id'])
+ def test_rollback_canonical_rebind_before_remove_does_not_remove_replacement(self):
+  with tempfile.TemporaryDirectory() as d:
+   containers={
+    'MudX':{'id':'candidate-id','restart':'no','running':False},
+    'MudX-prior-1':{'id':'prior-id','restart':'no','running':False},
+   }
+   replacement={'id':'replacement-id','restart':'unless-stopped','running':True}; swapped=[False]
+   def before(model,args):
+    if args[0]=='rm' and not swapped[0]:
+     model.containers['moved-candidate']=model.containers.pop('MudX')
+     model.containers['MudX']=replacement.copy(); swapped[0]=True
+   journal={'stage':'candidate-promoted','candidate_name':'MudX','candidate_id':'candidate-id','prior_name':'MudX-prior-1','prior_id':'prior-id','prior_restart':'unless-stopped'}
+   rollback,model=self.real_rollback(d,journal,containers,before=before)
+   with self.assertRaises(subprocess.CalledProcessError): rollback(journal)
+   self.assertEqual(replacement,model.containers['MudX'])
+   self.assertEqual('prior-id',model.containers['MudX-prior-1']['id'])
+ def test_rollback_rebind_before_policy_or_start_uses_prior_id(self):
+  for operation in ('update','start'):
+   with self.subTest(operation=operation),tempfile.TemporaryDirectory() as d:
+    containers={'MudX':{'id':'prior-id','restart':'no','running':False}}
+    replacement={'id':'replacement-id','restart':'no','running':False}; swapped=[False]
+    def before(model,args):
+     if args[0]==operation and not swapped[0]:
+      model.containers['moved-prior']=model.containers.pop('MudX')
+      model.containers['MudX']=replacement.copy(); swapped[0]=True
+    journal={'stage':'prior-policy-intent','candidate_name':'MudX-candidate-1','prior_name':'MudX','prior_id':'prior-id','prior_restart':'unless-stopped'}
+    rollback,model=self.real_rollback(d,journal,containers,before=before)
+    with self.assertRaisesRegex(RuntimeError,'restored prior container lost canonical name'): rollback(journal)
+    self.assertEqual(replacement,model.containers['MudX'])
+    self.assertEqual('prior-id',model.containers['moved-prior']['id'])
+    self.assertEqual('unless-stopped',model.containers['moved-prior']['restart'])
+    self.assertTrue(model.containers['moved-prior']['running'])
  def test_rollback_replays_after_prior_rename_then_policy_failure(self):
   with tempfile.TemporaryDirectory() as d:
    prior_id='prior-id'; candidate_id='candidate-id'
