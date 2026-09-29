@@ -57,6 +57,11 @@ class Tests(unittest.TestCase):
   text=(ROOT/'.github/workflows/Release_MudX.yml').read_text()
   self.assertIn('producer_run_id',text); self.assertIn('producer_attempt',text)
   self.assertIn('artifact-select --json',text)
+  for job,next_job in (('publish-deploy','resume-identity'),('resume-publish',None)):
+   section=text.split(f'  {job}:',1)[1]
+   if next_job: section=section.split(f'  {next_job}:',1)[0]
+   self.assertIn('actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9',section)
+   self.assertIn('dotnet-version: 10.0.400',section)
   for use in re.findall(r'uses:\s*([^\s#]+)',text): self.assertRegex(use,r'^[^@]+@[0-9a-f]{40}$')
   publisher=(ROOT/'tools/release_pipeline/publish_release.sh').read_text()
   self.assertIn('--no-symbols',publisher); self.assertIn('package-equivalent',publisher)

@@ -1,17 +1,82 @@
-import fcntl, os, subprocess, tempfile, unittest
+import fcntl, json, os, subprocess, tempfile, time, unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]; DEPLOY=ROOT/'deploy/mudx-deploy'
 class Tests(unittest.TestCase):
- def invoke(self,state,*args,fail=None,ok=True):
+ def invoke(self,state,*args,fail=None,ok=True,extra_env=None):
   env=os.environ|{'MUDX_TEST_MODE':'1','MUDX_STATE_DIR':str(state),'MUDX_DOCKER_BIN':str(ROOT/'tests/release_pipeline/fake-docker')}
+  if extra_env: env.update(extra_env)
   if fail: env['MUDX_FAIL_AFTER']=fail
   if 'no-prior' in args: env['MUDX_NO_PRIOR']='1'; args=tuple(x for x in args if x!='no-prior')
   if (Path(state)/'allowlist.json').exists(): env['MUDX_RUNTIME_ALLOWLIST']=str(Path(state)/'allowlist.json')
   r=subprocess.run([str(DEPLOY),*args],env=env,text=True,capture_output=True); self.assertEqual(ok,r.returncode==0,r.stderr); return r
+ def test_actual_container_name_is_preserved_in_journal(self):
+  with tempfile.TemporaryDirectory() as d:
+   self.invoke(d,'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64,fail='prepared',ok=False)
+   journal=json.loads(Path(d,'journal.json').read_text())
+   self.assertEqual('MudX',journal['prior_name'])
+   self.assertEqual('MudX-candidate-1',journal['candidate_name'])
+ def test_supervisor_waits_for_deploy_lock_and_planned_stop_is_sticky(self):
+  with tempfile.TemporaryDirectory() as d, open(Path(d,'lock'),'a+') as lock:
+   env=os.environ|{'MUDX_TEST_MODE':'1','MUDX_STATE_DIR':d,'MUDX_DOCKER_BIN':str(ROOT/'tests/release_pipeline/fake-docker'),'MUDX_SUPERVISOR_ONCE':'1'}
+   fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+   process=subprocess.Popen([str(DEPLOY),'supervise'],env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+   time.sleep(.2); self.assertIsNone(process.poll(),'supervisor must block behind the deployment lock')
+   fcntl.flock(lock,fcntl.LOCK_UN)
+   _,stderr=process.communicate(timeout=5); self.assertEqual(0,process.returncode,stderr)
+   self.invoke(d,'stop')
+   self.assertTrue(Path(d,'stopped').exists())
+ def test_planned_stop_cannot_race_a_supervisor_restart(self):
+  with tempfile.TemporaryDirectory() as d:
+   fake=Path(d,'docker'); fake.write_text("""#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >> "$MUDX_STATE_DIR/docker-calls"
+if [[ "$1" == wait ]]; then
+ touch "$MUDX_STATE_DIR/wait-ready"
+ while [[ ! -e "$MUDX_STATE_DIR/wait-release" ]]; do sleep .01; done
+fi
+"""); fake.chmod(0o755)
+   env=os.environ|{'MUDX_TEST_MODE':'1','MUDX_STATE_DIR':d,'MUDX_DOCKER_BIN':str(fake)}
+   supervisor=subprocess.Popen([str(DEPLOY),'supervise'],env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+   try:
+    for _ in range(200):
+     if Path(d,'wait-ready').exists(): break
+     time.sleep(.01)
+    else: self.fail('supervisor never reached docker wait')
+    self.invoke(d,'stop',extra_env={'MUDX_DOCKER_BIN':str(fake)})
+    Path(d,'wait-release').touch()
+    _,stderr=supervisor.communicate(timeout=2)
+    self.assertEqual(0,supervisor.returncode,stderr)
+    starts=[line for line in Path(d,'docker-calls').read_text().splitlines() if line.startswith('start ')]
+    self.assertEqual(1,len(starts),'planned stop must not be followed by a restart')
+   finally:
+    if supervisor.poll() is None: supervisor.kill(); supervisor.communicate()
+ def test_planned_stop_reports_docker_failure(self):
+  with tempfile.TemporaryDirectory() as d:
+   fake=Path(d,'docker'); fake.write_text("""#!/usr/bin/env bash
+[[ "$1" == inspect ]] && exit 0
+[[ "$1" == stop ]] && exit 1
+exit 0
+"""); fake.chmod(0o755)
+   self.invoke(d,'stop',ok=False,extra_env={'MUDX_DOCKER_BIN':str(fake)})
+ def test_systemd_unit_owns_continuous_recovery(self):
+  unit=(ROOT/'deploy/systemd/mudx-container.service').read_text()
+  self.assertIn('Type=simple',unit)
+  self.assertIn('ExecStart=/usr/local/libexec/mudx-deploy supervise',unit)
+  self.assertIn('ExecStop=/usr/local/libexec/mudx-deploy stop',unit)
+  self.assertIn('Restart=always',unit)
+  self.assertNotIn('docker start mudxdocwebsite',unit)
  def test_grammar_stale_duplicate(self):
   with tempfile.TemporaryDirectory() as d:
    self.invoke(d,'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64); self.invoke(d,'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64)
    self.invoke(d,'deploy','0','9.9.9','c'*40,'sha256:'+'b'*64,ok=False); self.invoke(d,'deploy','2;id','9.10.2','c'*40,'sha256:'+'b'*64,ok=False)
+ def test_deploy_waits_for_a_transient_supervisor_lock(self):
+  with tempfile.TemporaryDirectory() as d, open(Path(d,'lock'),'a+') as lock:
+   env=os.environ|{'MUDX_TEST_MODE':'1','MUDX_STATE_DIR':d,'MUDX_DOCKER_BIN':str(ROOT/'tests/release_pipeline/fake-docker'),'MUDX_LOCK_TIMEOUT':'2'}
+   fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+   process=subprocess.Popen([str(DEPLOY),'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64],env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+   time.sleep(.2); self.assertIsNone(process.poll(),'deploy must wait for a short supervisor lock')
+   fcntl.flock(lock,fcntl.LOCK_UN)
+   _,stderr=process.communicate(timeout=5); self.assertEqual(0,process.returncode,stderr)
  def test_concurrent_attempt_is_rejected(self):
   with tempfile.TemporaryDirectory() as d, open(Path(d,'lock'),'a+') as lock:
    fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
