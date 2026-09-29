@@ -191,10 +191,11 @@ def deploy(seq_s,ver,sha,digest):
    clear(STATE/'maintenance'); clear(STATE/'journal.json')
  except Exception as deployment_error:
   if j.get('stage')!='committed':
-   stop_requested=isinstance(deployment_error,StopRequested) or (STATE/'stopped').exists()
-   try: rollback(j,start=not stop_requested)
-   except Exception as rollback_error:
-    raise RuntimeError(f'deployment failed: {deployment_error}; rollback failed: {rollback_error}') from deployment_error
+   if j.get('stage') not in ('new','prepared'):
+    stop_requested=isinstance(deployment_error,StopRequested) or (STATE/'stopped').exists()
+    try: rollback(j,start=not stop_requested)
+    except Exception as rollback_error:
+     raise RuntimeError(f'deployment failed: {deployment_error}; rollback failed: {rollback_error}') from deployment_error
    clear(STATE/'journal.json'); clear(STATE/'maintenance')
   raise
 def supervise():

@@ -31,6 +31,47 @@ class Tests(unittest.TestCase):
   module=runpy.run_path(str(DEPLOY)); model=DockerModel(containers,fail_updates)
   module['rollback'].__globals__.update(STATE=Path(state),TEST=False,run=model)
   return module['rollback'],model
+ def pull_failure_deploy(self,state,containers,stop_on_pull=False):
+  module=runpy.run_path(str(DEPLOY)); model=DockerModel(containers)
+  def run(*args,check=True,timeout=None):
+   if args[0]=='pull':
+    model.calls.append(args)
+    if stop_on_pull: Path(state,'stopped').write_text('1\n')
+    raise subprocess.CalledProcessError(1,args,'','injected pull failure')
+   return model(*args,check=check,timeout=timeout)
+  module['deploy'].__globals__.update(
+   STATE=Path(state),TEST=False,run=run,
+   validate_runtime=lambda timeout:{'ports':['4560:8080'],'restart_policy':'no'},
+  )
+  with self.assertRaises(subprocess.CalledProcessError):
+   module['deploy']('1','9.10.1','c'*40,'sha256:'+'a'*64)
+  return model
+ def test_pull_failure_preserves_existing_container_exactly(self):
+  for running in (True,False):
+   with self.subTest(running=running),tempfile.TemporaryDirectory() as d:
+    expected={'MudX':{'id':'prior-id','restart':'unless-stopped','running':running}}
+    containers=json.loads(json.dumps(expected))
+    model=self.pull_failure_deploy(d,containers)
+    self.assertEqual(expected,containers)
+    self.assertEqual([('inspect','MudX'),('pull','ghcr.io/mudxtra/mudx/mudxdocwebsite@sha256:'+'a'*64)],model.calls)
+    self.assertFalse(Path(d,'journal.json').exists())
+    self.assertFalse(Path(d,'maintenance').exists())
+ def test_pull_failure_first_install_has_no_rollback_side_effects(self):
+  with tempfile.TemporaryDirectory() as d:
+   model=self.pull_failure_deploy(d,{})
+   self.assertEqual([('inspect','MudX'),('pull','ghcr.io/mudxtra/mudx/mudxdocwebsite@sha256:'+'a'*64)],model.calls)
+   self.assertFalse(Path(d,'journal.json').exists())
+   self.assertFalse(Path(d,'maintenance').exists())
+ def test_pull_failure_with_new_stop_intent_preserves_existing_container(self):
+  with tempfile.TemporaryDirectory() as d:
+   expected={'MudX':{'id':'prior-id','restart':'unless-stopped','running':True}}
+   containers=json.loads(json.dumps(expected))
+   model=self.pull_failure_deploy(d,containers,stop_on_pull=True)
+   self.assertEqual(expected,containers)
+   self.assertEqual([('inspect','MudX'),('pull','ghcr.io/mudxtra/mudx/mudxdocwebsite@sha256:'+'a'*64)],model.calls)
+   self.assertTrue(Path(d,'stopped').exists())
+   self.assertFalse(Path(d,'journal.json').exists())
+   self.assertFalse(Path(d,'maintenance').exists())
  def test_first_install_promote_rename_ambiguity_removes_uncommitted_candidate(self):
   with tempfile.TemporaryDirectory() as d:
    candidate_id='candidate-id'; containers={'MudX':{'id':candidate_id,'restart':'no','running':False}}
@@ -53,7 +94,7 @@ class Tests(unittest.TestCase):
  def test_actual_container_name_is_preserved_in_journal(self):
   with tempfile.TemporaryDirectory() as d:
    Path(d,'inject-rollback-failure').touch()
-   self.invoke(d,'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64,fail='prepared',ok=False)
+   self.invoke(d,'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64,fail='prior-policy-intent',ok=False)
    journal=json.loads(Path(d,'journal.json').read_text())
    self.assertEqual('MudX',journal['prior_name'])
    self.assertEqual('MudX-candidate-1',journal['candidate_name'])
@@ -211,8 +252,8 @@ fi
     self.assertNotEqual(0,deploy.returncode,'in-flight deployment must not commit after a newer stopped marker')
     self.assertIn('service stop requested during deployment',stderr)
     self.assertFalse(Path(d,'current.json').exists(),'stopped deployment must not commit release identity')
-    self.assertEqual('prior-stopped',Path(d,'active').read_text().strip(),'rollback may restore but must not restart the prior container')
-    self.assertEqual('no',Path(d,'rollback-policy').read_text().strip(),'stopped rollback must leave Docker restart disabled')
+    self.assertEqual('prior',Path(d,'active').read_text().strip(),'a pre-mutation stop request must leave the prior container untouched')
+    self.assertFalse(Path(d,'rollback-policy').exists(),'pre-mutation failure must not invoke rollback')
    finally:
     if deploy.poll() is None: deploy.kill(); deploy.communicate()
  def test_stop_preserves_preexisting_maintenance_marker(self):
