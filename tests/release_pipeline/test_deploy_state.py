@@ -95,6 +95,19 @@ exit 0
    self.assertEqual(before,Path(d,'docker.log').read_text(),'an exact retry must be a no-op')
    self.invoke(d,'deploy','1','99.99.99',source,digest,ok=False)
    self.invoke(d,'deploy','1','9.10.1','d'*40,digest,ok=False)
+ def test_stopped_deploy_requires_explicit_resume(self):
+  with tempfile.TemporaryDirectory() as d:
+   self.invoke(d,'deploy','1','9.10.1','c'*40,'sha256:'+'a'*64)
+   self.invoke(d,'stop')
+   before_calls=Path(d,'docker.log').read_text()
+   before_current=Path(d,'current.json').read_text()
+   result=self.invoke(d,'deploy','2','9.10.2','d'*40,'sha256:'+'b'*64,ok=False)
+   self.assertIn('service is intentionally stopped',result.stderr)
+   self.assertEqual(before_calls,Path(d,'docker.log').read_text(),'rejected deployment must not call Docker')
+   self.assertEqual(before_current,Path(d,'current.json').read_text(),'rejected deployment must not change release identity')
+   self.invoke(d,'resume')
+   self.invoke(d,'deploy','2','9.10.2','d'*40,'sha256:'+'b'*64)
+   self.assertEqual(2,json.loads(Path(d,'current.json').read_text())['sequence'])
  def test_deploy_waits_for_a_transient_supervisor_lock(self):
   with tempfile.TemporaryDirectory() as d, open(Path(d,'lock'),'a+') as lock:
    env=os.environ|{'MUDX_TEST_MODE':'1','MUDX_STATE_DIR':d,'MUDX_DOCKER_BIN':str(ROOT/'tests/release_pipeline/fake-docker'),'MUDX_LOCK_TIMEOUT':'2'}

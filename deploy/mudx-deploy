@@ -70,6 +70,7 @@ def reconcile(start=False):
   rollback(j,start=start)
 def deploy(seq_s,ver,sha,digest):
  if not re.fullmatch(r'[1-9][0-9]*',seq_s) or not SEMVER.fullmatch(ver) or not SHA.fullmatch(sha) or not DIGEST.fullmatch(digest): raise RuntimeError('invalid deploy grammar')
+ if (STATE/'stopped').exists(): raise RuntimeError('service is intentionally stopped; run resume before deployment')
  seq=int(seq_s); current=read(STATE/'current.json',{})
  if current:
   identity=(seq,ver,sha,digest)
