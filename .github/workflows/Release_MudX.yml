@@ -67,7 +67,21 @@ jobs:
           test "$GITHUB_REF" = refs/heads/dev
           test -z "$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --json headRefName --jq '[.[]|select(.headRefName|startswith("release/version-"))][0].headRefName // empty')"
           current=$(grep -oPm1 '(?<=<Version>)[^<]+' "$PROJECT")
-          mapfile -t known < <({ git tag --list 'v*' | sed 's/^v//'; gh release list --limit 100 --json tagName --jq '.[].tagName|ltrimstr("v")'; curl -fsS https://api.nuget.org/v3-flatcontainer/mudx.mudblazor.extension/index.json | jq -r '.versions[]'; } | grep -E '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' | sort -Vu || true)
+          discovery=$(mktemp -d)
+          trap 'rm -rf "$discovery"' EXIT
+          git tag --list 'v*' > "$discovery/git-tags"
+          gh release list --limit 100 --json tagName --jq '.[].tagName|ltrimstr("v")' > "$discovery/github-releases"
+          curl -fsS -o "$discovery/nuget-index.json" https://api.nuget.org/v3-flatcontainer/mudx.mudblazor.extension/index.json
+          jq -e '.versions | type == "array" and all(.[]; type == "string")' "$discovery/nuget-index.json" > /dev/null
+          jq -r '.versions[]' "$discovery/nuget-index.json" > "$discovery/nuget-versions"
+          sed 's/^v//' "$discovery/git-tags" > "$discovery/candidates"
+          cat "$discovery/github-releases" >> "$discovery/candidates"
+          cat "$discovery/nuget-versions" >> "$discovery/candidates"
+          filter_status=0
+          grep -E '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' "$discovery/candidates" > "$discovery/stable" || filter_status=$?
+          (( filter_status <= 1 )) || exit "$filter_status"
+          sort -Vu "$discovery/stable" > "$discovery/known"
+          mapfile -t known < "$discovery/known"
           args=(calculate --current "$current"); for value in "${known[@]}"; do args+=(--known "$value"); done
           if [[ -n "$CUSTOM" ]]; then args+=(--custom "$CUSTOM"); else args+=(--bump "$BUMP"); fi
           value=$(python3 tools/release_pipeline/release_guard.py "${args[@]}")
