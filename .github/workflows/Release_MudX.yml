@@ -38,10 +38,11 @@ jobs:
   version-pr:
     if: inputs.mode == 'release'
     runs-on: ubuntu-latest
+    environment: mudx-release-coordination
     permissions: { actions: read, contents: read, pull-requests: read }
     outputs:
       version: ${{ steps.version.outputs.value }}
-      sha: ${{ steps.wait-merged.outputs.sha }}
+      sha: ${{ steps.selected-source.outputs.sha }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { ref: dev, fetch-depth: 0, persist-credentials: false }
@@ -66,12 +67,22 @@ jobs:
           test "$GITHUB_REF" = refs/heads/dev
           test -z "$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --json headRefName --jq '[.[]|select(.headRefName|startswith("release/version-"))][0].headRefName // empty')"
           current=$(grep -oPm1 '(?<=<Version>)[^<]+' "$PROJECT")
-          mapfile -t known < <({ gh release list --limit 100 --json tagName --jq '.[].tagName|ltrimstr("v")'; curl -fsS https://api.nuget.org/v3-flatcontainer/mudx.mudblazor.extension/index.json | jq -r '.versions[]'; } | grep -E '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' | sort -Vu || true)
+          mapfile -t known < <({ git tag --list 'v*' | sed 's/^v//'; gh release list --limit 100 --json tagName --jq '.[].tagName|ltrimstr("v")'; curl -fsS https://api.nuget.org/v3-flatcontainer/mudx.mudblazor.extension/index.json | jq -r '.versions[]'; } | grep -E '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' | sort -Vu || true)
           args=(calculate --current "$current"); for value in "${known[@]}"; do args+=(--known "$value"); done
           if [[ -n "$CUSTOM" ]]; then args+=(--custom "$CUSTOM"); else args+=(--bump "$BUMP"); fi
           value=$(python3 tools/release_pipeline/release_guard.py "${args[@]}")
           echo "value=$value" >> "$GITHUB_OUTPUT"
+          if [[ "$value" = "$current" ]]; then
+            sha=$(git rev-parse HEAD)
+            selected=$(git show "$sha:$PROJECT" | grep -oPm1 '(?<=<Version>)[^<]+')
+            test "$selected" = "$value" && test -z "$(git status --porcelain)"
+            echo "requires_pr=false" >> "$GITHUB_OUTPUT"
+            echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          else
+            echo "requires_pr=true" >> "$GITHUB_OUTPUT"
+          fi
       - id: pr
+        if: steps.version.outputs.requires_pr == 'true'
         env:
           GH_TOKEN: ${{ secrets.GH_RELEASE_COORDINATOR_TOKEN }}
           VERSION: ${{ steps.version.outputs.value }}
@@ -94,7 +105,9 @@ jobs:
           url=$(gh pr create --repo "$GITHUB_REPOSITORY" --base dev --head "$branch" --title "[BOT] Update MudX Version to $VERSION" --body "Release run $GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT; exact version-only reservation.")
           echo "number=${url##*/}" >> "$GITHUB_OUTPUT"
           echo "head=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - name: Revalidate current head and approve as MudXBot
+      - id: approve
+        if: steps.version.outputs.requires_pr == 'true'
+        name: Revalidate current head and approve as MudXBot
         env:
           PR: ${{ steps.pr.outputs.number }}
           HEAD: ${{ steps.pr.outputs.head }}
@@ -110,7 +123,9 @@ jobs:
           git show origin/dev:"$PROJECT" >/tmp/base; git show refs/remotes/origin/release-pr:"$PROJECT" >/tmp/head
           python3 tools/release_pipeline/release_guard.py version-files --before /tmp/base --after /tmp/head --expected "$VERSION"
           gh pr review "$PR" --repo "$GITHUB_REPOSITORY" --approve --body "MudXBot approval bound to run $GITHUB_RUN_ID and head $HEAD."
-      - name: Await successful trusted PR CI for the exact head
+      - id: pr-ci
+        if: steps.version.outputs.requires_pr == 'true'
+        name: Await successful trusted PR CI for the exact head
         env:
           PR: ${{ steps.pr.outputs.number }}
           HEAD: ${{ steps.pr.outputs.head }}
@@ -126,7 +141,9 @@ jobs:
           done
           test -n "$ci_run" || { echo 'Exact PR-head Build_And_Test did not succeed within 30 minutes.' >&2; exit 1; }
           echo "Trusted PR CI run: $ci_run"
-      - name: Merge the still-exact approved version PR
+      - id: merge
+        if: steps.version.outputs.requires_pr == 'true'
+        name: Merge the still-exact approved version PR
         env:
           PR: ${{ steps.pr.outputs.number }}
           HEAD: ${{ steps.pr.outputs.head }}
@@ -136,6 +153,7 @@ jobs:
           python3 tools/release_pipeline/release_guard.py head-binding --expected "$HEAD" --observed "$now"
           gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --match-head-commit "$HEAD" --squash --delete-branch
       - id: wait-merged
+        if: steps.version.outputs.requires_pr == 'true'
         name: Await the same PR merge and trusted exact merged-SHA CI
         env:
           PR: ${{ steps.pr.outputs.number }}
@@ -158,6 +176,34 @@ jobs:
           done
           test -n "$ci_run" || { echo 'Exact merged-SHA Build_And_Test did not succeed within 30 minutes.' >&2; exit 1; }
           echo "Trusted merged CI run: $ci_run"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - id: current-ci
+        if: steps.version.outputs.requires_pr == 'false'
+        name: Await trusted push CI for the exact already-versioned source
+        env:
+          SHA: ${{ steps.version.outputs.sha }}
+          GH_TOKEN: ${{ secrets.GH_RELEASE_COORDINATOR_TOKEN }}
+        run: |
+          ci_run=''
+          for _ in {1..120}; do
+            gh api "repos/$GITHUB_REPOSITORY/actions/workflows/Build_And_Test.yml/runs?head_sha=$SHA&event=push&per_page=100" > /tmp/ci-runs.json
+            if ci_run=$(python3 tools/release_pipeline/release_guard.py ci-run --json /tmp/ci-runs.json --sha "$SHA" --repository "$GITHUB_REPOSITORY" --workflow "$CI_WORKFLOW" --event push); then break; fi
+            sleep 15
+          done
+          test -n "$ci_run" || { echo 'Exact selected-SHA Build_And_Test push run did not succeed within 30 minutes.' >&2; exit 1; }
+          echo "Trusted selected-source CI run: $ci_run"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+      - id: selected-source
+        name: Select the one exact authorized release source
+        env:
+          CURRENT_SHA: ${{ steps.current-ci.outputs.sha }}
+          MERGED_SHA: ${{ steps.wait-merged.outputs.sha }}
+        run: |
+          sources=()
+          [[ -n "$CURRENT_SHA" ]] && sources+=("$CURRENT_SHA")
+          [[ -n "$MERGED_SHA" ]] && sources+=("$MERGED_SHA")
+          test "${#sources[@]}" -eq 1
+          sha=${sources[0]}
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
   build:
     needs: version-pr

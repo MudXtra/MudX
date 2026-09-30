@@ -6,15 +6,13 @@ This guide describes the **proposed** release-only workflow in .github/workflows
 
 One owner starts **Release MudX**. That single dispatch is the authorization for this sequence:
 
-1. calculate a new stable version;
-2. push a version-only branch to MudXtra/MudX;
-3. open a pull request from that branch to MudXtra/MudX dev;
-4. have the distinct MudXBot account revalidate and approve the exact PR head;
-5. wait for a successful upstream Build_And_Test.yml run for that exact PR SHA;
-6. merge the still-unchanged PR;
-7. wait for a successful upstream Build_And_Test.yml push run for the exact merge SHA;
-8. build packages and a loadable linux/amd64 Docker archive from that merge SHA;
-9. publish the NuGet packages and a GitHub Release.
+1. select a stable version that is the same as the project version or higher, while rejecting every published or reserved version;
+2. when the selected version is the same, validate the already-reserved source at the exact dev checkout SHA and require a successful Build_And_Test.yml push run for that SHA;
+3. when the selected version is higher, push a version-only branch to MudXtra/MudX and open a pull request to dev;
+4. for that higher-version PR, have the distinct MudXBot account revalidate and approve its exact head;
+5. wait for a successful Build_And_Test.yml PR run for that exact head, merge it atomically, and require successful push CI for the exact merge SHA;
+6. build packages and a loadable linux/amd64 Docker archive from the one selected source SHA;
+7. publish the NuGet packages and a GitHub Release.
 
 The release workflow does **not** repeat the unit-test suite. It trusts only an authentic successful Build_And_Test.yml run after checking repository, workflow path, event, SHA, status, and conclusion. Missing, pending, skipped, cancelled, failed, or wrong-identity runs cannot advance publication. Coveralls alone is not a test gate.
 
@@ -24,22 +22,23 @@ There is no SSH, server deployment, systemd action, GHCR push, latest tag, or pr
 
 Configure these before the first real run:
 
-### Repository variables
+### Repository configuration
 
-- MUDX_RELEASE_ACTORS: comma-separated GitHub logins allowed to dispatch and rerun releases.
-- MUDX_BOT_LOGIN: the expected MudXBot login.
+- Repository variable MUDX_RELEASE_ACTORS: comma-separated GitHub logins allowed to dispatch and rerun releases.
+- Repository or organization secret GH_BOT_TOKEN: belongs to MudXBot, which uses a separate identity and token from the coordinator, and can approve a higher-version PR.
+- Repository or organization secret NUGET_KEY: can publish MudX.MudBlazor.Extension to NuGet.
 
-### Repository secrets
+### Coordination environment
 
-- GH_RELEASE_COORDINATOR_TOKEN: a user token for the release coordinator. It pushes the version branch to MudXtra/MudX, creates and merges that repository's version PR, and reads its Actions runs. Grant only normal repository or organization authorization for MudXtra/MudX with Contents read/write, Pull requests read/write, and Actions read (or the fine-grained equivalent). No workflow-file write permission is needed because the generated commit changes only the version file. An existing token with these permissions can be reused; no fork access is required.
-- GH_BOT_TOKEN: belongs to MudXBot, which uses a separate identity and token from the coordinator, and can approve the MudXtra/MudX PR.
-- NUGET_KEY: can publish MudX.MudBlazor.Extension to NuGet.
+The version-pr job is bound to the existing mudx-release-coordination environment on dev. Configure its environment secret GH_RELEASE_COORDINATOR_TOKEN and environment variable MUDX_BOT_LOGIN. The inspected environment has a dev-only branch policy and no required reviewers or wait timer, so this binding exposes coordination values without adding another human approval. Do not move, recreate, or read the secret to use this workflow.
+
+GH_RELEASE_COORDINATOR_TOKEN is a user token for the release coordinator. It reads Actions runs and, only for a higher version, pushes the version branch and creates and merges the PR in MudXtra/MudX. Grant normal repository or organization authorization for MudXtra/MudX with Contents read/write, Pull requests read/write, and Actions read (or the fine-grained equivalent). No workflow-file write permission is needed because a generated commit changes only the version file. An existing token with these permissions can be reused; no fork access is required.
 
 The coordinator credential must be able to trigger the downstream PR and push CI. Events created with the default GITHUB_TOKEN do not start new workflow runs; use a non-default credential such as a PAT (or an App credential only in an implementation that supports App identity). The current workflow expects a user token because it verifies both coordinator and Bot identities with gh api user; it does not claim GitHub App token compatibility.
 
 GitHub creates GITHUB_TOKEN automatically for each run; do not create another secret for it or broaden the repository default from read to read/write. The publish and resume-publish jobs explicitly request Actions read and Contents write, and that per-job Contents write permission authorizes GitHub Release creation, asset upload, and finalization. During an authorized real run, verify that Set up job → GITHUB_TOKEN Permissions shows Contents: write. Organization restrictions or tag rules can still block actual operations, so repository metadata alone is not live release proof. The separate setting that lets Actions approve pull requests is unrelated to GitHub Release publishing.
 
-The proposal intentionally uses no GitHub Environment, so it introduces no second human publication approval. Do not weaken branch protection, required review, token isolation, or repository access to make a run pass.
+Environment policy can change independently; verify it before a real release. Do not weaken environment policy, branch protection, required review, token isolation, or repository access to make a run pass.
 
 ## Exact clicks for a new release
 
@@ -48,16 +47,16 @@ The proposal intentionally uses no GitHub Environment, so it introduces no secon
 3. Select **Release MudX**.
 4. Select **Run workflow** on branch dev.
 5. Leave **mode** as release.
-6. Choose patch, minor, or major; optionally enter a higher exact stable SemVer in **custom_version**.
+6. For an already-set unpublished project version, enter that exact same version in **custom_version**. To reserve a higher version, enter the higher stable version or choose patch, minor, or major.
 7. Select **Run workflow** once.
 
-Do not choose an actual version until a real release is authorized. Do not start another release while the workflow or its version PR is active.
+An explicit same version releases the already-reserved source after exact selected-SHA push CI and creates no version PR. A higher version retains the complete version-only PR, MudXBot approval, PR CI, atomic merge, and merged-SHA push CI flow. Lower versions and versions already published or reserved are rejected. Do not start another release while the workflow or its version PR is active.
 
 ## Expected Actions sequence
 
 The release run shows these jobs:
 
-- **version-pr** — version branch and pull request in MudXtra/MudX, MudXBot approval, exact PR CI, merge, and exact merged-SHA CI.
+- **version-pr** — for the same version, validates the exact already-versioned dev SHA and its push CI without a PR; for a higher version, runs the complete MudXtra/MudX version PR, MudXBot approval, PR CI, merge, and merged-SHA CI flow.
 - **build** — all shipped MudX target frameworks, docs build, package checks, and creation of the versioned linux/amd64 Docker archive.
 - **publish** — retained-manifest verification, NuGet publication, GitHub draft asset readback, symbol checkpoint, and final release.
 
@@ -67,11 +66,10 @@ Build_And_Test.yml remains the trusted CI workflow and retains the existing MudX
 
 A successful run has:
 
-- a merged version-only PR;
-- a successful Build_And_Test.yml PR run for its exact head SHA;
-- a successful Build_And_Test.yml push run for the exact merged SHA;
+- for a higher version, a merged version-only PR and successful Build_And_Test.yml PR run for its exact head SHA;
+- a successful Build_And_Test.yml push run for the exact selected source SHA (the unchanged dev SHA for the same version, or the exact merge SHA for a higher version);
 - one NuGet package and one symbol package;
-- a non-draft, non-prerelease GitHub Release tagged v<version> at the exact merged SHA;
+- a non-draft, non-prerelease GitHub Release tagged v<version> at the exact selected source SHA;
 - these exact release assets:
   - MudX.MudBlazor.Extension.<version>.nupkg
   - MudX.MudBlazor.Extension.<version>.snupkg
@@ -95,11 +93,12 @@ Then check:
     http://127.0.0.1:8080/healthz
     http://127.0.0.1:8080/revision
 
-The revision response must be the merged source SHA recorded by the release run.
+The revision response must be the exact selected source SHA recorded by the release run.
 
 ## Limited failure recovery
 
-- **Before the version PR merges:** inspect the same PR and exact CI run. Do not allocate another version or open a replacement release PR.
+- **Same-version source gate:** inspect the exact selected dev SHA and its push CI; do not create a version PR or substitute a newer branch SHA.
+- **Before a higher-version PR merges:** inspect the same PR and exact CI run. Do not allocate another version or open a replacement release PR.
 - **Before a retained build artifact exists:** use normal GitHub job diagnostics. The resume mode cannot rebuild a candidate.
 - **After the retained artifact exists but publication fails:** rerun **Release MudX** with mode=resume, entering the original producer run ID and attempt. Resume authenticates that completed owner-dispatched run and its exact retained manifest, then continues only missing publication stages.
 - **Existing NuGet package, tag, draft, release asset, or SHA conflicts:** stop and reconcile manually. Do not rebuild the published version, delete evidence, or use skip-duplicate.

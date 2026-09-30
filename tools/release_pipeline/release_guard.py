@@ -10,12 +10,13 @@ def version(v):
  if not m: raise ValueError(f'non-canonical stable SemVer: {v!r}')
  return tuple(map(int,m.groups()))
 def calculate(a):
- known=[version(a.current),*(version(v) for v in a.known)]; cur=max(known)
+ current=version(a.current); known=[version(v) for v in a.known]
  if a.custom:
   target=version(a.custom)
-  if target<=cur: raise ValueError('custom version must be greater than every project, published, and reserved version')
+  if target<current: raise ValueError('custom version must equal or exceed the project version')
+  if known and target<=max(known): raise ValueError('custom version must exceed every published and reserved version')
  else:
-  i={'major':0,'minor':1,'patch':2}[a.bump]; target=list(cur); target[i]+=1
+  cur=max([current,*known]); i={'major':0,'minor':1,'patch':2}[a.bump]; target=list(cur); target[i]+=1
   for n in range(i+1,3): target[n]=0
  print('.'.join(map(str,target)))
 def actor(a):
