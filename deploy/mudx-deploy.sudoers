@@ -1,2 +1,0 @@
-Defaults:mudxdeploy env_keep += "SSH_ORIGINAL_COMMAND"
-mudxdeploy ALL=(root) NOPASSWD: /usr/local/libexec/mudx-deploy-ssh
