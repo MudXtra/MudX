@@ -7,8 +7,8 @@ This guide describes the **proposed** release-only workflow in .github/workflows
 One owner starts **Release MudX**. That single dispatch is the authorization for this sequence:
 
 1. calculate a new stable version;
-2. push a version-only branch to the configured fork;
-3. open a pull request to upstream dev;
+2. push a version-only branch to MudXtra/MudX;
+3. open a pull request from that branch to MudXtra/MudX dev;
 4. have the distinct MudXBot account revalidate and approve the exact PR head;
 5. wait for a successful upstream Build_And_Test.yml run for that exact PR SHA;
 6. merge the still-unchanged PR;
@@ -28,15 +28,18 @@ Configure these before the first real run:
 
 - MUDX_RELEASE_ACTORS: comma-separated GitHub logins allowed to dispatch and rerun releases.
 - MUDX_BOT_LOGIN: the expected MudXBot login.
-- MUDX_RELEASE_FORK: the coordinator-owned fork in owner/repository form, for example versile2/MudX.
 
 ### Repository secrets
 
-- GH_RELEASE_COORDINATOR_TOKEN: can push a branch to the configured fork and create/merge the upstream version PR.
-- GH_BOT_TOKEN: belongs to the distinct MudXBot account and can approve the upstream PR.
+- GH_RELEASE_COORDINATOR_TOKEN: a user token for the release coordinator. It pushes the version branch to MudXtra/MudX, creates and merges that repository's version PR, and reads its Actions runs. Grant only normal repository or organization authorization for MudXtra/MudX with Contents read/write, Pull requests read/write, and Actions read (or the fine-grained equivalent). No workflow-file write permission is needed because the generated commit changes only the version file. An existing token with these permissions can be reused; no fork access is required.
+- GH_BOT_TOKEN: belongs to MudXBot, which uses a separate identity and token from the coordinator, and can approve the MudXtra/MudX PR.
 - NUGET_KEY: can publish MudX.MudBlazor.Extension to NuGet.
 
-The repository must also allow the workflow GITHUB_TOKEN to create and finalize GitHub Releases. The proposal intentionally uses no GitHub Environment, so it introduces no second human publication approval. Do not weaken branch protection, required review, token isolation, or repository access to make a run pass.
+The coordinator credential must be able to trigger the downstream PR and push CI. Events created with the default GITHUB_TOKEN do not start new workflow runs; use a non-default credential such as a PAT (or an App credential only in an implementation that supports App identity). The current workflow expects a user token because it verifies both coordinator and Bot identities with gh api user; it does not claim GitHub App token compatibility.
+
+GitHub creates GITHUB_TOKEN automatically for each run; do not create another secret for it or broaden the repository default from read to read/write. The publish and resume-publish jobs explicitly request Actions read and Contents write, and that per-job Contents write permission authorizes GitHub Release creation, asset upload, and finalization. During an authorized real run, verify that Set up job → GITHUB_TOKEN Permissions shows Contents: write. Organization restrictions or tag rules can still block actual operations, so repository metadata alone is not live release proof. The separate setting that lets Actions approve pull requests is unrelated to GitHub Release publishing.
+
+The proposal intentionally uses no GitHub Environment, so it introduces no second human publication approval. Do not weaken branch protection, required review, token isolation, or repository access to make a run pass.
 
 ## Exact clicks for a new release
 
@@ -54,7 +57,7 @@ Do not choose an actual version until a real release is authorized. Do not start
 
 The release run shows these jobs:
 
-- **version-pr** — fork branch, exact version-only PR, MudXBot approval, exact PR CI, merge, exact merged-SHA CI.
+- **version-pr** — version branch and pull request in MudXtra/MudX, MudXBot approval, exact PR CI, merge, and exact merged-SHA CI.
 - **build** — all shipped MudX target frameworks, docs build, package checks, and creation of the versioned linux/amd64 Docker archive.
 - **publish** — retained-manifest verification, NuGet publication, GitHub draft asset readback, symbol checkpoint, and final release.
 

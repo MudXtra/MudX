@@ -48,18 +48,15 @@ jobs:
       - name: Bind dispatch and rerun actors
         env: { ALLOWED: "${{ vars.MUDX_RELEASE_ACTORS }}" }
         run: python3 tools/release_pipeline/release_guard.py actor --actor "$GITHUB_ACTOR" --triggering-actor "$GITHUB_TRIGGERING_ACTOR" --allowed "$ALLOWED"
-      - name: Verify coordinator, MudXBot, and fork identities
+      - name: Verify coordinator and MudXBot identities
         env:
           COORDINATOR_TOKEN: ${{ secrets.GH_RELEASE_COORDINATOR_TOKEN }}
           BOT_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
           EXPECTED_BOT: ${{ vars.MUDX_BOT_LOGIN }}
-          FORK: ${{ vars.MUDX_RELEASE_FORK }}
         run: |
-          [[ "$FORK" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ && "$FORK" != "$GITHUB_REPOSITORY" ]]
           coordinator=$(GH_TOKEN="$COORDINATOR_TOKEN" gh api user --jq .login)
           bot=$(GH_TOKEN="$BOT_TOKEN" gh api user --jq .login)
           test -n "$EXPECTED_BOT" && test "$bot" = "$EXPECTED_BOT" && test "$bot" != "$coordinator"
-          test "$(GH_TOKEN="$COORDINATOR_TOKEN" gh api "repos/$FORK" --jq .parent.full_name)" = "$GITHUB_REPOSITORY"
       - id: version
         env:
           BUMP: ${{ inputs.bump }}
@@ -78,7 +75,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_RELEASE_COORDINATOR_TOKEN }}
           VERSION: ${{ steps.version.outputs.value }}
-          FORK: ${{ vars.MUDX_RELEASE_FORK }}
         run: |
           branch="release/version-$VERSION-$GITHUB_RUN_ID"
           git switch -c "$branch"
@@ -94,9 +90,8 @@ jobs:
           git config user.name MudXReleaseCoordinator; git config user.email release-coordinator@users.noreply.github.com
           git add "$PROJECT" && git commit -m "Release: reserve MudX $VERSION"
           gh auth setup-git
-          git remote add release-fork "https://github.com/$FORK.git"
-          git push release-fork "HEAD:$branch"
-          url=$(gh pr create --repo "$GITHUB_REPOSITORY" --base dev --head "${FORK%%/*}:$branch" --title "[BOT] Update MudX Version to $VERSION" --body "Release run $GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT; exact version-only reservation.")
+          git push origin "HEAD:$branch"
+          url=$(gh pr create --repo "$GITHUB_REPOSITORY" --base dev --head "$branch" --title "[BOT] Update MudX Version to $VERSION" --body "Release run $GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT; exact version-only reservation.")
           echo "number=${url##*/}" >> "$GITHUB_OUTPUT"
           echo "head=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Revalidate current head and approve as MudXBot
