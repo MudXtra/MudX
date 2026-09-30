@@ -126,7 +126,7 @@ jobs:
             now=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)
             python3 tools/release_pipeline/release_guard.py head-binding --expected "$HEAD" --observed "$now"
             gh api "repos/$GITHUB_REPOSITORY/actions/workflows/Build_And_Test.yml/runs?head_sha=$HEAD&event=pull_request&per_page=100" > /tmp/ci-runs.json
-            if ci_run=$(python3 tools/release_pipeline/release_guard.py ci-run --json /tmp/ci-runs.json --sha "$HEAD" --repository "$GITHUB_REPOSITORY" --workflow "$CI_WORKFLOW" --event pull_request); then break; fi
+            if ci_run=$(python3 tools/release_pipeline/release_guard.py ci-run --json /tmp/ci-runs.json --sha "$HEAD" --repository "$GITHUB_REPOSITORY" --workflow "$CI_WORKFLOW" --event pull_request --pr "$PR"); then break; fi
             sleep 15
           done
           test -n "$ci_run" || { echo 'Exact PR-head Build_And_Test did not succeed within 30 minutes.' >&2; exit 1; }

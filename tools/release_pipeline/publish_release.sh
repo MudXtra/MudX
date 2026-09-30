@@ -79,10 +79,9 @@ if release_json=$(gh release view "v$VERSION" --json databaseId,isDraft,isPrerel
   fi
   if [[ "$release_state" != mismatch ]]; then
     body=$(jq -r '.body // ""' <<<"$release_json")
-    if grep -Fqx "$marker" <<<"$body"; then symbols_state=published
-    elif grep -Fq '<!-- mudx-symbol-sha256:' <<<"$body"; then release_state=mismatch
-    elif [[ "$release_state" = exact ]]; then release_state=mismatch
-    fi
+    marker_args=(symbol-marker --body "$body" --expected "$marker")
+    if [[ "$release_state" != exact ]]; then marker_args+=(--allow-missing); fi
+    symbols_state=$(python3 "$GUARD" "${marker_args[@]}")
   fi
 fi
 plan=$(python3 "$GUARD" resume-plan --main "$main_state" --symbols "$symbols_state" --release "$release_state")
@@ -131,14 +130,17 @@ if [[ "$symbols_state" = missing ]]; then
     echo 'Symbol publication outcome cannot be proven by NuGet public APIs. Manually reconcile the retained .snupkg; do not use skip-duplicate or rebuild.' >&2; exit 1
   fi
   body=$(gh release view "v$VERSION" --json body --jq '.body // ""')
+  [[ "$(python3 "$GUARD" symbol-marker --body "$body" --expected "$marker" --allow-missing)" = missing ]]
   gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" -f body="$body
 $marker" >/dev/null
-  grep -Fqx "$marker" <<<"$(gh release view "v$VERSION" --json body --jq '.body // ""')"
+  body=$(gh release view "v$VERSION" --json body --jq '.body // ""')
+  [[ "$(python3 "$GUARD" symbol-marker --body "$body" --expected "$marker")" = published ]]
 fi
 
 release_json=$(gh release view "v$VERSION" --json databaseId,isDraft,isPrerelease,body)
 [[ "$(jq -r .databaseId <<<"$release_json")" = "$release_id" && "$(jq -r .isDraft <<<"$release_json")" = true && "$(jq -r .isPrerelease <<<"$release_json")" = false ]]
-grep -Fqx "$marker" <<<"$(jq -r '.body // ""' <<<"$release_json")"
+body=$(jq -r '.body // ""' <<<"$release_json")
+[[ "$(python3 "$GUARD" symbol-marker --body "$body" --expected "$marker")" = published ]]
 test "$(gh api "repos/$GITHUB_REPOSITORY/commits/v$VERSION" --jq .sha)" = "$SHA"
 verify_release_assets
 prior_final=$(newest_finalized || true)

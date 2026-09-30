@@ -4,6 +4,7 @@ from pathlib import Path
 
 SEMVER=re.compile(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z')
 SHA=re.compile(r'[0-9a-f]{40}\Z')
+SYMBOL_MARKER=re.compile(r'<!-- mudx-symbol-sha256:[0-9a-f]{64} -->\Z')
 def version(v):
  m=SEMVER.fullmatch(v or '')
  if not m: raise ValueError(f'non-canonical stable SemVer: {v!r}')
@@ -27,13 +28,21 @@ def version_files(a):
  if after!=before.replace(f'<Version>{old[0]}</Version>',f'<Version>{a.expected}</Version>',1): raise ValueError('diff contains changes beyond calculated Version XML value')
 def ci_run(a):
  if not SHA.fullmatch(a.sha): raise ValueError('invalid CI source SHA')
+ if a.event=='pull_request' and (a.pr is None or a.pr<1): raise ValueError('pull request CI requires a valid expected PR number')
  data=json.loads(Path(a.json).read_text()); runs=data.get('workflow_runs')
  if not isinstance(runs,list): raise ValueError('workflow run response is malformed')
  matches=[]
  for run in runs:
   if not isinstance(run,dict): continue
   repository=run.get('repository') or {}
-  if (run.get('head_sha'),repository.get('full_name'),run.get('path'),run.get('event'))==(a.sha,a.repository,a.workflow,a.event): matches.append(run)
+  if (run.get('head_sha'),repository.get('full_name'),run.get('path'),run.get('event'))!=(a.sha,a.repository,a.workflow,a.event): continue
+  if a.event=='pull_request':
+   associations=run.get('pull_requests')
+   if not isinstance(associations,list): continue
+   associated={item.get('number') for item in associations if isinstance(item,dict)}
+   if associated and a.pr not in associated: continue
+   if run.get('display_title')!=f'MudX CI PR #{a.pr}': continue
+  matches.append(run)
  if not matches: raise ValueError('exact trusted CI run is missing')
  def order(run):
   return tuple(value if isinstance(value,int) else 0 for value in (run.get('run_number'),run.get('run_attempt'),run.get('id')))
@@ -41,6 +50,14 @@ def ci_run(a):
  if latest.get('status')!='completed' or latest.get('conclusion')!='success': raise ValueError('latest exact trusted CI run is not successful')
  if not isinstance(latest.get('id'),int): raise ValueError('trusted CI run ID is invalid')
  print(latest['id'])
+def symbol_marker(a):
+ if not SYMBOL_MARKER.fullmatch(a.expected): raise ValueError('expected symbol marker is malformed')
+ occurrences=[line for line in a.body.splitlines() if 'mudx-symbol-sha256:' in line]
+ if not occurrences:
+  if a.allow_missing: print('missing'); return
+  raise ValueError('expected symbol marker is missing')
+ if occurrences!=[a.expected]: raise ValueError('symbol marker history is ambiguous or conflicting')
+ print('published')
 def file_digest(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def safe_file(root,name):
  if Path(name).is_absolute(): raise ValueError('manifest path must be relative to artifact root')
@@ -105,7 +122,8 @@ def main():
  x=s.add_parser('calculate'); x.add_argument('--current',required=True); x.add_argument('--known',action='append',default=[]); x.add_argument('--bump',choices=['patch','minor','major'],default='patch'); x.add_argument('--custom'); x.set_defaults(fn=calculate)
  x=s.add_parser('actor'); x.add_argument('--actor',required=True); x.add_argument('--triggering-actor',required=True); x.add_argument('--allowed',required=True); x.set_defaults(fn=actor)
  x=s.add_parser('version-files'); x.add_argument('--before',required=True); x.add_argument('--after',required=True); x.add_argument('--expected',required=True); x.set_defaults(fn=version_files)
- x=s.add_parser('ci-run'); x.add_argument('--json',required=True); x.add_argument('--sha',required=True); x.add_argument('--repository',required=True); x.add_argument('--workflow',required=True); x.add_argument('--event',choices=['pull_request','push'],required=True); x.set_defaults(fn=ci_run)
+ x=s.add_parser('ci-run'); x.add_argument('--json',required=True); x.add_argument('--sha',required=True); x.add_argument('--repository',required=True); x.add_argument('--workflow',required=True); x.add_argument('--event',choices=['pull_request','push'],required=True); x.add_argument('--pr',type=int); x.set_defaults(fn=ci_run)
+ x=s.add_parser('symbol-marker'); x.add_argument('--body',required=True); x.add_argument('--expected',required=True); x.add_argument('--allow-missing',action='store_true'); x.set_defaults(fn=symbol_marker)
  x=s.add_parser('manifest-create'); x.add_argument('--output',required=True); x.add_argument('--root'); x.add_argument('--sha',required=True); x.add_argument('--version',required=True); x.add_argument('--producer',required=True); x.add_argument('files',nargs='+'); x.set_defaults(fn=manifest_create)
  x=s.add_parser('manifest-verify'); x.add_argument('--manifest',required=True); x.add_argument('--root'); x.add_argument('--sha',required=True); x.add_argument('--version',required=True); x.add_argument('--producer',required=True); x.set_defaults(fn=manifest_verify)
  x=s.add_parser('package-equivalent'); x.add_argument('--candidate',required=True); x.add_argument('--published',required=True); x.set_defaults(fn=package_equivalent)
