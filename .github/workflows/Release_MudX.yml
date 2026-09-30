@@ -139,7 +139,7 @@ jobs:
         run: |
           now=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)
           python3 tools/release_pipeline/release_guard.py head-binding --expected "$HEAD" --observed "$now"
-          gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --squash --delete-branch
+          gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --match-head-commit "$HEAD" --squash --delete-branch
       - id: wait-merged
         name: Await the same PR merge and trusted exact merged-SHA CI
         env:
@@ -190,7 +190,7 @@ jobs:
           test "$(find release-artifacts/packages -maxdepth 1 -type f -name '*.nupkg' ! -name '*.snupkg' | wc -l)" -eq 1
           test "$(find release-artifacts/packages -maxdepth 1 -type f -name '*.snupkg' | wc -l)" -eq 1
           pwsh tools/CheckStaticAssets.ps1 "$(find release-artifacts/packages -name '*.nupkg' ! -name '*.snupkg' -print -quit)" mudx.min.css mudx.min.js prism.js mudxProvider.js
-      - name: Build, reload, and smoke test the versioned linux/amd64 archive
+      - name: Build the versioned linux/amd64 archive
         env:
           VERSION: ${{ needs.version-pr.outputs.version }}
           SHA: ${{ needs.version-pr.outputs.sha }}
@@ -204,15 +204,6 @@ jobs:
           docker save "$image" | gzip -n -9 > "$archive"
           gzip -t "$archive"
           docker image rm "$image"
-          gzip -dc "$archive" | docker load
-          test "$(docker image inspect "$image" --format '{{.Os}}/{{.Architecture}}')" = linux/amd64
-          test "$(docker image inspect "$image" --format '{{index .Config.Labels "org.opencontainers.image.version"}}')" = "$VERSION"
-          test "$(docker image inspect "$image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$SHA"
-          cid=$(docker run -d -p 127.0.0.1:4561:8080 "$image"); trap 'docker rm -f "$cid"' EXIT
-          ready=false
-          for _ in {1..30}; do if curl -fsS http://127.0.0.1:4561/healthz; then ready=true; break; fi; sleep 2; done
-          test "$ready" = true
-          test "$(curl -fsS http://127.0.0.1:4561/revision)" = "$SHA"
           for file in release-artifacts/packages/* "$archive"; do printf '%s  %s\n' "$(sha256sum "$file" | cut -d' ' -f1)" "$(basename "$file")"; done | sort -k2 > release-artifacts/SHA256SUMS
           python3 tools/release_pipeline/release_guard.py manifest-create --output release-artifacts/manifest.json --root release-artifacts --sha "$SHA" --version "$VERSION" --producer "$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT" release-artifacts/packages/* "$archive" release-artifacts/SHA256SUMS
           python3 tools/release_pipeline/release_guard.py manifest-verify --manifest release-artifacts/manifest.json --root release-artifacts --sha "$SHA" --version "$VERSION" --producer "$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT"

@@ -55,10 +55,10 @@ Do not choose an actual version until a real release is authorized. Do not start
 The release run shows these jobs:
 
 - **version-pr** — fork branch, exact version-only PR, MudXBot approval, exact PR CI, merge, exact merged-SHA CI.
-- **build** — all shipped MudX target frameworks, docs build, package checks, Docker archive reload, /healthz, and /revision smoke checks.
+- **build** — all shipped MudX target frameworks, docs build, package checks, and creation of the versioned linux/amd64 Docker archive.
 - **publish** — retained-manifest verification, NuGet publication, GitHub draft asset readback, symbol checkpoint, and final release.
 
-Build_And_Test.yml remains the trusted CI workflow and now runs both the existing .NET test/coverage work and the behavioral release-pipeline Python tests.
+Build_And_Test.yml remains the trusted CI workflow and retains the existing MudX product test and coverage work.
 
 ## Success evidence and downloads
 
@@ -82,8 +82,9 @@ The publisher downloads the release assets and compares their bytes before final
 
 After downloading the archive and SHA256SUMS into one directory:
 
-    sha256sum -c SHA256SUMS
-    gzip -dc MudX-<version>-linux-amd64.tar.gz | docker load
+    archive="MudX-<version>-linux-amd64.tar.gz"
+    grep -Fx "$(sha256sum "$archive")" SHA256SUMS
+    gzip -dc "$archive" | docker load
     docker run --rm -p 8080:8080 mudx:<version>
 
 Then check:
@@ -108,7 +109,7 @@ A real run, credential readiness, repository permissions, PR approval behavior, 
 Kept:
 
 - Release_MudX.yml — the single owner-initiated release path.
-- Build_And_Test.yml — trusted PR/dev CI and release behavioral tests.
+- Build_And_Test.yml — trusted PR/dev product tests and coverage.
 - auto-assign.yml — unrelated issue assignment automation.
 
 Removed as superseded duplicates:

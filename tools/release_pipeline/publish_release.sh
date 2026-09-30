@@ -13,25 +13,41 @@ manifest="$ROOT/manifest.json"
 for file in "$archive" "$checksums" "$manifest"; do test -s "$file"; done
 symbol_sha=$(sha256sum "$symbol" | cut -d' ' -f1)
 marker="<!-- mudx-symbol-sha256:$symbol_sha -->"
+expected_release_assets=("$main" "$symbol" "$archive" "$checksums" "$manifest")
+missing_release_assets=()
 
-verify_release_assets() {
-  local names expected_names download status
+inspect_release_asset_subset() {
+  local names download name path status
+  declare -A expected=() observed=()
+  missing_release_assets=()
+  for path in "${expected_release_assets[@]}"; do expected["$(basename "$path")"]="$path"; done
   names=$(gh release view "v$VERSION" --json assets --jq '.assets | map(.name) | sort | join("\n")')
-  expected_names=$(printf '%s\n' "$(basename "$main")" "$(basename "$symbol")" "$(basename "$archive")" "$(basename "$checksums")" "$(basename "$manifest")" | LC_ALL=C sort)
-  [[ "$names" = "$expected_names" ]] || return 1
   download=$(mktemp -d)
-  gh release download "v$VERSION" -D "$download" || { rm -rf "$download"; return 1; }
-  set +e
-  cmp -s "$main" "$download/$(basename "$main")" &&
-    cmp -s "$symbol" "$download/$(basename "$symbol")" &&
-    cmp -s "$archive" "$download/$(basename "$archive")" &&
-    cmp -s "$checksums" "$download/$(basename "$checksums")" &&
-    cmp -s "$manifest" "$download/$(basename "$manifest")" &&
-    (cd "$download" && sha256sum -c SHA256SUMS)
-  status=$?
-  set -e
+  if [[ -n "$names" ]]; then
+    gh release download "v$VERSION" -D "$download" || { rm -rf "$download"; return 1; }
+  fi
+  status=0
+  while IFS= read -r name; do
+    [[ -z "$name" ]] && continue
+    if [[ -z "${expected[$name]+present}" || -n "${observed[$name]+present}" ]]; then status=1; break; fi
+    observed["$name"]=1
+    cmp -s "${expected[$name]}" "$download/$name" || { status=1; break; }
+  done <<<"$names"
+  if [[ "$status" -eq 0 ]]; then
+    for path in "${expected_release_assets[@]}"; do
+      name=$(basename "$path")
+      [[ -n "${observed[$name]+present}" ]] || missing_release_assets+=("$path")
+    done
+    if [[ "${#missing_release_assets[@]}" -eq 0 ]]; then
+      (cd "$download" && sha256sum -c SHA256SUMS) || status=1
+    fi
+  fi
   rm -rf "$download"
   return "$status"
+}
+
+verify_release_assets() {
+  inspect_release_asset_subset && [[ "${#missing_release_assets[@]}" -eq 0 ]]
 }
 newest_finalized() {
   gh release list --limit 100 --json tagName,isDraft,isPrerelease --jq '.[]|select(.isDraft==false and .isPrerelease==false)|.tagName|ltrimstr("v")' |
@@ -50,13 +66,18 @@ fi
 release_state=missing; symbols_state=missing; release_id=''
 if release_json=$(gh release view "v$VERSION" --json databaseId,isDraft,isPrerelease,body 2>/dev/null); then
   release_id=$(jq -r .databaseId <<<"$release_json")
-  test "$(gh api "repos/$GITHUB_REPOSITORY/commits/v$VERSION" --jq .sha)" = "$SHA" || release_state=mismatch
-  verify_release_assets || release_state=mismatch
+  if [[ "$(gh api "repos/$GITHUB_REPOSITORY/commits/v$VERSION" --jq .sha)" != "$SHA" ]] ||
+     [[ "$(jq -r .isPrerelease <<<"$release_json")" = true ]] ||
+     ! inspect_release_asset_subset; then
+    release_state=mismatch
+  elif [[ "$(jq -r .isDraft <<<"$release_json")" = true ]]; then
+    release_state=draft
+  elif [[ "${#missing_release_assets[@]}" -eq 0 ]]; then
+    release_state=exact
+  else
+    release_state=mismatch
+  fi
   if [[ "$release_state" != mismatch ]]; then
-    if [[ "$(jq -r .isPrerelease <<<"$release_json")" = true ]]; then release_state=mismatch
-    elif [[ "$(jq -r .isDraft <<<"$release_json")" = true ]]; then release_state=draft
-    else release_state=exact
-    fi
     body=$(jq -r '.body // ""' <<<"$release_json")
     if grep -Fqx "$marker" <<<"$body"; then symbols_state=published
     elif grep -Fq '<!-- mudx-symbol-sha256:' <<<"$body"; then release_state=mismatch
@@ -86,16 +107,23 @@ if [[ "$release_state" = missing ]]; then
   if gh release view "v$VERSION" >/dev/null 2>&1; then echo 'Release appeared concurrently; rerun resume to authenticate it.' >&2; exit 1; fi
   if gh api "repos/$GITHUB_REPOSITORY/commits/v$VERSION" --silent 2>/dev/null; then
     test "$(gh api "repos/$GITHUB_REPOSITORY/commits/v$VERSION" --jq .sha)" = "$SHA" || { echo 'Existing tag targets a different commit.' >&2; exit 1; }
-    gh release create "v$VERSION" --draft --verify-tag --generate-notes "$main" "$symbol" "$archive" "$checksums" "$manifest"
+    gh release create "v$VERSION" --draft --verify-tag --generate-notes
   else
-    gh release create "v$VERSION" --draft --target "$SHA" --generate-notes "$main" "$symbol" "$archive" "$checksums" "$manifest"
+    gh release create "v$VERSION" --draft --target "$SHA" --generate-notes
   fi
   release_json=$(gh release view "v$VERSION" --json databaseId,isDraft,isPrerelease)
   [[ "$(jq -r .isDraft <<<"$release_json")" = true && "$(jq -r .isPrerelease <<<"$release_json")" = false ]]
   release_id=$(jq -r .databaseId <<<"$release_json")
   test "$(gh api "repos/$GITHUB_REPOSITORY/commits/v$VERSION" --jq .sha)" = "$SHA"
-  verify_release_assets
+  missing_release_assets=("${expected_release_assets[@]}")
   release_state=draft
+fi
+
+if [[ "$release_state" = draft && "${#missing_release_assets[@]}" -gt 0 ]]; then
+  gh release upload "v$VERSION" "${missing_release_assets[@]}"
+fi
+if [[ "$release_state" = draft ]]; then
+  verify_release_assets
 fi
 
 if [[ "$symbols_state" = missing ]]; then
