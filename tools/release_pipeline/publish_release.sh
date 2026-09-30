@@ -1,40 +1,58 @@
 #!/usr/bin/env bash
 set -euo pipefail
-: "${VERSION:?}" "${SHA:?}" "${PRODUCER:?}" "${IMAGE:?}" "${PACKAGE_ID:?}" "${PUBLIC_URL:?}" "${NUGET_API_KEY:?}"
+: "$VERSION" "$SHA" "$PRODUCER" "$PACKAGE_ID" "$NUGET_API_KEY"
 GUARD=tools/release_pipeline/release_guard.py
 ROOT=release-artifacts
-mapfile -t mains < <(find "$ROOT/packages" -maxdepth 1 -type f -name '*.nupkg' ! -name '*.snupkg')
-mapfile -t symbols < <(find "$ROOT/packages" -maxdepth 1 -type f -name '*.snupkg')
-test "${#mains[@]}" -eq 1 && test "${#symbols[@]}" -eq 1
-main=${mains[0]}; symbol=${symbols[0]}; expected=$(jq -r .image_digest "$ROOT/manifest.json")
+main=$(find "$ROOT/packages" -maxdepth 1 -type f -name '*.nupkg' ! -name '*.snupkg')
+symbol=$(find "$ROOT/packages" -maxdepth 1 -type f -name '*.snupkg')
+test "$(printf '%s\n' "$main" | grep -c .)" -eq 1
+test "$(printf '%s\n' "$symbol" | grep -c .)" -eq 1
+archive="$ROOT/MudX-$VERSION-linux-amd64.tar.gz"
+checksums="$ROOT/SHA256SUMS"
+manifest="$ROOT/manifest.json"
+for file in "$archive" "$checksums" "$manifest"; do test -s "$file"; done
 symbol_sha=$(sha256sum "$symbol" | cut -d' ' -f1)
 marker="<!-- mudx-symbol-sha256:$symbol_sha -->"
+expected_release_assets=("$main" "$symbol" "$archive" "$checksums" "$manifest")
+missing_release_assets=()
+
+inspect_release_asset_subset() {
+  local names download name path status
+  declare -A expected=() observed=()
+  missing_release_assets=()
+  for path in "${expected_release_assets[@]}"; do expected["$(basename "$path")"]="$path"; done
+  names=$(gh release view "v$VERSION" --json assets --jq '.assets | map(.name) | sort | join("\n")')
+  download=$(mktemp -d)
+  if [[ -n "$names" ]]; then
+    gh release download "v$VERSION" -D "$download" || { rm -rf "$download"; return 1; }
+  fi
+  status=0
+  while IFS= read -r name; do
+    [[ -z "$name" ]] && continue
+    if [[ -z "${expected[$name]+present}" || -n "${observed[$name]+present}" ]]; then status=1; break; fi
+    observed["$name"]=1
+    cmp -s "${expected[$name]}" "$download/$name" || { status=1; break; }
+  done <<<"$names"
+  if [[ "$status" -eq 0 ]]; then
+    for path in "${expected_release_assets[@]}"; do
+      name=$(basename "$path")
+      [[ -n "${observed[$name]+present}" ]] || missing_release_assets+=("$path")
+    done
+    if [[ "${#missing_release_assets[@]}" -eq 0 ]]; then
+      (cd "$download" && sha256sum -c SHA256SUMS) || status=1
+    fi
+  fi
+  rm -rf "$download"
+  return "$status"
+}
 
 verify_release_assets() {
-  local names expected_names
-  names=$(gh release view "v$VERSION" --json assets --jq '.assets | map(.name) | sort | join("\n")')
-  expected_names=$(printf '%s\n%s\n' "$(basename "$main")" "$(basename "$symbol")" | sort)
-  [[ "$names" = "$expected_names" ]] || return 1
-  rm -rf /tmp/release-assets; mkdir /tmp/release-assets
-  gh release download "v$VERSION" -D /tmp/release-assets || return 1
-  cmp -s "$main" "/tmp/release-assets/$(basename "$main")" || return 1
-  cmp -s "$symbol" "/tmp/release-assets/$(basename "$symbol")" || return 1
+  inspect_release_asset_subset && [[ "${#missing_release_assets[@]}" -eq 0 ]]
 }
 newest_finalized() {
   gh release list --limit 100 --json tagName,isDraft,isPrerelease --jq '.[]|select(.isDraft==false and .isPrerelease==false)|.tagName|ltrimstr("v")' |
     grep -E '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' | sort -V | tail -1
 }
-
-sudo apt-get update
-sudo apt-get install -y skopeo
-echo "$GHCR_TOKEN" | skopeo login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-
-image_state=absent
-if current=$(skopeo inspect "docker://$IMAGE:$VERSION" --format '{{.Digest}}' 2>/tmp/image-inspect.err); then
-  [[ "$current" = "$expected" ]] && image_state=match || image_state=mismatch
-elif ! grep -Eqi 'manifest unknown|not found|404' /tmp/image-inspect.err; then
-  cat /tmp/image-inspect.err >&2; exit 1
-fi
 
 package_url="https://api.nuget.org/v3-flatcontainer/$PACKAGE_ID/$VERSION/$PACKAGE_ID.$VERSION.nupkg"
 code=$(curl --retry 3 -sS -w '%{http_code}' -o /tmp/published.nupkg "$package_url")
@@ -48,41 +66,32 @@ fi
 release_state=missing; symbols_state=missing; release_id=''
 if release_json=$(gh release view "v$VERSION" --json databaseId,isDraft,isPrerelease,body 2>/dev/null); then
   release_id=$(jq -r .databaseId <<<"$release_json")
-  test "$(gh api "repos/$GITHUB_REPOSITORY/commits/v$VERSION" --jq .sha)" = "$SHA" || release_state=mismatch
-  verify_release_assets || release_state=mismatch
+  if [[ "$(gh api "repos/$GITHUB_REPOSITORY/commits/v$VERSION" --jq .sha)" != "$SHA" ]] ||
+     [[ "$(jq -r .isPrerelease <<<"$release_json")" = true ]] ||
+     ! inspect_release_asset_subset; then
+    release_state=mismatch
+  elif [[ "$(jq -r .isDraft <<<"$release_json")" = true ]]; then
+    release_state=draft
+  elif [[ "${#missing_release_assets[@]}" -eq 0 ]]; then
+    release_state=exact
+  else
+    release_state=mismatch
+  fi
   if [[ "$release_state" != mismatch ]]; then
-    if [[ "$(jq -r .isPrerelease <<<"$release_json")" = true ]]; then release_state=mismatch
-    elif [[ "$(jq -r .isDraft <<<"$release_json")" = true ]]; then
-      release_state=draft
-      body=$(jq -r '.body // ""' <<<"$release_json")
-      if grep -Fqx "$marker" <<<"$body"; then symbols_state=published
-      elif grep -Fq '<!-- mudx-symbol-sha256:' <<<"$body"; then release_state=mismatch
-      fi
-    else release_state=exact
-    fi
+    body=$(jq -r '.body // ""' <<<"$release_json")
+    marker_args=(symbol-marker --body "$body" --expected "$marker")
+    if [[ "$release_state" != exact ]]; then marker_args+=(--allow-missing); fi
+    symbols_state=$(python3 "$GUARD" "${marker_args[@]}")
   fi
 fi
-
-deployed=$(curl --retry 2 -fsS -H 'Cache-Control: no-cache' "$PUBLIC_URL/revision?release=$PRODUCER&probe=$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" || true)
-deploy_state=missing; [[ "$deployed" = "$SHA" ]] && deploy_state=match
+plan=$(python3 "$GUARD" resume-plan --main "$main_state" --symbols "$symbols_state" --release "$release_state")
 if [[ "$release_state" = exact ]]; then
-  newest=$(newest_finalized)
-  if [[ "$newest" != "$VERSION" ]]; then echo 'A newer finalized release exists; exact older release is a no-op.'; exit 0; fi
-  [[ "$image_state" = match && "$main_state" = equivalent && "$deploy_state" = match ]] || { echo 'Finalized latest release conflicts with external state.' >&2; exit 1; }
-  latest=$(skopeo inspect "docker://$IMAGE:latest" --format '{{.Digest}}' 2>/dev/null || true)
-  if [[ "$latest" != "$expected" ]]; then skopeo copy "docker://$IMAGE@$expected" "docker://$IMAGE:latest"; fi
-  test "$(skopeo inspect "docker://$IMAGE:latest" --format '{{.Digest}}')" = "$expected"
-  echo 'Release already finalized with exact retained candidate; resume reconciled latest and stopped.'; exit 0
+  echo 'Release already finalized with the exact retained candidate.'
+  exit 0
 fi
-plan=$(python3 "$GUARD" resume-plan --image "$image_state" --main "$main_state" --symbols "$symbols_state" --deploy "$deploy_state" --release "$release_state")
-
-if [[ "$(jq -r .image <<<"$plan")" = publish ]]; then
-  skopeo copy "oci-archive:$ROOT/image.oci.tar" "docker://$IMAGE:$VERSION"
-fi
-test "$(skopeo inspect "docker://$IMAGE:$VERSION" --format '{{.Digest}}')" = "$expected"
 
 if [[ "$(jq -r .main <<<"$plan")" = publish ]]; then
-  dotnet nuget push "$main" --source https://api.nuget.org/v3/index.json --no-symbols
+  dotnet nuget push "$main" --source https://api.nuget.org/v3/index.json --api-key "$NUGET_API_KEY" --no-symbols
   code=000
   for _ in {1..30}; do
     code=$(curl -sS -w '%{http_code}' -o /tmp/published.nupkg "$package_url")
@@ -97,49 +106,41 @@ if [[ "$release_state" = missing ]]; then
   if gh release view "v$VERSION" >/dev/null 2>&1; then echo 'Release appeared concurrently; rerun resume to authenticate it.' >&2; exit 1; fi
   if gh api "repos/$GITHUB_REPOSITORY/commits/v$VERSION" --silent 2>/dev/null; then
     test "$(gh api "repos/$GITHUB_REPOSITORY/commits/v$VERSION" --jq .sha)" = "$SHA" || { echo 'Existing tag targets a different commit.' >&2; exit 1; }
-    gh release create "v$VERSION" --draft --verify-tag --generate-notes "$main" "$symbol"
+    gh release create "v$VERSION" --draft --verify-tag --generate-notes
   else
-    gh release create "v$VERSION" --draft --target "$SHA" --generate-notes "$main" "$symbol"
+    gh release create "v$VERSION" --draft --target "$SHA" --generate-notes
   fi
   release_json=$(gh release view "v$VERSION" --json databaseId,isDraft,isPrerelease)
   [[ "$(jq -r .isDraft <<<"$release_json")" = true && "$(jq -r .isPrerelease <<<"$release_json")" = false ]]
   release_id=$(jq -r .databaseId <<<"$release_json")
   test "$(gh api "repos/$GITHUB_REPOSITORY/commits/v$VERSION" --jq .sha)" = "$SHA"
-  verify_release_assets
+  missing_release_assets=("${expected_release_assets[@]}")
   release_state=draft
 fi
 
+if [[ "$release_state" = draft && "${#missing_release_assets[@]}" -gt 0 ]]; then
+  gh release upload "v$VERSION" "${missing_release_assets[@]}"
+fi
+if [[ "$release_state" = draft ]]; then
+  verify_release_assets
+fi
+
 if [[ "$symbols_state" = missing ]]; then
-  if ! dotnet nuget push "$symbol" --source https://api.nuget.org/v3/index.json; then
+  if ! dotnet nuget push "$symbol" --source https://api.nuget.org/v3/index.json --api-key "$NUGET_API_KEY"; then
     echo 'Symbol publication outcome cannot be proven by NuGet public APIs. Manually reconcile the retained .snupkg; do not use skip-duplicate or rebuild.' >&2; exit 1
   fi
   body=$(gh release view "v$VERSION" --json body --jq '.body // ""')
+  [[ "$(python3 "$GUARD" symbol-marker --body "$body" --expected "$marker" --allow-missing)" = missing ]]
   gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" -f body="$body
 $marker" >/dev/null
-  grep -Fqx "$marker" <<<"$(gh release view "v$VERSION" --json body --jq '.body // ""')"
-fi
-
-if [[ "$(jq -r .deploy <<<"$plan")" = deploy ]]; then
-  : "${HOST:?}" "${USER:?}" "${PORT:?}" "${KNOWN_HOSTS:?}" "${DEPLOY_KEY:?}"
-  [[ "$PORT" =~ ^[1-9][0-9]*$ ]]
-  install -m700 -d ~/.ssh; install -m600 /dev/null ~/.ssh/key
-  printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/key; printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-  run=${PRODUCER%/*}
-  set +e
-  ssh -i ~/.ssh/key -o BatchMode=yes -o StrictHostKeyChecking=yes -p "$PORT" "$USER@$HOST" -- deploy "$run" "$VERSION" "$SHA" "$expected"
-  ssh_rc=$?; set -e
-  deployed=''
-  for _ in {1..30}; do
-    deployed=$(curl -fsS -H 'Cache-Control: no-cache' "$PUBLIC_URL/revision?release=$PRODUCER&probe=$RANDOM" || true)
-    [[ "$deployed" = "$SHA" ]] && break
-    sleep 5
-  done
-  if [[ "$deployed" != "$SHA" ]]; then echo "Deployment outcome unresolved after SSH exit $ssh_rc; inspect host journal before retry." >&2; exit 1; fi
+  body=$(gh release view "v$VERSION" --json body --jq '.body // ""')
+  [[ "$(python3 "$GUARD" symbol-marker --body "$body" --expected "$marker")" = published ]]
 fi
 
 release_json=$(gh release view "v$VERSION" --json databaseId,isDraft,isPrerelease,body)
 [[ "$(jq -r .databaseId <<<"$release_json")" = "$release_id" && "$(jq -r .isDraft <<<"$release_json")" = true && "$(jq -r .isPrerelease <<<"$release_json")" = false ]]
-grep -Fqx "$marker" <<<"$(jq -r '.body // ""' <<<"$release_json")"
+body=$(jq -r '.body // ""' <<<"$release_json")
+[[ "$(python3 "$GUARD" symbol-marker --body "$body" --expected "$marker")" = published ]]
 test "$(gh api "repos/$GITHUB_REPOSITORY/commits/v$VERSION" --jq .sha)" = "$SHA"
 verify_release_assets
 prior_final=$(newest_finalized || true)
@@ -150,5 +151,3 @@ gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" -F draft=f
 release_json=$(gh release view "v$VERSION" --json isDraft,isPrerelease)
 [[ "$(jq -r .isDraft <<<"$release_json")" = false && "$(jq -r .isPrerelease <<<"$release_json")" = false ]]
 [[ "$(newest_finalized)" = "$VERSION" ]] || { echo 'A newer finalized stable release exists; refusing to move latest backward.' >&2; exit 1; }
-skopeo copy "docker://$IMAGE@$expected" "docker://$IMAGE:latest"
-test "$(skopeo inspect "docker://$IMAGE:latest" --format '{{.Digest}}')" = "$expected"
