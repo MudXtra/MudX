@@ -240,17 +240,19 @@ jobs:
             fi
           fi
 
-          draft_id=$(gh api "repos/$GH_REPO/releases" --paginate --jq ".[]|select(.draft and .tag_name==\"$tag\")|.id" | head -1)
-          if [ -n "$draft_id" ]; then
-            echo "Reusing draft release $draft_id for $tag"
-            gh api -X PATCH "repos/$GH_REPO/releases/$draft_id" -F draft=true -f target_commitish="$SHA" >/dev/null
+          # A tagless draft reports tag_name "untagged-<hash>", so match on tag or on release name.
+          draft=$(gh api "repos/$GH_REPO/releases" --paginate --jq ".[]|select(.draft and (.tag_name==\"$tag\" or (.name==\"$tag\" and (.tag_name|startswith(\"untagged-\")))))|[.id,.tag_name]|@tsv" | head -1)
+          if [ -n "$draft" ]; then
+            draft_id=${draft%%$'\t'*}
+            draft_tag=${draft#*$'\t'}
+            echo "Reusing draft release $draft_id (tag_name $draft_tag) for $tag"
             for f in packages/*; do
               name=$(basename "$f")
               old=$(gh api "repos/$GH_REPO/releases/$draft_id/assets" --jq ".[]|select(.name==\"$name\")|.id")
               if [ -n "$old" ]; then gh api -X DELETE "repos/$GH_REPO/releases/assets/$old"; fi
-              gh release upload "$tag" "$f"
+              gh release upload "$draft_tag" "$f"
             done
-            gh api -X PATCH "repos/$GH_REPO/releases/$draft_id" -F draft=false -f target_commitish="$SHA" -f make_latest="$latest" >/dev/null
+            gh api -X PATCH "repos/$GH_REPO/releases/$draft_id" -F draft=false -f tag_name="$tag" -f name="$tag" -f target_commitish="$SHA" -f make_latest="$latest" >/dev/null
           else
             gh release create "$tag" packages/* --target "$SHA" --title "$tag" --generate-notes --latest="$latest"
           fi
