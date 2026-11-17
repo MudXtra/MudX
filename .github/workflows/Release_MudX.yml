@@ -69,14 +69,20 @@ jobs:
           grep -qxF "$version" nuget-versions && have_nuget=true
 
           # GitHub Release: the tag endpoint hides drafts, so 200 means published.
-          code=$(gh api "repos/$REPO/releases/tags/v$version" --include 2>/dev/null | head -1 | awk '{print $2}' || true)
+          # gh exits non-zero on 404 but still prints the status line with --include.
+          gh api "repos/$REPO/releases/tags/v$version" --include > release-tag.http 2>/dev/null || true
+          code=$(sed -n '1s/^HTTP[^ ]* \([0-9]*\).*/\1/p' release-tag.http)
           have_release=false
-          [ "$code" = "200" ] && have_release=true
+          case "$code" in
+            200) have_release=true ;;
+            404) ;;
+            *) echo "::error::GitHub release lookup returned HTTP '${code:-none}'"; exit 1 ;;
+          esac
 
           # GHCR tag.
-          tok=$(curl -fsS -u "$ACTOR:$GH_TOKEN" "https://ghcr.io/token?service=ghcr.io&scope=repository:$image_repo:pull" | jq -r .token)
-          code=$(curl -sS -o /dev/null -w '%{http_code}' -I \
-            -H "Authorization: Bearer $tok" \
+          # Credentials go to curl on stdin (--config -), never on argv.
+          tok=$(printf 'user = "%s:%s"\n' "$ACTOR" "$GH_TOKEN" | curl -fsS --config - "https://ghcr.io/token?service=ghcr.io&scope=repository:$image_repo:pull" | jq -er .token)
+          code=$(printf 'header = "Authorization: Bearer %s"\n' "$tok" | curl -sS --config - -o /dev/null -w '%{http_code}' -I \
             -H 'Accept: application/vnd.oci.image.index.v1+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json' \
             "https://ghcr.io/v2/$image_repo/manifests/$version")
           have_image=false
@@ -87,9 +93,9 @@ jobs:
           esac
 
           # Highest stable version already published (NuGet + GitHub Releases).
-          { cat nuget-versions
-            gh api "repos/$REPO/releases" --paginate --jq '.[]|select(.draft|not)|.tag_name|ltrimstr("v")'
-          } | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V > published || true
+          # List to a file first so a failed listing fails the job (set -e); only the filter may be empty.
+          gh api "repos/$REPO/releases" --paginate --jq '.[]|select(.draft|not)|.tag_name|ltrimstr("v")' > release-tags
+          { cat nuget-versions release-tags | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' || true; } | sort -V > published
           highest=$(tail -1 published || true)
           is_newest=true
           if [ -n "$highest" ]; then
@@ -204,8 +210,8 @@ jobs:
           NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: |
           set -euo pipefail
-          dotnet nuget push "packages/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json
-          dotnet nuget push "packages/*.snupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json
+          dotnet nuget push "packages/*.nupkg" --api-key "$NUGET_API_KEY" --skip-duplicate --source https://api.nuget.org/v3/index.json
+          dotnet nuget push "packages/*.snupkg" --api-key "$NUGET_API_KEY" --skip-duplicate --source https://api.nuget.org/v3/index.json
 
   github-release:
     needs: [plan, build, nuget]
@@ -232,13 +238,27 @@ jobs:
           latest=false; [ "$IS_NEWEST" = true ] && latest=true
 
           # Never move an existing tag that points elsewhere.
-          if tag_sha=$(gh api "repos/$GH_REPO/git/ref/tags/$tag" --jq '.object.sha' 2>/dev/null); then
-            tag_type=$(gh api "repos/$GH_REPO/git/ref/tags/$tag" --jq '.object.type')
-            if [ "$tag_type" = tag ]; then tag_sha=$(gh api "repos/$GH_REPO/git/tags/$tag_sha" --jq '.object.sha'); fi
-            if [ "$tag_sha" != "$SHA" ]; then
-              echo "::error::Tag $tag already points to $tag_sha, not $SHA"; exit 1
-            fi
-          fi
+          # 200 = exists, 404 = absent; anything else is an error.
+          peel() {
+            local ref t
+            ref=$(gh api "repos/$GH_REPO/git/ref/tags/$tag" --jq '[.object.type,.object.sha]|@tsv')
+            t=${ref%%$'\t'*}; tag_sha=${ref#*$'\t'}
+            while [ "$t" = tag ]; do
+              ref=$(gh api "repos/$GH_REPO/git/tags/$tag_sha" --jq '[.object.type,.object.sha]|@tsv')
+              t=${ref%%$'\t'*}; tag_sha=${ref#*$'\t'}
+            done
+          }
+          gh api "repos/$GH_REPO/git/ref/tags/$tag" --include > tag-ref.http 2>/dev/null || true
+          code=$(sed -n '1s/^HTTP[^ ]* \([0-9]*\).*/\1/p' tag-ref.http)
+          case "$code" in
+            200)
+              peel
+              if [ "$tag_sha" != "$SHA" ]; then
+                echo "::error::Tag $tag already points to $tag_sha, not $SHA"; exit 1
+              fi ;;
+            404) ;;
+            *) echo "::error::Tag lookup returned HTTP '${code:-none}'"; exit 1 ;;
+          esac
 
           # A tagless draft reports tag_name "untagged-<hash>", so match on tag or on release name.
           draft=$(gh api "repos/$GH_REPO/releases" --paginate --jq ".[]|select(.draft and (.tag_name==\"$tag\" or (.name==\"$tag\" and (.tag_name|startswith(\"untagged-\")))))|[.id,.tag_name]|@tsv" | head -1)
@@ -257,13 +277,17 @@ jobs:
             gh release create "$tag" packages/* --target "$SHA" --title "$tag" --generate-notes --latest="$latest"
           fi
 
-          got=$(gh api "repos/$GH_REPO/git/ref/tags/$tag" --jq '.object.sha')
-          echo "Release $tag published; tag object $got (target $SHA)"
+          peel
+          if [ "$tag_sha" != "$SHA" ]; then
+            echo "::error::Published tag $tag peels to $tag_sha, not $SHA"; exit 1
+          fi
+          echo "Release $tag published; tag commit $tag_sha"
           gh release view "$tag" --json isDraft,tagName,targetCommitish,url
 
   image:
-    needs: [plan, build]
-    if: needs.plan.outputs.need_image == 'true'
+    needs: [plan, build, nuget]
+    # nuget may be skipped; never push the image when it failed.
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.need_image == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
