@@ -246,9 +246,9 @@ jobs:
             gh api -X PATCH "repos/$GH_REPO/releases/$draft_id" -F draft=true -f target_commitish="$SHA" >/dev/null
             for f in packages/*; do
               name=$(basename "$f")
-              gh api -X DELETE "repos/$GH_REPO/releases/assets/$(gh api "repos/$GH_REPO/releases/$draft_id/assets" --jq ".[]|select(.name==\"$name\")|.id")" 2>/dev/null || true
-              gh api --method POST -H 'Content-Type: application/octet-stream' \
-                "https://uploads.github.com/repos/$GH_REPO/releases/$draft_id/assets?name=$name" --input "$f" >/dev/null
+              old=$(gh api "repos/$GH_REPO/releases/$draft_id/assets" --jq ".[]|select(.name==\"$name\")|.id")
+              if [ -n "$old" ]; then gh api -X DELETE "repos/$GH_REPO/releases/assets/$old"; fi
+              gh release upload "$tag" "$f"
             done
             gh api -X PATCH "repos/$GH_REPO/releases/$draft_id" -F draft=false -f target_commitish="$SHA" -f make_latest="$latest" >/dev/null
           else
