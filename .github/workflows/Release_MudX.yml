@@ -1,366 +1,332 @@
 name: Release MudX
+
+# To release: merge a PR to dev that changes <Version> in src/MudX/MudX.csproj.
+# Ordinary merges find everything already released and stop after the plan job.
+# Re-run a failed release with "Run workflow" on dev.
+
 on:
+  push:
+    branches: [dev]
   workflow_dispatch:
-    inputs:
-      mode:
-        description: Start a release or resume a retained candidate
-        required: true
-        type: choice
-        default: release
-        options: [release, resume]
-      producer_run_id:
-        description: Failed producer run ID (resume only)
-        required: false
-        type: string
-      producer_attempt:
-        description: Failed producer attempt (resume only)
-        required: false
-        type: string
-      bump:
-        description: Version increment
-        required: true
-        type: choice
-        default: patch
-        options: [patch, minor, major]
-      custom_version:
-        description: Optional exact stable SemVer instead of bump
-        required: false
-        type: string
+
 permissions:
   contents: read
+
 concurrency:
   group: mudx-release
   cancel-in-progress: false
+
 env:
   PROJECT: src/MudX/MudX.csproj
-  CI_WORKFLOW: .github/workflows/Build_And_Test.yml
+  PACKAGE_ID: MudX.MudBlazor.Extension
+
 jobs:
-  version-pr:
-    if: inputs.mode == 'release'
+  plan:
     runs-on: ubuntu-latest
-    environment: mudx-release-coordination
-    permissions: { actions: read, contents: read, pull-requests: read }
+    permissions:
+      contents: read
+      packages: read
     outputs:
-      version: ${{ steps.version.outputs.value }}
-      sha: ${{ steps.selected-source.outputs.sha }}
+      release: ${{ steps.plan.outputs.release }}
+      version: ${{ steps.plan.outputs.version }}
+      sha: ${{ steps.plan.outputs.sha }}
+      is_newest: ${{ steps.plan.outputs.is_newest }}
+      need_nuget: ${{ steps.plan.outputs.need_nuget }}
+      need_release: ${{ steps.plan.outputs.need_release }}
+      need_image: ${{ steps.plan.outputs.need_image }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with: { ref: dev, fetch-depth: 0, persist-credentials: false }
-      - name: Bind dispatch and rerun actors
-        env: { ALLOWED: "${{ vars.MUDX_RELEASE_ACTORS }}" }
-        run: python3 tools/release_pipeline/release_guard.py actor --actor "$GITHUB_ACTOR" --triggering-actor "$GITHUB_TRIGGERING_ACTOR" --allowed "$ALLOWED"
-      - name: Verify coordinator and MudXBot identities
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - id: plan
         env:
-          COORDINATOR_TOKEN: ${{ secrets.GH_RELEASE_COORDINATOR_TOKEN }}
-          BOT_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
-          EXPECTED_BOT: ${{ vars.MUDX_BOT_LOGIN }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.ref }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
         run: |
-          coordinator=$(GH_TOKEN="$COORDINATOR_TOKEN" gh api user --jq .login)
-          bot=$(GH_TOKEN="$BOT_TOKEN" gh api user --jq .login)
-          test -n "$EXPECTED_BOT" && test "$bot" = "$EXPECTED_BOT" && test "$bot" != "$coordinator"
-      - id: version
-        env:
-          BUMP: ${{ inputs.bump }}
-          CUSTOM: ${{ inputs.custom_version }}
-          GH_TOKEN: ${{ secrets.GH_RELEASE_COORDINATOR_TOKEN }}
-        run: |
-          test "$GITHUB_REF" = refs/heads/dev
-          test -z "$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --json headRefName --jq '[.[]|select(.headRefName|startswith("release/version-"))][0].headRefName // empty')"
-          current=$(grep -oPm1 '(?<=<Version>)[^<]+' "$PROJECT")
-          discovery=$(mktemp -d)
-          trap 'rm -rf "$discovery"' EXIT
-          git tag --list 'v*' > "$discovery/git-tags"
-          gh release list --limit 100 --json tagName --jq '.[].tagName|ltrimstr("v")' > "$discovery/github-releases"
-          curl -fsS -o "$discovery/nuget-index.json" https://api.nuget.org/v3-flatcontainer/mudx.mudblazor.extension/index.json
-          jq -e '.versions | type == "array" and all(.[]; type == "string")' "$discovery/nuget-index.json" > /dev/null
-          jq -r '.versions[]' "$discovery/nuget-index.json" > "$discovery/nuget-versions"
-          sed 's/^v//' "$discovery/git-tags" > "$discovery/candidates"
-          cat "$discovery/github-releases" >> "$discovery/candidates"
-          cat "$discovery/nuget-versions" >> "$discovery/candidates"
-          filter_status=0
-          grep -E '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' "$discovery/candidates" > "$discovery/stable" || filter_status=$?
-          (( filter_status <= 1 )) || exit "$filter_status"
-          sort -Vu "$discovery/stable" > "$discovery/known"
-          mapfile -t known < "$discovery/known"
-          args=(calculate --current "$current"); for value in "${known[@]}"; do args+=(--known "$value"); done
-          if [[ -n "$CUSTOM" ]]; then args+=(--custom "$CUSTOM"); else args+=(--bump "$BUMP"); fi
-          value=$(python3 tools/release_pipeline/release_guard.py "${args[@]}")
-          echo "value=$value" >> "$GITHUB_OUTPUT"
-          if [[ "$value" = "$current" ]]; then
-            sha=$(git rev-parse HEAD)
-            selected=$(git show "$sha:$PROJECT" | grep -oPm1 '(?<=<Version>)[^<]+')
-            test "$selected" = "$value" && test -z "$(git status --porcelain)"
-            echo "requires_pr=false" >> "$GITHUB_OUTPUT"
-            echo "sha=$sha" >> "$GITHUB_OUTPUT"
-          else
-            echo "requires_pr=true" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          if [ "$REPO" = "MudXtra/MudX" ] && [ "$REF" != "refs/heads/dev" ]; then
+            echo "::error::Releases on MudXtra/MudX run only from dev (got $REF)"; exit 1
           fi
-      - id: pr
-        if: steps.version.outputs.requires_pr == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GH_RELEASE_COORDINATOR_TOKEN }}
-          VERSION: ${{ steps.version.outputs.value }}
-        run: |
-          branch="release/version-$VERSION-$GITHUB_RUN_ID"
-          git switch -c "$branch"
-          cp "$PROJECT" /tmp/before
-          python3 - "$PROJECT" "$VERSION" <<'PY'
-          from pathlib import Path
-          import re,sys
-          path=Path(sys.argv[1]); text=path.read_text(); updated,count=re.subn(r'(<Version>)[^<]+(</Version>)',rf'\g<1>{sys.argv[2]}\g<2>',text,count=1)
-          if count!=1 or text==updated: raise SystemExit('expected one version change')
-          path.write_text(updated)
-          PY
-          python3 tools/release_pipeline/release_guard.py version-files --before /tmp/before --after "$PROJECT" --expected "$VERSION"
-          git config user.name MudXReleaseCoordinator; git config user.email release-coordinator@users.noreply.github.com
-          git add "$PROJECT" && git commit -m "Release: reserve MudX $VERSION"
-          gh auth setup-git
-          git push origin "HEAD:$branch"
-          url=$(gh pr create --repo "$GITHUB_REPOSITORY" --base dev --head "$branch" --title "[BOT] Update MudX Version to $VERSION" --body "Release run $GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT; exact version-only reservation.")
-          echo "number=${url##*/}" >> "$GITHUB_OUTPUT"
-          echo "head=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - id: approve
-        if: steps.version.outputs.requires_pr == 'true'
-        name: Revalidate current head and approve as MudXBot
-        env:
-          PR: ${{ steps.pr.outputs.number }}
-          HEAD: ${{ steps.pr.outputs.head }}
-          VERSION: ${{ steps.version.outputs.value }}
-          GH_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
-        run: |
-          before=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)
-          git fetch --force origin "pull/$PR/head:refs/remotes/origin/release-pr"
-          fetched=$(git rev-parse refs/remotes/origin/release-pr)
-          after=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)
-          python3 tools/release_pipeline/release_guard.py head-binding --expected "$HEAD" --observed "$before" --observed "$fetched" --observed "$after"
-          test "$(git diff --name-only origin/dev...refs/remotes/origin/release-pr)" = "$PROJECT"
-          git show origin/dev:"$PROJECT" >/tmp/base; git show refs/remotes/origin/release-pr:"$PROJECT" >/tmp/head
-          python3 tools/release_pipeline/release_guard.py version-files --before /tmp/base --after /tmp/head --expected "$VERSION"
-          gh pr review "$PR" --repo "$GITHUB_REPOSITORY" --approve --body "MudXBot approval bound to run $GITHUB_RUN_ID and head $HEAD."
-      - id: pr-ci
-        if: steps.version.outputs.requires_pr == 'true'
-        name: Await successful trusted PR CI for the exact head
-        env:
-          PR: ${{ steps.pr.outputs.number }}
-          HEAD: ${{ steps.pr.outputs.head }}
-          GH_TOKEN: ${{ secrets.GH_RELEASE_COORDINATOR_TOKEN }}
-        run: |
-          ci_run=''
-          for _ in {1..120}; do
-            now=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)
-            python3 tools/release_pipeline/release_guard.py head-binding --expected "$HEAD" --observed "$now"
-            gh api "repos/$GITHUB_REPOSITORY/actions/workflows/Build_And_Test.yml/runs?head_sha=$HEAD&event=pull_request&per_page=100" > /tmp/ci-runs.json
-            if ci_run=$(python3 tools/release_pipeline/release_guard.py ci-run --json /tmp/ci-runs.json --sha "$HEAD" --repository "$GITHUB_REPOSITORY" --workflow "$CI_WORKFLOW" --event pull_request --pr "$PR"); then break; fi
-            sleep 15
-          done
-          test -n "$ci_run" || { echo 'Exact PR-head Build_And_Test did not succeed within 30 minutes.' >&2; exit 1; }
-          echo "Trusted PR CI run: $ci_run"
-      - id: merge
-        if: steps.version.outputs.requires_pr == 'true'
-        name: Merge the still-exact approved version PR
-        env:
-          PR: ${{ steps.pr.outputs.number }}
-          HEAD: ${{ steps.pr.outputs.head }}
-          GH_TOKEN: ${{ secrets.GH_RELEASE_COORDINATOR_TOKEN }}
-        run: |
-          now=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)
-          python3 tools/release_pipeline/release_guard.py head-binding --expected "$HEAD" --observed "$now"
-          gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --match-head-commit "$HEAD" --squash --delete-branch
-      - id: wait-merged
-        if: steps.version.outputs.requires_pr == 'true'
-        name: Await the same PR merge and trusted exact merged-SHA CI
-        env:
-          PR: ${{ steps.pr.outputs.number }}
-          HEAD: ${{ steps.pr.outputs.head }}
-          GH_TOKEN: ${{ secrets.GH_RELEASE_COORDINATOR_TOKEN }}
-        run: |
-          sha=''
-          for _ in {1..120}; do
-            test "$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)" = "$HEAD"
-            sha=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json state,mergeCommit --jq 'select(.state=="MERGED")|.mergeCommit.oid')
-            [[ -n "$sha" ]] && break
-            sleep 15
-          done
-          test -n "$sha" || { echo 'Awaiting the same version PR; do not allocate a new version.' >&2; exit 1; }
-          ci_run=''
-          for _ in {1..120}; do
-            gh api "repos/$GITHUB_REPOSITORY/actions/workflows/Build_And_Test.yml/runs?head_sha=$sha&event=push&per_page=100" > /tmp/ci-runs.json
-            if ci_run=$(python3 tools/release_pipeline/release_guard.py ci-run --json /tmp/ci-runs.json --sha "$sha" --repository "$GITHUB_REPOSITORY" --workflow "$CI_WORKFLOW" --event push); then break; fi
-            sleep 15
-          done
-          test -n "$ci_run" || { echo 'Exact merged-SHA Build_And_Test did not succeed within 30 minutes.' >&2; exit 1; }
-          echo "Trusted merged CI run: $ci_run"
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
-      - id: current-ci
-        if: steps.version.outputs.requires_pr == 'false'
-        name: Await trusted push CI for the exact already-versioned source
-        env:
-          SHA: ${{ steps.version.outputs.sha }}
-          GH_TOKEN: ${{ secrets.GH_RELEASE_COORDINATOR_TOKEN }}
-        run: |
-          ci_run=''
-          for _ in {1..120}; do
-            gh api "repos/$GITHUB_REPOSITORY/actions/workflows/Build_And_Test.yml/runs?head_sha=$SHA&event=push&per_page=100" > /tmp/ci-runs.json
-            if ci_run=$(python3 tools/release_pipeline/release_guard.py ci-run --json /tmp/ci-runs.json --sha "$SHA" --repository "$GITHUB_REPOSITORY" --workflow "$CI_WORKFLOW" --event push); then break; fi
-            sleep 15
-          done
-          test -n "$ci_run" || { echo 'Exact selected-SHA Build_And_Test push run did not succeed within 30 minutes.' >&2; exit 1; }
-          echo "Trusted selected-source CI run: $ci_run"
-          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
-      - id: selected-source
-        name: Select the one exact authorized release source
-        env:
-          CURRENT_SHA: ${{ steps.current-ci.outputs.sha }}
-          MERGED_SHA: ${{ steps.wait-merged.outputs.sha }}
-        run: |
-          sources=()
-          [[ -n "$CURRENT_SHA" ]] && sources+=("$CURRENT_SHA")
-          [[ -n "$MERGED_SHA" ]] && sources+=("$MERGED_SHA")
-          test "${#sources[@]}" -eq 1
-          sha=${sources[0]}
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          version=$(grep -oPm1 '(?<=<Version>)[^<]+' "$PROJECT")
+          if ! [[ "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::Version '$version' is not stable SemVer X.Y.Z"; exit 1
+          fi
+          owner=$(echo "${REPO%%/*}" | tr '[:upper:]' '[:lower:]')
+          image_repo="$owner/mudx/mudxdocwebsite"
+
+          # NuGet: 200 = index, 404 = package never pushed; anything else is an error.
+          code=$(curl -sS -o nuget.json -w '%{http_code}' "https://api.nuget.org/v3-flatcontainer/${PACKAGE_ID,,}/index.json")
+          case "$code" in
+            200) jq -e '.versions|type=="array"' nuget.json >/dev/null; jq -r '.versions[]' nuget.json > nuget-versions ;;
+            404) : > nuget-versions ;;
+            *) echo "::error::NuGet index lookup returned HTTP $code"; exit 1 ;;
+          esac
+          have_nuget=false
+          grep -qxF "$version" nuget-versions && have_nuget=true
+
+          # GitHub Release: the tag endpoint hides drafts, so 200 means published.
+          # gh exits non-zero on 404 but still prints the status line with --include.
+          gh api "repos/$REPO/releases/tags/v$version" --include > release-tag.http || true
+          code=$(sed -n '1s/^HTTP[^ ]* \([0-9]*\).*/\1/p' release-tag.http)
+          have_release=false
+          case "$code" in
+            200) have_release=true ;;
+            404) ;;
+            *) echo "::error::GitHub release lookup returned HTTP '${code:-none}'"; exit 1 ;;
+          esac
+
+          # GHCR tag.
+          # Credentials go to curl on stdin (--config -), never on argv.
+          tok=$(printf 'user = "%s:%s"\n' "$ACTOR" "$GH_TOKEN" | curl -fsS --config - "https://ghcr.io/token?service=ghcr.io&scope=repository:$image_repo:pull" | jq -er .token)
+          code=$(printf 'header = "Authorization: Bearer %s"\n' "$tok" | curl -sS --config - -o /dev/null -w '%{http_code}' -I \
+            -H 'Accept: application/vnd.oci.image.index.v1+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json' \
+            "https://ghcr.io/v2/$image_repo/manifests/$version")
+          have_image=false
+          case "$code" in
+            200) have_image=true ;;
+            404) ;;
+            *) echo "::error::GHCR manifest lookup returned HTTP $code"; exit 1 ;;
+          esac
+
+          # Highest stable version already published (NuGet + GitHub Releases).
+          # List to a file first so a failed listing fails the job (set -e); only the filter may be empty.
+          gh api "repos/$REPO/releases" --paginate --jq '.[]|select(.draft|not)|.tag_name|ltrimstr("v")' > release-tags
+          { cat nuget-versions release-tags | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' || true; } | sort -V > published
+          highest=$(tail -1 published || true)
+          is_newest=true
+          if [ -n "$highest" ]; then
+            top=$(printf '%s\n%s\n' "$highest" "$version" | sort -V | tail -1)
+            if [ "$top" != "$version" ]; then
+              is_newest=false
+              if [ "$have_nuget" != true ]; then
+                echo "::error::Version $version is lower than published $highest and is not on NuGet"; exit 1
+              fi
+            fi
+          fi
+
+          release=true
+          if $have_nuget && $have_release && $have_image; then release=false; fi
+          echo "version=$version nuget=$have_nuget release=$have_release image=$have_image newest=$is_newest -> release=$release"
+          {
+            echo "release=$release"
+            echo "version=$version"
+            echo "sha=$SHA"
+            echo "is_newest=$is_newest"
+            echo "need_nuget=$([ $have_nuget = true ] && echo false || echo true)"
+            echo "need_release=$([ $have_release = true ] && echo false || echo true)"
+            echo "need_image=$([ $have_image = true ] && echo false || echo true)"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### Release plan"
+            echo "Version \`$version\` at \`$SHA\`"
+            echo "- NuGet: $have_nuget"
+            echo "- GitHub Release: $have_release"
+            echo "- GHCR image: $have_image"
+            echo "- Release needed: $release"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   build:
-    needs: version-pr
+    needs: plan
+    if: needs.plan.outputs.release == 'true'
     runs-on: ubuntu-latest
-    permissions: { contents: read }
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with: { ref: "${{ needs.version-pr.outputs.sha }}", persist-credentials: false }
-      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: |
             8.0.x
             9.0.x
-            10.0.400
-      - name: Generate and build every shipped target
+            10.0.x
+      - name: Generate static assets
+        run: dotnet run --project src/MudX.Generator/MudX.Generator.csproj -c Release -f net10.0 -- "$GITHUB_WORKSPACE/src/MudX/wwwroot" "$GITHUB_WORKSPACE/src/MudX/Scripts"
+      - name: Build every shipped target
         run: |
-          dotnet run --project src/MudX.Generator/MudX.Generator.csproj -c Release -f net10.0 -- "$GITHUB_WORKSPACE/src/MudX/wwwroot" "$GITHUB_WORKSPACE/src/MudX/Scripts"
-          for framework in net8.0 net9.0 net10.0; do dotnet build "$PROJECT" -c Release -f "$framework"; done
+          for framework in net8.0 net9.0 net10.0; do
+            dotnet build "$PROJECT" -c Release -f "$framework"
+          done
           dotnet build src/MudX.Docs/MudX.Docs.csproj -c Release
-      - name: Pack and inspect packages
-        env: { VERSION: "${{ needs.version-pr.outputs.version }}" }
-        run: |
-          mkdir -p release-artifacts/packages
-          dotnet pack "$PROJECT" -c Release --no-build -o release-artifacts/packages /p:Version="$VERSION" /p:PackageId=MudX.MudBlazor.Extension
-          test "$(find release-artifacts/packages -maxdepth 1 -type f -name '*.nupkg' ! -name '*.snupkg' | wc -l)" -eq 1
-          test "$(find release-artifacts/packages -maxdepth 1 -type f -name '*.snupkg' | wc -l)" -eq 1
-          pwsh tools/CheckStaticAssets.ps1 "$(find release-artifacts/packages -name '*.nupkg' ! -name '*.snupkg' -print -quit)" mudx.min.css mudx.min.js prism.js mudxProvider.js
-      - name: Build the versioned linux/amd64 archive
-        env:
-          VERSION: ${{ needs.version-pr.outputs.version }}
-          SHA: ${{ needs.version-pr.outputs.sha }}
-        run: |
-          image="mudx:$VERSION"
-          archive="release-artifacts/MudX-$VERSION-linux-amd64.tar.gz"
-          docker build --platform linux/amd64 -t "$image" -f src/MudX.Docs.Hybrid/MudX.Docs.Hybrid/Dockerfile --build-arg SOURCE_REVISION="$SHA" --build-arg RELEASE_VERSION="$VERSION" src
-          test "$(docker image inspect "$image" --format '{{.Os}}/{{.Architecture}}')" = linux/amd64
-          test "$(docker image inspect "$image" --format '{{index .Config.Labels "org.opencontainers.image.version"}}')" = "$VERSION"
-          test "$(docker image inspect "$image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$SHA"
-          docker save "$image" | gzip -n -9 > "$archive"
-          gzip -t "$archive"
-          docker image rm "$image"
-          for file in release-artifacts/packages/* "$archive"; do printf '%s  %s\n' "$(sha256sum "$file" | cut -d' ' -f1)" "$(basename "$file")"; done | sort -k2 > release-artifacts/SHA256SUMS
-          python3 tools/release_pipeline/release_guard.py manifest-create --output release-artifacts/manifest.json --root release-artifacts --sha "$SHA" --version "$VERSION" --producer "$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT" release-artifacts/packages/* "$archive" release-artifacts/SHA256SUMS
-          python3 tools/release_pipeline/release_guard.py manifest-verify --manifest release-artifacts/manifest.json --root release-artifacts --sha "$SHA" --version "$VERSION" --producer "$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - name: Unit tests
+        run: dotnet test tests/MudX.UnitTests/MudX.UnitTests.csproj -c Release
+      - name: Pack
+        run: dotnet pack "$PROJECT" -c Release --no-build -o release-artifacts/packages /p:Version="$VERSION" /p:PackageId="$PACKAGE_ID"
+      - name: Check packaged static assets
+        run: pwsh tools/CheckStaticAssets.ps1 "$(find release-artifacts/packages -name '*.nupkg' ! -name '*.snupkg' -print -quit)" mudx.min.css mudx.min.js prism.js mudxProvider.js
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: mudx-release-${{ github.run_id }}-${{ github.run_attempt }}
-          path: release-artifacts
+          name: packages
+          path: release-artifacts/packages/*
           if-no-files-found: error
-          retention-days: 30
-  publish:
-    if: inputs.mode == 'release'
-    needs: [version-pr, build]
+
+  nuget:
+    needs: [plan, build]
+    if: needs.plan.outputs.need_nuget == 'true'
     runs-on: ubuntu-latest
-    permissions: { actions: read, contents: write }
+    # NuGet Trusted Publishing binds to this workflow file name and environment; keep the push here.
+    environment: nuget-release
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      NUGET_USERNAME: ${{ secrets.NUGET_USERNAME }}
+      REPO: ${{ github.repository }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with: { ref: "${{ needs.version-pr.outputs.sha }}", persist-credentials: false }
-      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
-        with: { dotnet-version: 10.0.400 }
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with: { name: "mudx-release-${{ github.run_id }}-${{ github.run_attempt }}", path: release-artifacts }
-      - name: Authenticate exact producer manifest before publication credentials
-        env:
-          VERSION: ${{ needs.version-pr.outputs.version }}
-          SHA: ${{ needs.version-pr.outputs.sha }}
-        run: python3 tools/release_pipeline/release_guard.py manifest-verify --manifest release-artifacts/manifest.json --root release-artifacts --sha "$SHA" --version "$VERSION" --producer "$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT"
-      - name: Publish NuGet packages and GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          NUGET_API_KEY: ${{ secrets.NUGET_KEY }}
-          VERSION: ${{ needs.version-pr.outputs.version }}
-          SHA: ${{ needs.version-pr.outputs.sha }}
-          PRODUCER: ${{ github.run_id }}/${{ github.run_attempt }}
-          PACKAGE_ID: mudx.mudblazor.extension
-        run: tools/release_pipeline/publish_release.sh
-  resume-identity:
-    if: inputs.mode == 'resume'
-    runs-on: ubuntu-latest
-    permissions: { actions: read, contents: read }
-    outputs:
-      version: ${{ steps.candidate.outputs.version }}
-      sha: ${{ steps.candidate.outputs.sha }}
-      producer: ${{ steps.candidate.outputs.producer }}
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with: { ref: dev, persist-credentials: false }
-      - id: candidate
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RUN: ${{ inputs.producer_run_id }}
-          ATTEMPT: ${{ inputs.producer_attempt }}
-          ALLOWED: ${{ vars.MUDX_RELEASE_ACTORS }}
+      - name: Require NuGet username
+        id: gate
         run: |
-          test "$GITHUB_REF" = refs/heads/dev
-          python3 tools/release_pipeline/release_guard.py actor --actor "$GITHUB_ACTOR" --triggering-actor "$GITHUB_TRIGGERING_ACTOR" --allowed "$ALLOWED"
-          [[ "$RUN" =~ ^[1-9][0-9]*$ && "$ATTEMPT" =~ ^[1-9][0-9]*$ ]]
-          meta=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN")
-          test "$(jq -r .event <<<"$meta")" = workflow_dispatch
-          test "$(jq -r .head_branch <<<"$meta")" = dev
-          test "$(jq -r .path <<<"$meta")" = .github/workflows/Release_MudX.yml
-          test "$(jq -r .status <<<"$meta")" = completed
-          test "$(jq -r .repository.full_name <<<"$meta")" = "$GITHUB_REPOSITORY"
-          python3 tools/release_pipeline/release_guard.py actor --actor "$(jq -r .actor.login <<<"$meta")" --triggering-actor "$(jq -r '.triggering_actor.login // .actor.login' <<<"$meta")" --allowed "$ALLOWED"
-          name="mudx-release-$RUN-$ATTEMPT"
-          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$name" > /tmp/artifacts.json
-          artifact=$(python3 tools/release_pipeline/release_guard.py artifact-select --json /tmp/artifacts.json --name "$name" --run "$RUN")
-          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact/zip" > /tmp/artifact.zip
-          mkdir release-artifacts; unzip -q /tmp/artifact.zip -d release-artifacts
-          version=$(jq -r .version release-artifacts/manifest.json); sha=$(jq -r .source_sha release-artifacts/manifest.json)
-          python3 tools/release_pipeline/release_guard.py manifest-verify --manifest release-artifacts/manifest.json --root release-artifacts --sha "$sha" --version "$version" --producer "$RUN/$ATTEMPT"
-          echo "version=$version" >> "$GITHUB_OUTPUT"; echo "sha=$sha" >> "$GITHUB_OUTPUT"; echo "producer=$RUN/$ATTEMPT" >> "$GITHUB_OUTPUT"
-  resume-publish:
-    needs: resume-identity
-    runs-on: ubuntu-latest
-    permissions: { actions: read, contents: write }
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with: { ref: dev, persist-credentials: false }
-      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
-        with: { dotnet-version: 10.0.400 }
-      - name: Download exact retained producer artifact
+          if [ -n "$NUGET_USERNAME" ]; then echo "enabled=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if [ "$REPO" = "MudXtra/MudX" ]; then
+            echo "::error::Secret NUGET_USERNAME is not set"; exit 1
+          fi
+          echo "enabled=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::NUGET_USERNAME not set on $REPO; skipping NuGet publish"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: steps.gate.outputs.enabled == 'true'
+        with:
+          name: packages
+          path: packages
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        if: steps.gate.outputs.enabled == 'true'
+        with:
+          dotnet-version: 10.0.x
+      - name: NuGet login (trusted publishing)
+        if: steps.gate.outputs.enabled == 'true'
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ secrets.NUGET_USERNAME }}
+      - name: Push packages
+        if: steps.gate.outputs.enabled == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
-          PRODUCER: ${{ needs.resume-identity.outputs.producer }}
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: |
-          run=${PRODUCER%/*}; attempt=${PRODUCER#*/}; name="mudx-release-$run-$attempt"
-          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$name" > /tmp/artifacts.json
-          artifact=$(python3 tools/release_pipeline/release_guard.py artifact-select --json /tmp/artifacts.json --name "$name" --run "$run")
-          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact/zip" > /tmp/artifact.zip
-          mkdir release-artifacts; unzip -q /tmp/artifact.zip -d release-artifacts
-      - name: Revalidate retained candidate before publication credentials
-        env:
-          VERSION: ${{ needs.resume-identity.outputs.version }}
-          SHA: ${{ needs.resume-identity.outputs.sha }}
-          PRODUCER: ${{ needs.resume-identity.outputs.producer }}
-        run: python3 tools/release_pipeline/release_guard.py manifest-verify --manifest release-artifacts/manifest.json --root release-artifacts --sha "$SHA" --version "$VERSION" --producer "$PRODUCER"
-      - name: Continue only missing publication stages
+          set -euo pipefail
+          dotnet nuget push "packages/*.nupkg" --api-key "$NUGET_API_KEY" --skip-duplicate --source https://api.nuget.org/v3/index.json
+          dotnet nuget push "packages/*.snupkg" --api-key "$NUGET_API_KEY" --skip-duplicate --source https://api.nuget.org/v3/index.json
+
+  github-release:
+    needs: [plan, build, nuget]
+    # nuget may be skipped (already published, or fork without NuGet setup); never when it failed.
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.need_release == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ needs.plan.outputs.version }}
+      SHA: ${{ needs.plan.outputs.sha }}
+      IS_NEWEST: ${{ needs.plan.outputs.is_newest }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: packages
+          path: packages
+      - name: Create or publish release
+        run: |
+          set -euo pipefail
+          tag="v$VERSION"
+          latest=false; [ "$IS_NEWEST" = true ] && latest=true
+
+          # Never move an existing tag that points elsewhere.
+          # 200 = exists, 404 = absent; anything else is an error.
+          peel() {
+            local ref t
+            ref=$(gh api "repos/$GH_REPO/git/ref/tags/$tag" --jq '[.object.type,.object.sha]|@tsv')
+            t=${ref%%$'\t'*}; tag_sha=${ref#*$'\t'}
+            while [ "$t" = tag ]; do
+              ref=$(gh api "repos/$GH_REPO/git/tags/$tag_sha" --jq '[.object.type,.object.sha]|@tsv')
+              t=${ref%%$'\t'*}; tag_sha=${ref#*$'\t'}
+            done
+          }
+          gh api "repos/$GH_REPO/git/ref/tags/$tag" --include > tag-ref.http || true
+          code=$(sed -n '1s/^HTTP[^ ]* \([0-9]*\).*/\1/p' tag-ref.http)
+          case "$code" in
+            200)
+              peel
+              if [ "$tag_sha" != "$SHA" ]; then
+                echo "::error::Tag $tag already points to $tag_sha, not $SHA"; exit 1
+              fi ;;
+            404) ;;
+            *) echo "::error::Tag lookup returned HTTP '${code:-none}'"; exit 1 ;;
+          esac
+
+          # A tagless draft reports tag_name "untagged-<hash>", so match on tag or on release name.
+          draft=$(gh api "repos/$GH_REPO/releases" --paginate --jq ".[]|select(.draft and (.tag_name==\"$tag\" or (.name==\"$tag\" and (.tag_name|startswith(\"untagged-\")))))|[.id,.tag_name]|@tsv" | head -1)
+          if [ -n "$draft" ]; then
+            draft_id=${draft%%$'\t'*}
+            draft_tag=${draft#*$'\t'}
+            echo "Reusing draft release $draft_id (tag_name $draft_tag) for $tag"
+            for f in packages/*; do
+              name=$(basename "$f")
+              old=$(gh api "repos/$GH_REPO/releases/$draft_id/assets" --jq ".[]|select(.name==\"$name\")|.id")
+              if [ -n "$old" ]; then gh api -X DELETE "repos/$GH_REPO/releases/assets/$old"; fi
+              gh release upload "$draft_tag" "$f"
+            done
+            gh api -X PATCH "repos/$GH_REPO/releases/$draft_id" -F draft=false -f tag_name="$tag" -f name="$tag" -f target_commitish="$SHA" -f make_latest="$latest" >/dev/null
+          else
+            gh release create "$tag" packages/* --target "$SHA" --title "$tag" --generate-notes --latest="$latest"
+          fi
+
+          peel
+          if [ "$tag_sha" != "$SHA" ]; then
+            echo "::error::Published tag $tag peels to $tag_sha, not $SHA"; exit 1
+          fi
+          echo "Release $tag published; tag commit $tag_sha"
+          gh release view "$tag" --json isDraft,tagName,targetCommitish,url
+
+  image:
+    needs: [plan, build, nuget]
+    # nuget may be skipped; never push the image when it failed.
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.need_image == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
+      SHA: ${{ needs.plan.outputs.sha }}
+      IS_NEWEST: ${{ needs.plan.outputs.is_newest }}
+      OWNER: ${{ github.repository_owner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+          persist-credentials: false
+      - name: Build image
+        run: |
+          set -euo pipefail
+          owner=$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')
+          image="ghcr.io/$owner/mudx/mudxdocwebsite"
+          echo "IMAGE=$image" >> "$GITHUB_ENV"
+          docker build -f src/MudX.Docs.Hybrid/MudX.Docs.Hybrid/Dockerfile \
+            --build-arg SOURCE_REVISION="$SHA" --build-arg RELEASE_VERSION="$VERSION" \
+            -t "$image:$VERSION" src
+          [ "$IS_NEWEST" = true ] && docker tag "$image:$VERSION" "$image:latest"
+          true
+      - name: Verify labels
+        run: |
+          set -euo pipefail
+          v=$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' "$IMAGE:$VERSION")
+          r=$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$IMAGE:$VERSION")
+          echo "version label=$v revision label=$r"
+          [ "$v" = "$VERSION" ] && [ "$r" = "$SHA" ]
+      - name: Push image
         env:
           GH_TOKEN: ${{ github.token }}
-          NUGET_API_KEY: ${{ secrets.NUGET_KEY }}
-          VERSION: ${{ needs.resume-identity.outputs.version }}
-          SHA: ${{ needs.resume-identity.outputs.sha }}
-          PRODUCER: ${{ needs.resume-identity.outputs.producer }}
-          PACKAGE_ID: mudx.mudblazor.extension
-        run: tools/release_pipeline/publish_release.sh
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          docker push "$IMAGE:$VERSION"
+          if [ "$IS_NEWEST" = true ]; then docker push "$IMAGE:latest"; fi
