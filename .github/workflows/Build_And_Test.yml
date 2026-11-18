@@ -1,6 +1,7 @@
 # .github/workflows/test-coverage.yml
 
 name: Run Test Coverage
+run-name: "${{ github.event_name == 'pull_request' && format('MudX CI PR #{0}', github.event.pull_request.number) || format('MudX CI push {0}', github.sha) }}"
 
 on:
   push:
