@@ -70,7 +70,7 @@ jobs:
 
           # GitHub Release: the tag endpoint hides drafts, so 200 means published.
           # gh exits non-zero on 404 but still prints the status line with --include.
-          gh api "repos/$REPO/releases/tags/v$version" --include > release-tag.http 2>/dev/null || true
+          gh api "repos/$REPO/releases/tags/v$version" --include > release-tag.http || true
           code=$(sed -n '1s/^HTTP[^ ]* \([0-9]*\).*/\1/p' release-tag.http)
           have_release=false
           case "$code" in
@@ -172,7 +172,8 @@ jobs:
     needs: [plan, build]
     if: needs.plan.outputs.need_nuget == 'true'
     runs-on: ubuntu-latest
-    # NuGet Trusted Publishing binds to this exact workflow file name; keep the push here.
+    # NuGet Trusted Publishing binds to this workflow file name and environment; keep the push here.
+    environment: nuget-release
     permissions:
       id-token: write
       contents: read
@@ -248,7 +249,7 @@ jobs:
               t=${ref%%$'\t'*}; tag_sha=${ref#*$'\t'}
             done
           }
-          gh api "repos/$GH_REPO/git/ref/tags/$tag" --include > tag-ref.http 2>/dev/null || true
+          gh api "repos/$GH_REPO/git/ref/tags/$tag" --include > tag-ref.http || true
           code=$(sed -n '1s/^HTTP[^ ]* \([0-9]*\).*/\1/p' tag-ref.http)
           case "$code" in
             200)

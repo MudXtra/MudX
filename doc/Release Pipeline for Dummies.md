@@ -30,14 +30,17 @@ Open **Actions → Release MudX → Run workflow** on `dev`. If everything is al
 
 No `NUGET_KEY` is used.
 
-## One-time nuget.org setup (owner)
+## One-time setup (owner)
 
-1. nuget.org → account → **Trusted Publishing** → add a policy: Repository Owner `MudXtra`, Repository `MudX`, Workflow File `Release_MudX.yml`, Environment blank. The policy owner must be the account that owns `MudX.MudBlazor.Extension`.
-2. Add the repository secret `NUGET_USERNAME` = that nuget.org profile name.
-3. After the first successful trusted-publishing release, delete the `NUGET_KEY` secret (until then it is the fallback if the policy is wrong).
-4. GHCR: in the package `mudxtra/mudx/mudxdocwebsite` → Package settings → **Manage Actions access**, give `MudXtra/MudX` the **Write** role, or the image push fails.
+Do (1) before the first release: GitHub auto-creates the `nuget-release` environment on first run without a branch rule.
 
-The policy binds to the workflow file name, so keep the file name and keep the NuGet push inside `Release_MudX.yml`.
+1. GitHub → Settings → Environments → `nuget-release` (create it) → Deployment branches: **Selected branches** → add `dev` only. No required reviewers, no wait timer.
+2. nuget.org → account → **Trusted Publishing** → add a policy: Repository Owner `MudXtra`, Repository `MudX`, Workflow File `Release_MudX.yml`, Environment `nuget-release`. The policy owner must be the account that owns `MudX.MudBlazor.Extension`.
+3. Add the repository secret `NUGET_USERNAME` = that nuget.org profile name.
+4. Keep `NUGET_KEY` only for a manual push until the first trusted-publishing release succeeds, then delete it. It is not a workflow fallback.
+5. GHCR: in the package `mudxtra/mudx/mudxdocwebsite` → Package settings → **Manage Actions access**, give `MudXtra/MudX` the **Write** role, or the image push fails.
+
+The policy binds to the workflow file name and the `nuget-release` environment, so keep the file name, keep the nuget job's `environment: nuget-release`, and keep the NuGet push inside `Release_MudX.yml`.
 
 ## No longer used
 
