@@ -47,7 +47,14 @@ namespace MudX
         {
             if (_jsModule != null)
             {
-                await _jsModule.DisposeAsync();
+                try
+                {
+                    await _jsModule.DisposeAsync();
+                }
+                catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException)
+                {
+                    // The circuit is already gone; there is no client module left to release.
+                }
                 _jsModule = null;
             }
             GC.SuppressFinalize(this);
