@@ -214,6 +214,8 @@ function focusNextElement(container) {
     const focusableSelector = 'a:not([disabled]), button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([disabled]):not([tabindex="-1"])';
     const focusableElements = Array.from(document.querySelectorAll(focusableSelector))
         .filter(element => {
+            // Elements in an inert subtree or with computed visibility: hidden are not focusable even when they have size.
+            if (element.closest("[inert]") || getComputedStyle(element).visibility === "hidden") return false;
             return element.offsetWidth > 0 || element.offsetHeight > 0;
         });
 
