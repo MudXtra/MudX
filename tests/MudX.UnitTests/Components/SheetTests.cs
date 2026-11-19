@@ -89,22 +89,19 @@ public class SheetTests : BunitTest
         Context.JSInterop.SetupVoid("window.mudsheetHelper.setMudSheetEdge", _ => true).SetVoidResult();
 
         Context.Render<MudPopoverProvider>();
-        Context.Render<MudXSheet>();
+        var sheet = Context.Render<MudXSheet>();
 
         // the script is not ready yet: the helper must not have been called
         await Task.Delay(100);
-        Context.JSInterop.Invocations
-            .Where(i => i.Identifier == "window.mudsheetHelper.setMudSheetEdge")
-            .Should().BeEmpty();
+        (await CountSheetEdgeCallsAsync(sheet)).Should().Be(0);
 
         ready.SetResult(true);
         var deadline = DateTime.UtcNow.AddSeconds(5);
-        while (DateTime.UtcNow < deadline &&
-               !Context.JSInterop.Invocations.Any(i => i.Identifier == "window.mudsheetHelper.setMudSheetEdge"))
+        while (DateTime.UtcNow < deadline && await CountSheetEdgeCallsAsync(sheet) == 0)
         {
             await Task.Delay(20);
         }
-        Context.JSInterop.VerifyInvoke("window.mudsheetHelper.setMudSheetEdge");
+        (await CountSheetEdgeCallsAsync(sheet)).Should().BeGreaterThan(0);
     }
 
     [Test]
@@ -116,14 +113,18 @@ public class SheetTests : BunitTest
         Context.JSInterop.SetupVoid("window.mudsheetHelper.setMudSheetEdge", _ => true).SetVoidResult();
 
         Context.Render<MudPopoverProvider>();
-        Context.Render<MudXSheet>();
+        var sheet = Context.Render<MudXSheet>();
 
         await Task.Delay(500);
-        module.VerifyInvoke("waitForMudXScript");
-        Context.JSInterop.Invocations
-            .Where(i => i.Identifier == "window.mudsheetHelper.setMudSheetEdge")
-            .Should().BeEmpty();
+        await sheet.InvokeAsync(() => module.VerifyInvoke("waitForMudXScript"));
+        (await CountSheetEdgeCallsAsync(sheet)).Should().Be(0);
     }
+
+    // The sheet records JS invocations on the renderer's dispatcher, so read them there too;
+    // enumerating from the test thread can race a concurrent invocation.
+    private Task<int> CountSheetEdgeCallsAsync(IRenderedComponent<MudXSheet> sheet) =>
+        sheet.InvokeAsync(() => Context.JSInterop.Invocations
+            .Count(i => i.Identifier == "window.mudsheetHelper.setMudSheetEdge"));
 
     [Test]
     public void Sheet_Bindable_Properties()
