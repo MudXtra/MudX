@@ -1,5 +1,12 @@
 const handledKeys = new Set(["Backspace", "Delete", "ArrowLeft", "ArrowRight"]);
 const deleteDedupeWindowMs = 100;
+// Mirrors MudXSecurityCode.IsValidInput (char.IsDigit / IsLetter / IsLetterOrDigit / IsSymbol or IsPunctuation).
+const slotKindPatterns = new Map([
+    ["numeric", /^\p{Nd}$/u],
+    ["alpha", /^\p{L}$/u],
+    ["alphanumeric", /^[\p{L}\p{Nd}]$/u],
+    ["special", /^[\p{S}\p{P}]$/u]
+]);
 const inputRegistrations = new WeakMap();
 const containerStates = new WeakMap();
 
@@ -91,6 +98,17 @@ function handleKeyDown(event, input, container, dotNetObjRef, registration) {
 
 function handleBeforeInput(event, input, container, dotNetObjRef, registration) {
     if (!event || event.isComposing) return;
+
+    // A character that does not fit the slot is dropped here, so the slot stays empty and focus stays put.
+    if (event.inputType === "insertText" && event.data) {
+        // An unknown slot kind has no pattern and is allowed.
+        const pattern = slotKindPatterns.get(input.dataset.mudxSlotKind);
+        if (pattern && !pattern.test(String.fromCodePoint(event.data.codePointAt(0)))) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }
+        return;
+    }
 
     const key = event.inputType === "deleteContentBackward"
         ? "Backspace"
