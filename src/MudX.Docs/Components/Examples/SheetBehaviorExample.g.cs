@@ -63,7 +63,7 @@ namespace MudX.Docs.Examples
                         Immediate=""true"" Clearable=""true"" />
         <MudTreeView Items=""@_treeItemData"" @ref=""_treeView"" FilterFunc=""MatchesText"" @bind-SelectedValues=""@_selectedTreeValues"">
             <ItemTemplate>
-                <MudTreeViewItem Value=""@context.Value"" Icon=""@context.Icon"" CanExpand=""@context.Expandable"" @bind-Expanded=""@context.Expanded"">
+                <MudTreeViewItem Value=""@context.Value"" Icon=""@context.Icon"" Items=""@context.Children"" Visible=""@context.Visible"" CanExpand=""@context.Expandable"" @bind-Expanded=""@context.Expanded"">
                     <BodyContent Context=""viewItem"">
                         <MudText>@context.Text</MudText>
                     </BodyContent>
