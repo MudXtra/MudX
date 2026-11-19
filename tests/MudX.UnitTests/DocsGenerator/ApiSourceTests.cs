@@ -90,7 +90,7 @@ public class ApiSourceTests
             "MudX.Docs.Generator",
             "bin",
             testConfiguration,
-            "net10.0",
+            new DirectoryInfo(AppContext.BaseDirectory).Name,
             "MudX.Docs.Generator.dll");
     }
 
