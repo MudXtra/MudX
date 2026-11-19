@@ -330,6 +330,18 @@ namespace MudX.UnitTests.Components
         }
 
         [Test]
+        public void SecurityCode_EditableInputs_ShouldExposeSlotKindForKeyboardBridge()
+        {
+            var moduleMock = Context.JSInterop.SetupModule(AssemblyInfo.ModulePath("mudxSecurityCode.js"));
+            moduleMock.Setup<bool>("init", _ => true);
+            var comp = Context.Render<MudXSecurityCode>(p => p.Add(x => x.Pattern, "#A?@*-"));
+
+            var kinds = comp.FindAll(".mudx-code-item input").Select(i => i.GetAttribute("data-mudx-slot-kind")).ToArray();
+
+            kinds.Should().Equal("numeric", "alpha", "alphanumeric", "special", "any", null);
+        }
+
+        [Test]
         public async Task SecurityCode_ShouldAwaitCompletionHandler()
         {
             var handlerEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);

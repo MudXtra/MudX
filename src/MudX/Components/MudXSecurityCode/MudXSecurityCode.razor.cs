@@ -48,6 +48,8 @@ namespace MudX
                 var total = CodeItems.Count(codeItem => codeItem.IsEditable);
                 if (!hasExplicitAriaLabel)
                     attributes["aria-label"] = FormatSegmentAriaLabel(ordinal, total);
+                // Lets the keyboard bridge reject keystrokes that do not match this slot before they reach the input.
+                attributes["data-mudx-slot-kind"] = GetSlotKind(item.PatternChar);
             }
             else
             {
@@ -57,6 +59,15 @@ namespace MudX
             }
 
             return attributes;
+        }
+
+        private string GetSlotKind(char pattern)
+        {
+            if (pattern == PlaceholderNumeric) return "numeric";
+            if (pattern == PlaceholderAlpha) return "alpha";
+            if (pattern == PlaceholderAlphaNumeric) return "alphanumeric";
+            if (pattern == PlaceholderSpecial) return "special";
+            return "any";
         }
 
         private string FormatSegmentAriaLabel(int ordinal, int total)
