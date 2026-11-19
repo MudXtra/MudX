@@ -12,7 +12,7 @@ Ordinary merges that do not change the version find everything already released 
 ## What it does
 
 1. **plan** reads `<Version>` at the pushed commit and checks three things: is it on NuGet, is there a published GitHub Release `vX.Y.Z`, is there a GHCR image tagged `X.Y.Z`. If all three exist, it stops. It fails if the version is lower than the highest published version and not already on NuGet.
-2. **build** generates static assets, builds net8.0/net9.0/net10.0 and the docs, runs `tests/MudX.UnitTests`, packs, and checks the packaged static assets.
+2. **build** generates static assets, builds net8.0/net9.0/net10.0/net11.0 and the docs, runs `tests/MudX.UnitTests`, packs, and checks the packaged static assets.
 3. **nuget** publishes the `.nupkg` and `.snupkg` with `--skip-duplicate` (only if NuGet does not have the version yet).
 4. **github-release** creates a published release `vX.Y.Z` tagged at the exact commit, with generated notes and the packages attached. A leftover draft release for the same tag is reused and published. It never moves an existing tag that points to a different commit, and fails if the published tag does not resolve to the planned commit.
 5. **image** runs after nuget (skipped nuget is fine, a failed one blocks it), builds the docs-site image and pushes `ghcr.io/mudxtra/mudx/mudxdocwebsite:X.Y.Z` (and `:latest` when this is the newest version) after checking its version and revision labels.

@@ -4,6 +4,12 @@
   "Description": null,
   "Parameters": [
     {
+      "Name": "AriaLabel",
+      "Type": "String",
+      "Default": "null",
+      "Description": null
+    },
+    {
       "Name": "Class",
       "Type": "String",
       "Default": null,

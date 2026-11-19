@@ -4,6 +4,12 @@
   "Description": "Extends MudBreadcrumb to automatically listen to route changes and update the breadcrumbs to a label and optional route.\nRemarks: Should be placed in MainLayout or similar",
   "Parameters": [
     {
+      "Name": "AriaLabel",
+      "Type": "String",
+      "Default": "null",
+      "Description": null
+    },
+    {
       "Name": "Class",
       "Type": "String",
       "Default": null,
