@@ -356,7 +356,14 @@ public partial class MudXCodeBlock : MudComponentBase, IAsyncDisposable
         _cts = null;
         if (_module != null)
         {
-            await _module.DisposeAsync();
+            try
+            {
+                await _module.DisposeAsync();
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException)
+            {
+                // The circuit is already gone; there is no client module left to release.
+            }
         }
         GC.SuppressFinalize(this);
     }

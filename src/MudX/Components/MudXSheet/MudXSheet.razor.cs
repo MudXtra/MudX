@@ -750,7 +750,14 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
         {
             _isDisposing = true;
             // Notify JS that the component is being disposed and to stop a drag
-            await JSRuntime.InvokeVoidAsync("window.mudsheetHelper.cancelDrag", _handleRef);
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("window.mudsheetHelper.cancelDrag", _handleRef);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException)
+            {
+                // The circuit is already gone; there is no drag left to cancel.
+            }
         }
         // Dispose of any resources if necessary
         GC.SuppressFinalize(this);

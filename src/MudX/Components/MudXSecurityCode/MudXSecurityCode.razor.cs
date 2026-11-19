@@ -742,8 +742,15 @@ namespace MudX
             {
                 if (_module != null)
                 {
-                    await _module.InvokeVoidAsync("cleanup", _elementRef);
-                    await _module.DisposeAsync();
+                    try
+                    {
+                        await _module.InvokeVoidAsync("cleanup", _elementRef);
+                        await _module.DisposeAsync();
+                    }
+                    catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException)
+                    {
+                        // The circuit is already gone; there is no client state left to release.
+                    }
                     _module = null;
                 }
                 _dotNetRef?.Dispose();

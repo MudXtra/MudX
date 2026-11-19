@@ -142,10 +142,17 @@ namespace MudX.Components.MudXOutline
 
             if (_spyInstance is not null && _module is not null)
             {
-                await _module.InvokeVoidAsync("disposeScrollSpy", _spyId);
-                await _spyInstance.DisposeAsync();
+                try
+                {
+                    await _module.InvokeVoidAsync("disposeScrollSpy", _spyId);
+                    await _spyInstance.DisposeAsync();
+                    await _module.DisposeAsync();
+                }
+                catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException)
+                {
+                    // The circuit is already gone; there is no client state left to release.
+                }
                 _spyInstance = null;
-                await _module.DisposeAsync();
                 _module = null;
             }
             _dotNetReference?.Dispose();
