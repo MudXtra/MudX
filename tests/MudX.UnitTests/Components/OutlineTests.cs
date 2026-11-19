@@ -6,6 +6,7 @@ using Microsoft.JSInterop;
 using Microsoft.JSInterop.Infrastructure;
 using Moq;
 using MudBlazor;
+using MudBlazor.State;
 using MudX.Components.MudXOutline;
 using MudX.UnitTests.Viewer.TestComponents.Outline;
 using MudX.Utilities;
@@ -416,6 +417,26 @@ namespace MudX.UnitTests.Components
             // Assert
             testOutline.Instance._contentDrawerOpenState.Value.Should().Be(expectedDrawerOpen);
             testOutline.Instance.PositionIndexCalled.Should().Be(expectPositionIndex);
+        }
+
+        [Test]
+        public async Task Outline_ContentDrawerOpenChanged_OffDispatcher_ShouldNotThrow()
+        {
+            // The ParameterState change handler can run on a continuation that is not on the renderer dispatcher
+            Context.Render<MudPopoverProvider>();
+            var comp = Context.Render<MudXOutline>(p => p.Add(x => x.ContentDrawerOpen, true));
+            var handler = typeof(MudXOutline).GetMethod("HandleContentDrawerOpenChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+            handler.Should().NotBeNull();
+            var args = new ParameterChangedEventArgs<bool>(ParameterView.Empty, nameof(MudXOutline.ContentDrawerOpen), true, false);
+
+            Exception? error = null;
+            await Task.Run(() =>
+            {
+                try { handler!.Invoke(comp.Instance, new object[] { args }); }
+                catch (TargetInvocationException ex) { error = ex.InnerException; }
+            });
+
+            error.Should().BeNull();
         }
 
         // Helper derived class to track PositionIndex calls
