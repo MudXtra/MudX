@@ -3,3 +3,6 @@ export async function injectCssFromFile(version,isDev,packageId){let linkTag=doc
 export async function injectJsFromFile(version,isDev,packageId){return new Promise((resolve,reject)=>{if(document.querySelector("script[data-mudx-js]")){return resolve();}
 const jsPath=`./_content/${packageId}/mudx.${!isDev?'min.':''}js?v=${version}`;const script=document.createElement("script");script.setAttribute("data-mudx-js","true");script.type="text/javascript";script.src=jsPath;script.onload=()=>resolve();script.onerror=()=>reject(new Error(`Failed to load ${script.src}`));document.head.appendChild(script);});}
 export async function initialize(version,isDev,packageId){try{await injectCssFromFile(version,isDev,packageId);await injectJsFromFile(version,isDev,packageId);return true;}catch(error){console.error("Provider Initialization failed:",error);return false;}}
+export async function waitForMudXScript(globalName,timeoutMs){const deadline=Date.now()+timeoutMs;while(typeof window[globalName]==="undefined"){if(Date.now()>=deadline){return false;}
+await new Promise(resolve=>setTimeout(resolve,25));}
+return true;}

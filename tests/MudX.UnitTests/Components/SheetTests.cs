@@ -80,6 +80,53 @@ public class SheetTests : BunitTest
     }
 
     [Test]
+    public async Task Sheet_ShouldWaitForMudXScript_BeforeCallingSheetHelper()
+    {
+        // MudXProvider injects mudx.min.js asynchronously, so on a cold load the sheet's first
+        // render can happen before window.mudsheetHelper exists. The sheet must wait for the script.
+        var module = Context.JSInterop.SetupModule("./_content/MudX.MudBlazor.Extension/modules/mudxProvider.js");
+        var ready = module.Setup<bool>("waitForMudXScript", _ => true);
+        Context.JSInterop.SetupVoid("window.mudsheetHelper.setMudSheetEdge", _ => true).SetVoidResult();
+
+        Context.Render<MudPopoverProvider>();
+        var sheet = Context.Render<MudXSheet>();
+
+        // the script is not ready yet: the helper must not have been called
+        await Task.Delay(100);
+        (await CountSheetEdgeCallsAsync(sheet)).Should().Be(0);
+
+        ready.SetResult(true);
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (DateTime.UtcNow < deadline && await CountSheetEdgeCallsAsync(sheet) == 0)
+        {
+            await Task.Delay(20);
+        }
+        (await CountSheetEdgeCallsAsync(sheet)).Should().BeGreaterThan(0);
+    }
+
+    [Test]
+    public async Task Sheet_ShouldNotCallSheetHelper_WhenMudXScriptWaitTimesOut()
+    {
+        // waitForMudXScript resolves false when mudx.min.js never loads; the helper must not be called.
+        var module = Context.JSInterop.SetupModule("./_content/MudX.MudBlazor.Extension/modules/mudxProvider.js");
+        module.Setup<bool>("waitForMudXScript", _ => true).SetResult(false);
+        Context.JSInterop.SetupVoid("window.mudsheetHelper.setMudSheetEdge", _ => true).SetVoidResult();
+
+        Context.Render<MudPopoverProvider>();
+        var sheet = Context.Render<MudXSheet>();
+
+        await Task.Delay(500);
+        await sheet.InvokeAsync(() => module.VerifyInvoke("waitForMudXScript"));
+        (await CountSheetEdgeCallsAsync(sheet)).Should().Be(0);
+    }
+
+    // The sheet records JS invocations on the renderer's dispatcher, so read them there too;
+    // enumerating from the test thread can race a concurrent invocation.
+    private Task<int> CountSheetEdgeCallsAsync(IRenderedComponent<MudXSheet> sheet) =>
+        sheet.InvokeAsync(() => Context.JSInterop.Invocations
+            .Count(i => i.Identifier == "window.mudsheetHelper.setMudSheetEdge"));
+
+    [Test]
     public void Sheet_Bindable_Properties()
     {
         var provider = Context.Render<MudPopoverProvider>();
