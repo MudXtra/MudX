@@ -238,10 +238,7 @@ namespace MudX
         public int Level { get; } = 0;
 
         // If the user toggles the content drawer, update the drawer open variable
-        private void HandleContentDrawerOpenChanged(ParameterChangedEventArgs<bool> args)
-        {
-            StateHasChanged();
-        }
+        private Task HandleContentDrawerOpenChanged(ParameterChangedEventArgs<bool> args) => InvokeAsync(StateHasChanged);
 
         /// <summary>
         /// OnParameterSet override
