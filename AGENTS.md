@@ -44,7 +44,7 @@ Key config:
 
 ## Prerequisites
 
-- .NET 10.0 SDK (10.0.100+) required for tests. Library targets net8.0/net9.0/net10.0.
+- .NET 11.0 SDK (11.0.100+, pinned in `global.json`) required. Library targets net8.0/net9.0/net10.0/net11.0; docs, hosts and tests run on net11.0.
 - Verify with `dotnet --version`.
 
 ## Commands (Scoped)

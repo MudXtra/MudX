@@ -148,11 +148,12 @@ jobs:
             8.0.x
             9.0.x
             10.0.x
+            11.0.x
       - name: Generate static assets
         run: dotnet run --project src/MudX.Generator/MudX.Generator.csproj -c Release -f net10.0 -- "$GITHUB_WORKSPACE/src/MudX/wwwroot" "$GITHUB_WORKSPACE/src/MudX/Scripts"
       - name: Build every shipped target
         run: |
-          for framework in net8.0 net9.0 net10.0; do
+          for framework in net8.0 net9.0 net10.0 net11.0; do
             dotnet build "$PROJECT" -c Release -f "$framework"
           done
           dotnet build src/MudX.Docs/MudX.Docs.csproj -c Release
@@ -198,7 +199,7 @@ jobs:
       - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         if: steps.gate.outputs.enabled == 'true'
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 11.0.x
       - name: NuGet login (trusted publishing)
         if: steps.gate.outputs.enabled == 'true'
         id: login
