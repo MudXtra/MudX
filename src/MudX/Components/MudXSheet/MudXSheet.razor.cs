@@ -6,6 +6,7 @@ using MudBlazor;
 using MudBlazor.State;
 using MudBlazor.Utilities;
 using MudX.Extensions;
+using MudX.Utilities;
 
 namespace MudX;
 
@@ -25,6 +26,9 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
     public string ElementId { get; private set; } = Identifier.Create("sheet-");
     internal bool _dragging;
     private bool _isDisposing = false;
+    private bool _disposed;
+    private bool _mudxScriptReady;
+    private IJSObjectReference? _scriptModule;
     private bool _updateState;
     private MudPopover _popOverRef = default!;
 
@@ -687,7 +691,36 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
         {
             // If the state has been updated, we need to re-render the component
             _updateState = false;
-            await JSRuntime.InvokeVoidAsync("window.mudsheetHelper.setMudSheetEdge", _popOverRef.Id);
+            // mudx.min.js is injected asynchronously by MudXProvider, so it may not be loaded on a cold page load
+            if (!_mudxScriptReady)
+            {
+                var module = _scriptModule;
+                if (module is null)
+                {
+                    module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", AssemblyInfo.ModulePath("mudxProvider.js"));
+                    if (_disposed)
+                    {
+                        // DisposeAsync ran while the import was in flight; release the module that just arrived
+                        await DisposeModuleAsync(module);
+                        return;
+                    }
+                    _scriptModule = module;
+                }
+                _mudxScriptReady = await module.InvokeAsync<bool>("waitForMudXScript", "mudsheetHelper", 10000);
+                if (_disposed)
+                {
+                    return;
+                }
+            }
+            // if the script never loaded, calling the helper would throw; skip it and just re-render
+            if (_mudxScriptReady)
+            {
+                await JSRuntime.InvokeVoidAsync("window.mudsheetHelper.setMudSheetEdge", _popOverRef.Id);
+                if (_disposed)
+                {
+                    return;
+                }
+            }
             StateHasChanged();
         }
     }
@@ -746,13 +779,30 @@ public partial class MudXSheet : MudComponentBase, IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
+        _disposed = true;
         if (JSRuntimeReady && _dragging)
         {
             _isDisposing = true;
             // Notify JS that the component is being disposed and to stop a drag
             await JSRuntime.InvokeVoidAsync("window.mudsheetHelper.cancelDrag", _handleRef);
         }
-        // Dispose of any resources if necessary
+        if (_scriptModule != null)
+        {
+            await DisposeModuleAsync(_scriptModule);
+            _scriptModule = null;
+        }
         GC.SuppressFinalize(this);
+    }
+
+    private static async ValueTask DisposeModuleAsync(IJSObjectReference module)
+    {
+        try
+        {
+            await module.DisposeAsync();
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or ObjectDisposedException or TaskCanceledException)
+        {
+            // circuit/runtime already gone; nothing to release
+        }
     }
 }

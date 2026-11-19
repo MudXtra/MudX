@@ -80,6 +80,52 @@ public class SheetTests : BunitTest
     }
 
     [Test]
+    public async Task Sheet_ShouldWaitForMudXScript_BeforeCallingSheetHelper()
+    {
+        // MudXProvider injects mudx.min.js asynchronously, so on a cold load the sheet's first
+        // render can happen before window.mudsheetHelper exists. The sheet must wait for the script.
+        var module = Context.JSInterop.SetupModule("./_content/MudX.MudBlazor.Extension/modules/mudxProvider.js");
+        var ready = module.Setup<bool>("waitForMudXScript", _ => true);
+        Context.JSInterop.SetupVoid("window.mudsheetHelper.setMudSheetEdge", _ => true).SetVoidResult();
+
+        Context.Render<MudPopoverProvider>();
+        Context.Render<MudXSheet>();
+
+        // the script is not ready yet: the helper must not have been called
+        await Task.Delay(100);
+        Context.JSInterop.Invocations
+            .Where(i => i.Identifier == "window.mudsheetHelper.setMudSheetEdge")
+            .Should().BeEmpty();
+
+        ready.SetResult(true);
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (DateTime.UtcNow < deadline &&
+               !Context.JSInterop.Invocations.Any(i => i.Identifier == "window.mudsheetHelper.setMudSheetEdge"))
+        {
+            await Task.Delay(20);
+        }
+        Context.JSInterop.VerifyInvoke("window.mudsheetHelper.setMudSheetEdge");
+    }
+
+    [Test]
+    public async Task Sheet_ShouldNotCallSheetHelper_WhenMudXScriptWaitTimesOut()
+    {
+        // waitForMudXScript resolves false when mudx.min.js never loads; the helper must not be called.
+        var module = Context.JSInterop.SetupModule("./_content/MudX.MudBlazor.Extension/modules/mudxProvider.js");
+        module.Setup<bool>("waitForMudXScript", _ => true).SetResult(false);
+        Context.JSInterop.SetupVoid("window.mudsheetHelper.setMudSheetEdge", _ => true).SetVoidResult();
+
+        Context.Render<MudPopoverProvider>();
+        Context.Render<MudXSheet>();
+
+        await Task.Delay(500);
+        module.VerifyInvoke("waitForMudXScript");
+        Context.JSInterop.Invocations
+            .Where(i => i.Identifier == "window.mudsheetHelper.setMudSheetEdge")
+            .Should().BeEmpty();
+    }
+
+    [Test]
     public void Sheet_Bindable_Properties()
     {
         var provider = Context.Render<MudPopoverProvider>();

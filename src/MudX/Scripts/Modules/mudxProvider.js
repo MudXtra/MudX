@@ -47,3 +47,16 @@ export async function initialize(version, isDev, packageId) {
         return false;
     }
 }
+
+// Resolves true once the main mudx script has defined window[globalName]. Components can render before the
+// provider's asynchronously injected script has loaded (cold page load), so they wait here before using it.
+export async function waitForMudXScript(globalName, timeoutMs) {
+    const deadline = Date.now() + timeoutMs;
+    while (typeof window[globalName] === "undefined") {
+        if (Date.now() >= deadline) {
+            return false;
+        }
+        await new Promise(resolve => setTimeout(resolve, 25));
+    }
+    return true;
+}
