@@ -296,11 +296,6 @@
             </summary>
             <typeparam name="T">The type of the component's property value.</typeparam>
         </member>
-        <member name="M:MudBlazor.State.Builder.RegisterParameterBuilder`1.#ctor">
-            <summary>
-            Initializes a new instance of the <see cref="T:MudBlazor.State.Builder.RegisterParameterBuilder`1"/> class.
-            </summary>
-        </member>
         <member name="M:MudBlazor.State.Builder.RegisterParameterBuilder`1.WithName(System.String)">
             <summary>
             Sets the metadata for the parameter.
@@ -449,6 +444,11 @@
             Represents a hot swappable parameter comparer.
             </summary>
             <typeparam name="T">The type of objects to compare.</typeparam>
+        </member>
+        <member name="F:MudBlazor.State.Comparer.ParameterEqualityComparerSwappable`1.Default">
+            <summary>
+            The shared instance used by parameters that do not declare their own comparer.
+            </summary>
         </member>
         <member name="P:MudBlazor.State.Comparer.ParameterEqualityComparerSwappable`1.UnderlyingComparer">
             <inheritdoc />
@@ -1128,6 +1128,14 @@
             The scope becomes locked when it has been read or ended (<see cref="M:System.IDisposable.Dispose"/>), indicating that no more parameter states will be registered.
             </remarks>
         </member>
+        <member name="P:MudBlazor.State.IParameterScopeContainer.Parameters">
+            <summary>
+            Gets the registered parameters, materializing them on first access.
+            </summary>
+            <remarks>
+            Indexing this list avoids the enumerator that iterating the container through its interface would allocate on every parameter set.
+            </remarks>
+        </member>
         <member name="T:MudBlazor.State.IParameterStatesReader">
             <summary>
             Represents a reader for parameter states.
@@ -1266,11 +1274,6 @@
             </summary>
             <param name="parameterScopeContainer">The <see cref="T:MudBlazor.State.ParameterScopeContainer"/> instance to add to the union.</param>
         </member>
-        <member name="M:MudBlazor.State.ParameterContainer.#ctor">
-            <summary>
-            Initializes a new instance of the <see cref="T:MudBlazor.State.ParameterContainer"/> class.
-            </summary>
-        </member>
         <member name="M:MudBlazor.State.ParameterContainer.OnInitialized">
             <summary>
             Executes <see cref="M:MudBlazor.State.ParameterScopeContainer.OnInitialized"/> for all registered <see cref="T:MudBlazor.State.ParameterScopeContainer"/>.
@@ -1306,10 +1309,9 @@
             Throws an exception if duplicates are found among the parameter scope containers.
             </summary>
         </member>
-        <member name="M:MudBlazor.State.ParameterContainer.CreateFlattenedDictionary">
+        <member name="P:MudBlazor.State.ParameterContainer.FlattenedParameters">
             <summary>
-            Creates a flattened dictionary from all parameter scope containers for O(1) lookups.
-            This is called lazily on first TryGetValue call.
+            Gets a flattened lookup across all parameter scope containers, built on first use.
             </summary>
         </member>
         <member name="M:MudBlazor.State.ParameterContainer.GetHandlerCount">
@@ -1390,8 +1392,11 @@
             Gets a value indicating whether the parameter set has been initialized.
             </summary>
             <remarks>
-            The parameter set is considered initialized once the inner dictionary of parameters has been created.
+            The parameter set is considered initialized once the registered parameters have been materialized.
             </remarks>
+        </member>
+        <member name="P:MudBlazor.State.ParameterScopeContainer.Parameters">
+            <inheritdoc/>
         </member>
         <member name="M:MudBlazor.State.ParameterScopeContainer.#ctor(MudBlazor.State.IParameterComponentLifeCycle[])">
             <summary>
@@ -1411,13 +1416,22 @@
             </summary>
             <param name="parameterStatesReader">The factory used to read an enumerable collection of parameters to initialize the set.</param>
         </member>
-        <member name="M:MudBlazor.State.ParameterScopeContainer.ForceParametersAttachment">
+        <member name="M:MudBlazor.State.ParameterScopeContainer.ThrowOnDuplicates(MudBlazor.State.IParameterComponentLifeCycle[])">
             <summary>
-            Forces the attachment of the collection of <seealso cref="T:MudBlazor.State.IParameterComponentLifeCycle"/> immediately and initializes the inner dictionary.
+            Registering the same parameter twice is a component bug, so it must not be silently accepted.
             </summary>
             <remarks>
-            This method is designed for performance optimization. By calling this method, the dictionary initialization is done immediately instead of waiting for the Blazor lifecycle to access the values.
-            This helps avoid potential slowdowns in rendering speed that could occur if the dictionary were initialized during the Blazor lifecycle.
+            A scope holds a handful of parameters whose names are compile-time literals, so pairwise comparison is cheaper than building a hashed set for the check.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.State.ParameterScopeContainer.ForceParametersAttachment">
+            <summary>
+            Forces the attachment of the collection of <seealso cref="T:MudBlazor.State.IParameterComponentLifeCycle"/> immediately and materializes the parameters.
+            </summary>
+            <remarks>
+            This method is designed for performance optimization.
+            By calling this method, the parameters are materialized immediately instead of waiting for the Blazor lifecycle to access the values.
+            This helps avoid potential slowdowns in rendering speed that could occur if the parameters were materialized during the Blazor lifecycle.
             </remarks>
         </member>
         <member name="M:MudBlazor.State.ParameterScopeContainer.OnInitialized">
@@ -1768,6 +1782,14 @@
             Base class for Blazor components that track parameter changes and manage state through MudBlazor's parameter framework, such as <see cref="T:MudBlazor.MudComponentBase"/>.
             </summary>
         </member>
+        <member name="P:MudBlazor.ComponentBaseWithState.ParameterContainer">
+            <summary>
+            The registered parameter states, created on first registration.
+            </summary>
+            <remarks>
+            Many components register nothing, so the container is not allocated until <see cref="M:MudBlazor.ComponentBaseWithState.CreateRegisterScope"/> runs.
+            </remarks>
+        </member>
         <member name="M:MudBlazor.ComponentBaseWithState.OnInitialized">
             <inheritdoc />
         </member>
@@ -1815,10 +1837,10 @@
         </member>
         <member name="F:MudBlazor.MudBaseButton._captureElementReference">
             <summary>
-            Stores the rendered element reference without re-rendering this button.
+            Stores the rendered element reference.
             </summary>
             <remarks>
-            Only the button markup in this assembly binds it, so it stays off the public API surface.
+            Kept as a field so the capture does not allocate a closure on every render.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudBaseButton.Activatable">
@@ -1906,6 +1928,16 @@
             <summary>
             Occurs when this button has been clicked.
             </summary>
+        </member>
+        <member name="M:MudBlazor.MudBaseButton.OpenRoot(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder,System.String)">
+            <summary>
+            Opens the root element with the attributes every button shares.
+            The caller renders its content and closes the element.
+            </summary>
+            <remarks>
+            <see cref="P:MudBlazor.MudBaseButton.HtmlTag"/> is a public parameter with no fixed set of values, so the element is opened by name rather than written as markup.
+            class and style come before the splat so a class or style supplied through <see cref="P:MudBlazor.MudComponentBase.UserAttributes"/> still wins, which is the precedence the MudElement boundary gave them.
+            </remarks>
         </member>
         <member name="M:MudBlazor.MudBaseButton.FocusAsync">
             <summary>
@@ -2670,7 +2702,9 @@
             The culture used to format and interpret values such as dates and currency.
             </summary>
             <remarks>
-            Defaults to <see cref="P:System.Globalization.CultureInfo.InvariantCulture"/>.
+            Defaults to <see cref="P:System.Globalization.CultureInfo.CurrentUICulture"/> when the component is created.
+            <see cref="T:MudBlazor.MudDatePicker"/> and <see cref="T:MudBlazor.MudDateRangePicker"/> default to <see cref="P:System.Globalization.CultureInfo.CurrentCulture"/> instead.
+            <see cref="T:MudBlazor.MudNumericField`1"/> uses <see cref="P:System.Globalization.CultureInfo.InvariantCulture"/> unless <c>Culture</c>, <c>Format</c>, or <c>Pattern</c> is set.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudFormComponent`2.ConversionError">
@@ -3236,6 +3270,14 @@
             We need a random id for the year items in the year list so we can scroll to the item safely in every DatePicker.
             </summary>
         </member>
+        <member name="P:MudBlazor.MudAutocomplete`1.OuterClass">
+            <summary>
+            The CSS classes applied to the outer <c>div</c>.
+            </summary>
+            <remarks>
+            Defaults to <c>null</c>.  Multiple classes must be separated by spaces.
+            </remarks>
+        </member>
         <member name="P:MudBlazor.MudAutocomplete`1.InputClass">
             <summary>
             Input's classnames, separated by space.
@@ -3302,7 +3344,7 @@
             The "close" Autocomplete icon.
             </summary>
             <remarks>
-            Defaults to <see cref="F:MudBlazor.Icons.Material.Filled.ArrowDropDown"/>.
+            Defaults to <see cref="F:MudBlazor.Icons.Material.Filled.ArrowDropUp"/>.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudAutocomplete`1.MaxHeight">
@@ -3606,6 +3648,11 @@
             </summary>
             <param name="value">The value to set.</param>
         </member>
+        <member name="M:MudBlazor.MudAutocomplete`1.AbandonSearch">
+            <summary>
+            Stops a running search from replacing the items or reopening the menu when it finishes.
+            </summary>
+        </member>
         <member name="M:MudBlazor.MudAutocomplete`1.ToggleMenuAsync">
             <summary>
             Opens or closes the drop-down of items depending on whether it was closed or open.
@@ -3706,7 +3753,7 @@
         </member>
         <member name="M:MudBlazor.MudAvatar.HasAccessibleName">
             <summary>
-            Whether the consumer supplied an accessible name; <c>role="img"</c> is only valid with one.
+            Whether the consumer supplied a non-blank accessible name; <c>role="img"</c> is only valid with one.
             </summary>
         </member>
         <member name="P:MudBlazor.MudAvatar.Elevation">
@@ -4074,6 +4121,15 @@
             <seealso cref="T:MudBlazor.BreadcrumbItem" />
             <seealso cref="T:MudBlazor.BreadcrumbLink" />
             <seealso cref="T:MudBlazor.BreadcrumbSeparator" />
+        </member>
+        <member name="P:MudBlazor.MudBreadcrumbs.AriaLabel">
+            <summary>
+            The accessible name of the breadcrumb navigation landmark.
+            </summary>
+            <remarks>
+            Defaults to <c>null</c>, which uses the localized <c>Breadcrumb</c> label.
+            Use distinct labels when displaying multiple breadcrumb trails.
+            </remarks>
         </member>
         <member name="P:MudBlazor.MudBreadcrumbs.Items">
             <summary>
@@ -4776,9 +4832,6 @@
             If true, the button group will take up 100% of available width.
             </summary>
         </member>
-        <member name="M:MudBlazor.MudButtonGroup.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder)">
-            <inheritdoc />
-        </member>
         <member name="T:MudBlazor.MudCard">
             <summary>
             Cards contain actions, text, or media like images or graphics. Keeping a card to a single subject keeps the design clean.
@@ -4978,6 +5031,7 @@
             </summary>
             <remarks>
             Defaults to <c>false</c>.  When <c>true</c>, the <see cref="T:MudBlazor.MudCarouselItem"/> items will be rotated after the delay specified in <see cref="P:MudBlazor.MudCarousel`1.AutoCycleTime" />.
+            Content that moves on its own needs a way to pause or stop it (WCAG 2.2.2), so provide one when enabling this.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudCarousel`1.AutoCycleTime">
@@ -4985,7 +5039,7 @@
             The delay before displaying the next <see cref="T:MudBlazor.MudCarouselItem"/> when <see cref="P:MudBlazor.MudCarousel`1.AutoCycle"/> is <c>true</c>.
             </summary>
             <remarks>
-            Defaults to <see cref="F:System.TimeSpan.Zero"/>.
+            Defaults to 5 seconds.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudCarousel`1.NavigationButtonsClass">
@@ -5433,7 +5487,8 @@
             </summary>
             <remarks>
             Defaults to <c>20</c>.
-            Value must be greater than or equal to <c>1</c>.
+            Set it to <c>0</c> to pick a round spacing (1, 2 or 5 times a power of ten) that fits the values in about five steps, or fewer when <see cref="P:MudBlazor.Charts.DefaultAxisChartOptions.MaxNumYAxisTicks"/> is lower.
+            Values below <c>0</c> are treated as <c>0</c>.
             </remarks>
         </member>
         <member name="P:MudBlazor.Charts.DefaultAxisChartOptions.MaxNumYAxisTicks">
@@ -5469,6 +5524,9 @@
             If set, this function will be used to convert Y-axis values to strings for display purposes.
             If not provided, <see cref="P:MudBlazor.Charts.DefaultAxisChartOptions.YAxisFormat"/> will be used instead.
             </summary>
+            <remarks>
+            Tooltips can write values the same way with <c>{{Y_AXIS_VALUE}}</c> in <see cref="P:MudBlazor.Charts.DefaultChartOptions.TooltipTitleFormat"/> or <see cref="P:MudBlazor.Charts.DefaultChartOptions.TooltipSubtitleFormat"/>.
+            </remarks>
         </member>
         <member name="P:MudBlazor.Charts.DefaultAxisChartOptions.YAxisLines">
             <summary>
@@ -5490,6 +5548,17 @@
             <summary>
             Rotation angle to rotate the labels in degrees.
             </summary>
+        </member>
+        <member name="P:MudBlazor.Charts.DefaultAxisChartOptions.XAxisLabelInterval">
+            <summary>
+            Draws every nth label on the X-axis, leaving the ones in between blank.
+            </summary>
+            <remarks>
+            Defaults to <c>1</c>, which labels every point.
+            Raise it when there are more points than the axis has room for.
+            Only the axis is thinned out, so a tooltip still carries its own point's label.
+            Values below <c>1</c> are treated as <c>1</c>.
+            </remarks>
         </member>
         <member name="P:MudBlazor.Charts.DefaultAxisChartOptions.XAxisTitle">
             <summary>
@@ -5546,6 +5615,22 @@
             </summary>
             <remarks>
             Defaults to <see cref="F:MudBlazor.InterpolationOption.Straight"/>.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.Charts.DefaultAxisLineChartOptions.ConnectNullPoints">
+            <summary>
+            When <c>true</c>, lines connect across null data points instead of showing gaps.
+            </summary>
+            <remarks>
+            Defaults to <c>false</c>.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.Charts.DefaultAxisLineChartOptions.ShowToolTipsOnTouch">
+            <summary>
+            When <c>true</c>, a finger opens tooltips too: dragging sideways across the chart, or pressing and holding first, moves the tooltip from point to point, and a tap opens the nearest point.
+            </summary>
+            <remarks>
+            Defaults to <c>false</c>. A sideways drag that starts on the chart moves the tooltip instead of scrolling a horizontal container around it. Has no effect when <see cref="P:MudBlazor.Charts.DefaultChartOptions.ShowToolTips"/> is <c>false</c>.
             </remarks>
         </member>
         <member name="P:MudBlazor.Charts.DefaultAxisLineChartOptions.SeriesDisplayOverrides">
@@ -5621,6 +5706,7 @@
             </summary>
             <remarks>
             Defaults to "{{Y_VALUE}}"
+            <c>{{Y_AXIS_VALUE}}</c> writes the value the way the Y axis labels it with <c>YAxisToStringFunc</c> or <c>YAxisFormat</c>.
             </remarks>
         </member>
         <member name="T:MudBlazor.Charts.DefaultChartOptions">
@@ -5650,6 +5736,7 @@
             </summary>
             <remarks>
             Defaults to "{{Y_VALUE}} - {{X_VALUE}}"
+            Axis charts also accept <c>{{Y_AXIS_VALUE}}</c>, the value written the way the Y axis labels it with <c>YAxisToStringFunc</c> or <c>YAxisFormat</c>.
             </remarks>
         </member>
         <member name="P:MudBlazor.Charts.DefaultChartOptions.TooltipSubtitleFormat">
@@ -5698,7 +5785,7 @@
         </member>
         <member name="P:MudBlazor.Charts.IAxisChartOptions.YAxisTicks">
             <summary>
-            The spacing between vertical tick marks.
+            The spacing between vertical tick marks, or <c>0</c> to pick a round spacing that fits the values.
             </summary>
         </member>
         <member name="P:MudBlazor.Charts.IAxisChartOptions.MaxNumYAxisTicks">
@@ -5731,6 +5818,11 @@
         <member name="P:MudBlazor.Charts.IAxisChartOptions.XAxisLabelRotation">
             <summary>
             Rotation angle to rotate the labels in degrees.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.Charts.IAxisChartOptions.XAxisLabelInterval">
+            <summary>
+            Draws every nth label on the X-axis, leaving the ones in between blank.
             </summary>
         </member>
         <member name="P:MudBlazor.Charts.IAxisChartOptions.XAxisTitle">
@@ -5794,6 +5886,22 @@
             <summary>
             Optional per-series display overrides.
             </summary>
+        </member>
+        <member name="P:MudBlazor.Charts.IAxisLineChartOptions.ConnectNullPoints">
+            <summary>
+            When <c>true</c>, lines connect across null data points instead of showing gaps.
+            </summary>
+            <remarks>
+            Defaults to <c>false</c>.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.Charts.IAxisLineChartOptions.ShowToolTipsOnTouch">
+            <summary>
+            When <c>true</c>, a finger opens tooltips too: dragging sideways across the chart, or pressing and holding first, moves the tooltip from point to point, and a tap opens the nearest point.
+            </summary>
+            <remarks>
+            Defaults to <c>false</c>. A sideways drag that starts on the chart moves the tooltip instead of scrolling a horizontal container around it. Has no effect when <see cref="P:MudBlazor.Charts.IChartOptions.ShowToolTips"/> is <c>false</c>.
+            </remarks>
         </member>
         <member name="T:MudBlazor.Charts.SeriesDisplayOverride">
             <summary>
@@ -6043,10 +6151,28 @@
             The vertical values of the grid.
             </summary>
         </member>
+        <member name="M:MudBlazor.Charts.MudAxisChartBase`2.ShouldLabelVerticalGridLine(System.Int32)">
+            <summary>
+            Whether the X-axis label at this index is drawn, which <see cref="P:MudBlazor.Charts.IAxisChartOptions.XAxisLabelInterval"/> decides.
+            </summary>
+            <remarks>
+            Only the axis is thinned out.
+            The label a tooltip shows is read separately, so a point whose axis label was skipped still names itself on hover.
+            </remarks>
+            <param name="index">The index of the vertical grid line.</param>
+        </member>
         <member name="F:MudBlazor.Charts.MudAxisChartBase`2.Legends">
             <summary>
             The legends of the chart.
             </summary>
+        </member>
+        <member name="M:MudBlazor.Charts.MudAxisChartBase`2.WithTooltipRoom(Microsoft.AspNetCore.Components.RenderFragment,MudBlazor.SvgPath,System.Double)">
+            <summary>
+            Wraps a tooltip so the <see cref="T:MudBlazor.Charts.ChartTooltip"/> inside it, including one from a <c>TooltipTemplate</c>, knows the room around the hovered point.
+            </summary>
+            <param name="tooltip">The tooltip to wrap.</param>
+            <param name="point">The hovered point the tooltip describes.</param>
+            <param name="labelOffset">How far above the point the tooltip is anchored.</param>
         </member>
         <member name="F:MudBlazor.Charts.MudAxisChartBase`2.BoundWidthDefault">
             <summary>
@@ -6155,6 +6281,24 @@
             Sets the bounds of the chart.
             </summary>
         </member>
+        <member name="M:MudBlazor.Charts.MudAxisChartBase`2.GetGridYUnits(`0,`0)">
+            <summary>
+            Gets the spacing between horizontal gridlines from the chart's options.
+            </summary>
+            <param name="min">The lowest value the axis has to reach.</param>
+            <param name="max">The highest value the axis has to reach.</param>
+            <returns>The spacing between gridlines.</returns>
+        </member>
+        <member name="M:MudBlazor.Charts.MudAxisChartBase`2.GetGridUnits(System.Int32,System.Int32,`0,`0)">
+            <summary>
+            Gets the spacing between gridlines on an axis.
+            </summary>
+            <param name="ticks">The spacing set in the options, where <c>0</c> picks a round one that fits the values.</param>
+            <param name="maxTicks">The most gridlines the axis may draw.</param>
+            <param name="min">The lowest value the axis has to reach.</param>
+            <param name="max">The highest value the axis has to reach.</param>
+            <returns>The spacing between gridlines.</returns>
+        </member>
         <member name="M:MudBlazor.Charts.MudAxisChartBase`2.GenerateHorizontalGridLines(System.Int32,System.Int32,`0,System.Double)">
             <summary>
             Generates the horizontal grid lines for the chart.
@@ -6179,6 +6323,15 @@
         <member name="M:MudBlazor.Charts.MudAxisChartBase`2.FormatTooltipText(System.String,MudBlazor.ChartSeries{`0},MudBlazor.SvgPath)">
             <summary>
             Formats the tooltip text.
+            </summary>
+            <param name="format">The format string.</param>
+            <param name="series">The chart series.</param>
+            <param name="path">The SVG path.</param>
+            <returns>The formatted tooltip text.</returns>
+        </member>
+        <member name="M:MudBlazor.Charts.MudAxisChartBase`2.FormatTooltip(System.String,MudBlazor.ChartSeries{`0},MudBlazor.SvgPath)">
+            <summary>
+            Formats the tooltip text, including <c>{{Y_AXIS_VALUE}}</c> written the way the Y axis labels it.
             </summary>
             <param name="format">The format string.</param>
             <param name="series">The chart series.</param>
@@ -6223,6 +6376,15 @@
             The SVG paths for the chart areas.
             </summary>
         </member>
+        <member name="P:MudBlazor.Charts.MudAxisLineChartBase`2.ChartDots">
+            <summary>
+            The SVG paths for readings that have no neighbour to draw a segment to, keyed by series index.
+            </summary>
+            <remarks>
+            These are zero-length segments and only paint under a round line cap.
+            So they are kept apart from the series line, which keeps its own caps.
+            </remarks>
+        </member>
         <member name="P:MudBlazor.Charts.MudAxisLineChartBase`2.ChartDataPoints">
             <summary>
             The SVG circles for the chart data points.
@@ -6232,6 +6394,13 @@
             <summary>
             The SVG path for the hovered data point.
             </summary>
+        </member>
+        <member name="M:MudBlazor.Charts.MudAxisLineChartBase`2.WithTooltipRoom(Microsoft.AspNetCore.Components.RenderFragment,System.Double)">
+            <summary>
+            Wraps a tooltip so the <see cref="T:MudBlazor.Charts.ChartTooltip"/> inside it, including one from a <c>TooltipTemplate</c>, knows the room around the hovered point.
+            </summary>
+            <param name="tooltip">The tooltip to wrap.</param>
+            <param name="labelOffset">How far above the point the tooltip is anchored.</param>
         </member>
         <member name="P:MudBlazor.Charts.MudAxisLineChartBase`2.ShouldInterpolate">
             <summary>
@@ -6244,6 +6413,14 @@
             <see cref="P:MudBlazor.Charts.IChartOptions.ShowToolTips"/>. Override to <c>true</c> for charts (e.g. scatter plot)
             that use <see cref="P:MudBlazor.Charts.MudAxisLineChartBase`2.ChartDataPoints"/> to render visible markers, not only tooltips.
             </summary>
+        </member>
+        <member name="P:MudBlazor.Charts.MudAxisLineChartBase`2.ShouldPopulateDataPoints">
+            <summary>
+            Whether the data points behind the tooltips and the visible markers need to be collected on this render.
+            </summary>
+            <remarks>
+            The markers are drawn from the same data points as the tooltips, so a chart with markers on and tooltips off used to draw nothing.
+            </remarks>
         </member>
         <member name="M:MudBlazor.Charts.MudAxisLineChartBase`2.GetDataValue``1(System.Int32,System.Int32)">
             <summary>
@@ -6280,17 +6457,6 @@
             <param name="horizontalSpace">The horizontal space between points.</param>
             <param name="verticalSpace">The vertical space between points.</param>
             <returns>A tuple containing the X and Y coordinates.</returns>
-        </member>
-        <member name="M:MudBlazor.Charts.MudAxisLineChartBase`2.CreateInterpolator(System.Int32,System.Int32,`0,System.Double,System.Double)">
-            <summary>
-            Creates a line interpolator for a series.
-            </summary>
-            <param name="seriesIndex">The index of the series.</param>
-            <param name="lowestHorizontalLine">The lowest horizontal line.</param>
-            <param name="gridYUnits">The Y-axis grid units.</param>
-            <param name="horizontalSpace">The horizontal space between points.</param>
-            <param name="verticalSpace">The vertical space between points.</param>
-            <returns>The line interpolator.</returns>
         </member>
         <member name="M:MudBlazor.Charts.MudAxisLineChartBase`2.GenerateVerticalGridLines(System.Int32,System.Double,System.Double)">
             <summary>
@@ -6335,6 +6501,23 @@
             <param name="verticalSpace">The vertical space between points.</param>
             <returns>A tuple containing the first X, first Y, and last X coordinates.</returns>
         </member>
+        <member name="M:MudBlazor.Charts.MudAxisLineChartBase`2.GetContiguousSegments``1(MudBlazor.ChartData{``0})">
+            <summary>
+            Splits data points into contiguous segments of non-null (HasValue) indices.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.Charts.MudAxisLineChartBase`2.CreateInterpolator(System.Int32,System.Collections.Generic.List{System.Int32},System.Int32,`0,System.Double,System.Double)">
+            <summary>
+            Creates a line interpolator for a contiguous segment of data point indices.
+            </summary>
+            <param name="seriesIndex">The index of the series.</param>
+            <param name="segment">The segment of data point indices.</param>
+            <param name="lowestHorizontalLine">The lowest horizontal line.</param>
+            <param name="gridYUnits">The Y-axis grid units.</param>
+            <param name="horizontalSpace">The horizontal space between points.</param>
+            <param name="verticalSpace">The vertical space between points.</param>
+            <returns>An instance of <see cref="T:MudBlazor.Interpolation.ILineInterpolator"/>.</returns>
+        </member>
         <member name="M:MudBlazor.Charts.MudAxisLineChartBase`2.GetDataValueAsString(System.Int32,System.Int32)">
             <summary>
             Gets the data value as a string for a specific series and data point.
@@ -6342,6 +6525,14 @@
             <param name="seriesIndex">The index of the series.</param>
             <param name="dataPointIndex">The index of the data point.</param>
             <returns>The data value as a string.</returns>
+        </member>
+        <member name="M:MudBlazor.Charts.MudAxisLineChartBase`2.GetDataValueAsDouble(System.Int32,System.Int32)">
+            <summary>
+            Gets the data value as a number, so a tooltip can write it the way the Y axis does.
+            </summary>
+            <param name="seriesIndex">The index of the series.</param>
+            <param name="dataPointIndex">The index of the data point.</param>
+            <returns>The data value.</returns>
         </member>
         <member name="M:MudBlazor.Charts.MudAxisLineChartBase`2.AddLegend(System.Int32,MudBlazor.ChartSeries{`0})">
             <summary>
@@ -6380,6 +6571,31 @@
             </summary>
             <param name="series">The chart series.</param>
             <returns>The series display override, or null if not found.</returns>
+        </member>
+        <member name="M:MudBlazor.Charts.MudAxisLineChartBase`2.GetSeriesClickCallback(System.Int32)">
+            <summary>
+            Gets the handler that selects a series when one of its paths or points is clicked.
+            </summary>
+            <remarks>
+            Each handler is made once and handed out on every render.
+            A handler made fresh on each render never equals the previous one, so the renderer would replace it on every point of the chart whenever it renders, hover included.
+            </remarks>
+            <param name="seriesIndex">The index of the series.</param>
+        </member>
+        <member name="M:MudBlazor.Charts.MudAxisLineChartBase`2.GetDataPointMouseOverCallback(System.Int32,System.Int32)">
+            <summary>
+            Gets the mouse over handler for a data point, by its position in <see cref="P:MudBlazor.Charts.MudAxisLineChartBase`2.ChartDataPoints"/>.
+            </summary>
+            <remarks>
+            The handler looks the point up when it runs, so it stays the same when the chart is rebuilt and only the point behind it changes.
+            </remarks>
+            <param name="seriesIndex">The index of the series.</param>
+            <param name="pointIndex">The position of the point in the series' data points.</param>
+        </member>
+        <member name="P:MudBlazor.Charts.MudAxisLineChartBase`2.DataPointMouseOutCallback">
+            <summary>
+            The mouse out handler shared by every data point.
+            </summary>
         </member>
         <member name="M:MudBlazor.Charts.MudAxisLineChartBase`2.OnDataPointMouseOver(Microsoft.AspNetCore.Components.Web.MouseEventArgs,MudBlazor.SvgPath)">
             <summary>
@@ -6938,7 +7154,7 @@
             The color of the <see cref="P:MudBlazor.Charts.ChartTooltip.Title"/> and <see cref="P:MudBlazor.Charts.ChartTooltip.Subtitle"/>.
             </summary>
             <remarks>
-            Defaults to <c>"unset"</c>.
+            Defaults to <c>"white"</c>.
             </remarks>
         </member>
         <member name="P:MudBlazor.Charts.ChartTooltip.StrokeWidth">
@@ -6951,7 +7167,7 @@
         </member>
         <member name="P:MudBlazor.Charts.ChartTooltip.ShowTriangle">
             <summary>
-            Whether to show the triangle pointing down.
+            Whether to show the triangle pointing at the anchor.
             </summary>
             <remarks>
             Defaults to <c>true</c>.
@@ -6962,13 +7178,56 @@
             How to align the tooltip in respect to the given x coordinates.
             </summary>
             <remarks>
-            Defaults to <c>ChartTooltipRelativePositionX.Center</c>.
+            Defaults to <c>ChartTooltipAnchorPositionX.Center</c>.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.Charts.ChartTooltip.Room">
+            <summary>
+            The room the chart has around the point this tooltip describes.
+            </summary>
+            <remarks>
+            Cascaded by the chart rather than passed, so a tooltip written into a chart's <c>TooltipTemplate</c> moves below its point too.
             </remarks>
         </member>
         <member name="T:MudBlazor.Charts.ChartTooltipAnchorPositionX">
             <summary>
             The horizontal anchor position of a chart tooltip relative to its data point.
             </summary>
+        </member>
+        <member name="T:MudBlazor.Charts.ChartTooltipRoom">
+            <summary>
+            The room a chart has around a hovered point, which a <see cref="T:MudBlazor.Charts.ChartTooltip"/> uses to move below the point when it doesn't fit above it.
+            </summary>
+            <param name="Above">The distance from the tooltip's anchor up to the top of the chart.</param>
+            <param name="Below">The distance from the flipped anchor down to the bottom of the chart.</param>
+            <param name="FlipOffset">How far below the usual anchor the flipped one sits, which clears the point itself.</param>
+            <param name="Left">The distance from the anchor to the left edge of the chart.</param>
+            <param name="Right">The distance from the anchor to the right edge of the chart.</param>
+        </member>
+        <member name="M:MudBlazor.Charts.ChartTooltipRoom.#ctor(System.Double,System.Double,System.Double,System.Double,System.Double)">
+            <summary>
+            The room a chart has around a hovered point, which a <see cref="T:MudBlazor.Charts.ChartTooltip"/> uses to move below the point when it doesn't fit above it.
+            </summary>
+            <param name="Above">The distance from the tooltip's anchor up to the top of the chart.</param>
+            <param name="Below">The distance from the flipped anchor down to the bottom of the chart.</param>
+            <param name="FlipOffset">How far below the usual anchor the flipped one sits, which clears the point itself.</param>
+            <param name="Left">The distance from the anchor to the left edge of the chart.</param>
+            <param name="Right">The distance from the anchor to the right edge of the chart.</param>
+        </member>
+        <member name="P:MudBlazor.Charts.ChartTooltipRoom.Above">
+            <summary>The distance from the tooltip's anchor up to the top of the chart.</summary>
+        </member>
+        <member name="P:MudBlazor.Charts.ChartTooltipRoom.Below">
+            <summary>The distance from the flipped anchor down to the bottom of the chart.</summary>
+        </member>
+        <member name="P:MudBlazor.Charts.ChartTooltipRoom.FlipOffset">
+            <summary>How far below the usual anchor the flipped one sits, which clears the point itself.</summary>
+        </member>
+        <member name="P:MudBlazor.Charts.ChartTooltipRoom.Left">
+            <summary>The distance from the anchor to the left edge of the chart.</summary>
+        </member>
+        <member name="P:MudBlazor.Charts.ChartTooltipRoom.Right">
+            <summary>The distance from the anchor to the right edge of the chart.</summary>
         </member>
         <member name="T:MudBlazor.Charts.Legend`1">
             <summary>
@@ -7197,6 +7456,18 @@
             </summary>
             <param name="values">The Y values of the chart series</param>
         </member>
+        <member name="M:MudBlazor.ChartData`1.#ctor(System.Nullable{`0})">
+            <summary>
+            Create a data series with a single nullable Y value.
+            </summary>
+            <param name="value">The nullable Y value of the chart series</param>
+        </member>
+        <member name="M:MudBlazor.ChartData`1.#ctor(System.Collections.Generic.IReadOnlyList{System.Nullable{`0}})">
+            <summary>
+            Create a data series with multiple nullable Y values.
+            </summary>
+            <param name="values">The nullable Y values of the chart series</param>
+        </member>
         <member name="P:MudBlazor.ChartData`1.Points">
             <summary>
             A list of data points in the chart series.
@@ -7253,6 +7524,11 @@
             The Y value of the data point.
             </summary>
         </member>
+        <member name="P:MudBlazor.ChartPoint`1.HasValue">
+            <summary>
+            Flags whether the data point has a chartable Y value.
+            </summary>
+        </member>
         <member name="T:MudBlazor.IChartSeries">
             <summary>
             A data set plotted on a <see cref="T:MudBlazor.MudChart`1"/>, viewed independently of its value type.
@@ -7281,12 +7557,12 @@
         </member>
         <member name="P:MudBlazor.ChartSeries`1.TooltipTitleFormat">
             <summary>
-            Tooltip title format for the data set. Supported tags are {{SERIES_NAME}}, {{X_VALUE}} and {{Y_VALUE}}.
+            Tooltip title format for the data set. Supported tags are {{SERIES_NAME}}, {{X_VALUE}} and {{Y_VALUE}}, and axis charts also accept {{Y_AXIS_VALUE}}.
             </summary>
         </member>
         <member name="P:MudBlazor.ChartSeries`1.TooltipSubtitleFormat">
             <summary>
-            Tooltip subtitle format for the data set. Supported tags are {{SERIES_NAME}}, {{X_VALUE}} and {{Y_VALUE}}.
+            Tooltip subtitle format for the data set. Supported tags are {{SERIES_NAME}}, {{X_VALUE}} and {{Y_VALUE}}, and axis charts also accept {{Y_AXIS_VALUE}}.
             </summary>
         </member>
         <member name="P:MudBlazor.ChartSeries`1.TooltipYValueFormat">
@@ -7927,6 +8203,7 @@
             </summary>
             <remarks>
             Defaults to <c>20</c>.
+            Set it to <c>0</c> to pick a round spacing (1, 2 or 5 times a power of ten) that fits the values in about five steps, or fewer when <see cref="P:MudBlazor.ScatterPlotChartOptions.MaxNumXAxisTicks"/> is lower.
             </remarks>
         </member>
         <member name="P:MudBlazor.ScatterPlotChartOptions.MaxNumXAxisTicks">
@@ -8310,6 +8587,11 @@
             The label text for on hover.
             </summary>
         </member>
+        <member name="P:MudBlazor.SvgPath.YValue">
+            <summary>
+            The number behind <see cref="P:MudBlazor.SvgPath.LabelYValue"/>, kept so a tooltip can write it the way the Y axis does.
+            </summary>
+        </member>
         <member name="P:MudBlazor.SvgPath.LabelX">
             <summary>
             The label X position for on hover.
@@ -8501,6 +8783,15 @@
             The service used to perform browser actions such as navigation.
             </summary>
         </member>
+        <member name="M:MudBlazor.MudChip`1.OpenElement(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder)">
+            <summary>
+            Opens the chip element with its attributes; the Razor file renders the content and closes it.
+            </summary>
+            <remarks>
+            The tag is chosen at runtime, so the element is opened by name rather than written as markup.
+            class and style come before the splat so a class or style supplied through <see cref="P:MudBlazor.MudComponentBase.UserAttributes"/> still wins, which is the precedence the MudElement boundary gave them.
+            </remarks>
+        </member>
         <member name="P:MudBlazor.MudChip`1.Color">
             <summary>
             The color of this chip.
@@ -8602,6 +8893,7 @@
             </summary>
             <remarks>
             <para>Defaults to <c>null</c>.  Use <see cref="P:MudBlazor.MudChip`1.Target"/> to control where the URL is opened.</para>
+            <para>When set, the chip renders as a link and the browser handles the click, so <see cref="P:MudBlazor.MudChip`1.OnClick"/> is not raised and the chip cannot be selected in a <see cref="T:MudBlazor.MudChipSet`1"/>.</para>
             <para>Note: The close button cannot be enabled if this is set because <see href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#technical_summary">interactive content violates the HTML spec</see>.</para>
             </remarks>
         </member>
@@ -8847,6 +9139,15 @@
             <summary>
             Occurs when any chip has been closed.
             </summary>
+        </member>
+        <member name="M:MudBlazor.MudChipSet`1.RenderChips">
+            <summary>
+            Renders every chip after a parameter that chips read from this set has changed.
+            </summary>
+            <remarks>
+            Chips read these values through a fixed cascade, so the cascade never tells them about the change.
+            A chip whose own parameters are unchanged is not re-rendered by the framework, and the selection walk only renders chips whose selection changed.
+            </remarks>
         </member>
         <member name="M:MudBlazor.MudChipSet`1.Dispose">
             <summary>
@@ -9482,6 +9783,22 @@
             The function which groups values in this column.
             </summary>
         </member>
+        <member name="P:MudBlazor.Column`1.Order">
+            <summary>
+            The display order of this column relative to other reorderable columns.
+            </summary>
+            <remarks>
+            Defaults to <c>null</c>. When unset, the declaration order is used.
+            A column added after the first render is ranked directly after the column that preceded it when it entered, so a reset to <c>null</c> does not restore its markup position.
+            A parameter-driven change to this value is applied when the grid next renders.
+            Values past the last position keep their order relative to other explicit columns rather than exact positions.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.Column`1.OrderChanged">
+            <summary>
+            Occurs when the <see cref="P:MudBlazor.Column`1.Order"/> property has changed.
+            </summary>
+        </member>
         <member name="P:MudBlazor.Column`1.GroupByOrder">
             <summary>
             The order in which values are grouped when there are more than one group
@@ -9885,6 +10202,44 @@
             <param name="rowIndex">The zero-based index of the row.</param>
             <param name="columnIndex">The zero-based index of the visible column.</param>
             <param name="column">The column that was clicked.</param>
+        </member>
+        <member name="T:MudBlazor.DataGridColumnOrderChangedEventArgs`1">
+            <summary>
+            Represents the information related to a <see cref="P:MudBlazor.MudDataGrid`1.ColumnOrderChanged"/> event.
+            </summary>
+            <remarks>
+            Indices include pinned columns and can differ from <see cref="P:MudBlazor.Column`1.Order"/> values.
+            </remarks>
+            <typeparam name="T">The item managed by the <see cref="T:MudBlazor.MudDataGrid`1"/>.</typeparam>
+        </member>
+        <member name="P:MudBlazor.DataGridColumnOrderChangedEventArgs`1.Column">
+            <summary>
+            The column whose order change triggered the event.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.DataGridColumnOrderChangedEventArgs`1.PreviousIndex">
+            <summary>
+            The previous rendered index of <see cref="P:MudBlazor.DataGridColumnOrderChangedEventArgs`1.Column"/>.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.DataGridColumnOrderChangedEventArgs`1.CurrentIndex">
+            <summary>
+            The current rendered index of <see cref="P:MudBlazor.DataGridColumnOrderChangedEventArgs`1.Column"/>.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.DataGridColumnOrderChangedEventArgs`1.Columns">
+            <summary>
+            The current rendered column order as a read-only snapshot.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.DataGridColumnOrderChangedEventArgs`1.#ctor(MudBlazor.Column{`0},System.Int32,System.Int32,System.Collections.Generic.IReadOnlyList{MudBlazor.Column{`0}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MudBlazor.DataGridColumnOrderChangedEventArgs`1"/> class.
+            </summary>
+            <param name="column">The column whose order changed.</param>
+            <param name="previousIndex">The previous rendered index of the column.</param>
+            <param name="currentIndex">The current rendered index of the column.</param>
+            <param name="columns">The current rendered column order.</param>
         </member>
         <member name="T:MudBlazor.DataGridDragAndDropColumnReorderMode">
             <summary>
@@ -12004,6 +12359,14 @@
             The string representation of the double value. <br/>
             </returns>
         </member>
+        <member name="M:MudBlazor.Utilities.StringHelpers.TryParsePixels(System.String,System.Double@)">
+            <summary>
+            Parses a CSS pixel length such as <c>640.5px</c> with the invariant culture.
+            </summary>
+            <param name="value">The length to parse.</param>
+            <param name="pixels">The parsed number of pixels, or <c>0</c> when parsing fails.</param>
+            <returns><c>true</c> when <paramref name="value"/> is a number followed by <c>px</c>.</returns>
+        </member>
         <member name="T:MudBlazor.Utilities.StyleBuilder">
             <summary>
             Builds an inline CSS style string with conditionally added declarations for a component's markup.
@@ -12464,6 +12827,9 @@
             <summary>
             The value to filter.
             </summary>
+            <remarks>
+            For <see cref="F:MudBlazor.FilterOperator.Enum.IsAnyOf"/>, this is a collection of enum values.
+            </remarks>
         </member>
         <member name="T:MudBlazor.FieldType">
             <summary>
@@ -12748,6 +13114,14 @@
             Find values which do not match the filter value.
             </summary>
         </member>
+        <member name="F:MudBlazor.FilterOperator.Enum.IsAnyOf">
+            <summary>
+            Find values matching any of the filter values.
+            </summary>
+            <remarks>
+            The filter value is a collection of enum values, and an empty collection matches every row.
+            </remarks>
+        </member>
         <member name="F:MudBlazor.FilterOperator.Enum.Empty">
             <summary>
             Find rows where the nullable enum column is <c>null</c>.
@@ -12872,6 +13246,17 @@
             <summary>
             Find values different from the filter Guid.
             </summary>
+        </member>
+        <member name="M:MudBlazor.FilterOperator.GetOperatorByDataType(System.Type)">
+            <summary>
+            Returns the built-in filter operators for the specified data type.
+            </summary>
+            <param name="type">The data type of the column to filter.</param>
+            <returns>The supported operators, or an empty array if <paramref name="type"/> is <see langword="null"/> or unsupported.</returns>
+            <remarks>
+            Use this method to populate operator choices in a custom filter template.
+            Nullable value types return the same operators as their underlying types.
+            </remarks>
         </member>
         <member name="T:MudBlazor.FilterOptions">
             <summary>
@@ -13181,7 +13566,7 @@
         </member>
         <member name="M:MudBlazor.HeaderCell`1.GetAriaSort">
             <summary>
-            The <c>aria-sort</c> value for the header cell, or <c>null</c> when the column cannot be sorted.
+            The <c>aria-sort</c> value for the primary sorted header cell, or <c>null</c> otherwise.
             </summary>
         </member>
         <member name="M:MudBlazor.HeaderCell`1.OnGridSortChanged(System.Collections.Generic.Dictionary{System.String,MudBlazor.SortDefinition{`0}},System.Collections.Generic.HashSet{System.String})">
@@ -13260,6 +13645,9 @@
             <typeparam name="T">The kind of item managed by the column.</typeparam>
             <seealso cref="T:MudBlazor.Column`1" />
             <seealso cref="T:MudBlazor.MudDataGrid`1" />
+            <remarks>
+            This column remains pinned before reorderable columns and does not expose configurable order state.
+            </remarks>
             <seealso cref="T:MudBlazor.PropertyColumn`2" />
             <seealso cref="T:MudBlazor.SelectColumn`1" />
             <seealso cref="T:MudBlazor.TemplateColumn`1" />
@@ -13300,7 +13688,7 @@
             Allows this column to be reordered via drag-and-drop operations.
             </summary>
             <remarks>
-            Defaults to <c>null</c>. When set, this overrides the <see cref="P:MudBlazor.MudDataGrid`1.DragDropColumnReordering"/> property.
+            Defaults to <c>false</c>. When set, this overrides the <see cref="P:MudBlazor.MudDataGrid`1.DragDropColumnReordering"/> property.
             </remarks>
         </member>
         <member name="P:MudBlazor.HierarchyColumn`1.Hideable">
@@ -13366,6 +13754,38 @@
             The template used to display this column's value cells.
             </summary>
         </member>
+        <member name="P:MudBlazor.HierarchyColumn`1.CellClass">
+            <summary>
+            The CSS classes applied to this column's value cells.
+            </summary>
+            <remarks>
+            Defaults to <c>null</c>.  Separate multiple classes with spaces.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.HierarchyColumn`1.CellClassFunc">
+            <summary>
+            The function which calculates CSS classes for this column's value cells.
+            </summary>
+            <remarks>
+            Defaults to <c>null</c>.  Separate multiple classes with spaces.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.HierarchyColumn`1.CellStyle">
+            <summary>
+            The CSS styles applied to this column's value cells.
+            </summary>
+            <remarks>
+            Defaults to <c>null</c>.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.HierarchyColumn`1.CellStyleFunc">
+            <summary>
+            The function which calculates CSS styles for this column's value cells.
+            </summary>
+            <remarks>
+            Defaults to <c>null</c>.
+            </remarks>
+        </member>
         <member name="P:MudBlazor.HierarchyColumn`1.InitiallyExpandedFunc">
             <summary>
             The function which determines whether the row should be initially expanded.
@@ -13373,7 +13793,7 @@
             <remarks>
             This function takes an item of type <typeparamref name="T"/> as input and returns a boolean indicating
             whether the row should be expanded. Requires item to override the Equals and GetHashCode methods.
-            Defaults to a function that always returns <c>false</c>.
+            Defaults to <c>null</c>.
             </remarks>
         </member>
         <member name="P:MudBlazor.HierarchyColumn`1.HierarchyVisibilityToggled">
@@ -13504,6 +13924,7 @@
             <remarks>
             This event is raised instead of <see cref="P:MudBlazor.MudDataGrid`1.CommittedItemChanges"/> and <see cref="P:MudBlazor.MudDataGrid`1.CommittedItemChanged"/>
             when the edit operation is canceled.
+            In <see cref="F:MudBlazor.DataGridEditMode.Form"/> mode, closing the edit dialog by clicking outside it or pressing Escape also cancels the edit.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudDataGrid`1.CommittedItemChanges">
@@ -13534,6 +13955,14 @@
             </summary>
             <remarks>
             This event only occurs in <see cref="F:MudBlazor.DataGridEditMode.Form"/> and fires for individual field changes before save.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.MudDataGrid`1.ColumnOrderChanged">
+            <summary>
+            Occurs when a column is successfully reordered by the user.
+            </summary>
+            <remarks>
+            This event is not raised when column order is restored through the <see cref="P:MudBlazor.Column`1.Order"/> parameter.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudDataGrid`1.HierarchyVisibilityToggled">
@@ -13895,12 +14324,20 @@
             <see cref="P:MudBlazor.MudDataGrid`1.RowClick"/> is raised either way, so a click can still be handled without changing <see cref="P:MudBlazor.MudDataGrid`1.SelectedItem"/> or <see cref="P:MudBlazor.MudDataGrid`1.SelectedItems"/>.
             </remarks>
         </member>
+        <member name="P:MudBlazor.MudDataGrid`1.SelectionChangeable">
+            <summary>
+            Allows the selection to be changed by the user.
+            </summary>
+            <remarks>
+            Defaults to <c>true</c>.  When <c>false</c>, <see cref="P:MudBlazor.MudDataGrid`1.SelectedItem"/> and <see cref="P:MudBlazor.MudDataGrid`1.SelectedItems"/> can still be set in code.
+            </remarks>
+        </member>
         <member name="P:MudBlazor.MudDataGrid`1.EditMode">
             <summary>
             Controls how cell values are edited.
             </summary>
             <remarks>
-            Defaults to <see cref="F:MudBlazor.DataGridEditMode.Cell"/>.  Only works when <see cref="P:MudBlazor.MudDataGrid`1.ReadOnly"/> is <c>false</c>.
+            Defaults to <c>null</c>.  Only works when <see cref="P:MudBlazor.MudDataGrid`1.ReadOnly"/> is <c>false</c>.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudDataGrid`1.EditTrigger">
@@ -13994,6 +14431,14 @@
             <summary>
             Any custom content to show in this grid's toolbar.
             </summary>
+        </member>
+        <member name="P:MudBlazor.MudDataGrid`1.ToolBarWrapContent">
+            <summary>
+            Allows the toolbar's content to wrap onto multiple lines.
+            </summary>
+            <remarks>
+            Defaults to <c>false</c>. See <see cref="P:MudBlazor.MudToolBar.WrapContent"/>.
+            </remarks>
         </member>
         <member name="P:MudBlazor.MudDataGrid`1.HorizontalScrollbar">
             <summary>
@@ -14152,6 +14597,7 @@
             </summary>
             <remarks>
             This property can be bound (<c>@bind-SelectedItems</c>) to initially select rows.  Use <see cref="P:MudBlazor.MudDataGrid`1.SelectedItem"/> when <see cref="P:MudBlazor.MudDataGrid`1.MultiSelection"/> is <c>false</c>.
+            To change the selection from code, assign a new set.  A change is detected by reference, so editing the bound set in place, such as calling <c>Clear()</c>, does not update the grid.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudDataGrid`1.SelectedItem">
@@ -14544,6 +14990,32 @@
             Hides the columns panel.
             </summary>
         </member>
+        <member name="M:MudBlazor.MudDataGrid`1.HideColumnsPanelIfVisible">
+            <summary>
+            Hides the columns panel only when it is open.
+            </summary>
+            <remarks>
+            A column filter menu lives in its header cell, so opening one renders that cell and needs a grid render only to close an open columns panel.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.MudDataGrid`1.ColumnOrderUpdated(MudBlazor.MudItemDropInfo{MudBlazor.Column{`0}})">
+            <summary>
+            Updates the order of a column after drag-and-drop in the columns panel.
+            </summary>
+            <param name="dropItem">The dropped column information.</param>
+        </member>
+        <member name="M:MudBlazor.MudDataGrid`1.ColumnUp(MudBlazor.Column{`0})">
+            <summary>
+            Moves the specified column one position up in the rendered columns order.
+            </summary>
+            <param name="column">The column to move.</param>
+        </member>
+        <member name="M:MudBlazor.MudDataGrid`1.ColumnDown(MudBlazor.Column{`0})">
+            <summary>
+            Moves the specified column one position down in the rendered columns order.
+            </summary>
+            <param name="column">The column to move.</param>
+        </member>
         <member name="M:MudBlazor.MudDataGrid`1.GroupItems(System.Boolean)">
             <summary>
             Performs grouping of the current items.
@@ -14560,6 +15032,15 @@
             <param name="columnName">The name of the grouped column.</param>
             <param name="key">The group key identifying the specific group to expand or collapse.</param>
             <param name="expanded">Whether the group should be expanded (true) or collapsed (false).</param>
+        </member>
+        <member name="M:MudBlazor.MudDataGrid`1.SetGroupExpanded(System.String,System.Object,System.Boolean)">
+            <summary>
+            Records whether a group is expanded without rendering the grid.
+            </summary>
+            <remarks>
+            A group row renders its own rows, so a click on its expander only needs that row to render.
+            The grid reads the recorded state the next time it renders.
+            </remarks>
         </member>
         <member name="M:MudBlazor.MudDataGrid`1.ExpandAllGroupsAsync">
             <summary>
@@ -14725,6 +15206,11 @@
             <seealso cref="T:MudBlazor.Column`1" />
             <seealso cref="T:MudBlazor.MudDataGrid`1" />
             <seealso cref="T:MudBlazor.TemplateColumn`1" />
+        </member>
+        <member name="P:MudBlazor.SelectColumn`1.SelectionChangeable">
+            <summary>
+            Whether the owning grid currently lets the user change the selection.
+            </summary>
         </member>
         <member name="P:MudBlazor.SelectColumn`1.ShowInHeader">
             <summary>
@@ -14964,10 +15450,24 @@
             <summary>
             The format for selected dates.
             </summary>
+            <remarks>
+            Defaults to <c>null</c>, which uses the <see cref="P:System.Globalization.DateTimeFormatInfo.ShortDatePattern"/> of <see cref="P:MudBlazor.MudFormComponent`2.Culture"/>.
+            A <c>/</c> in the format is replaced by the culture's date separator; use <c>'/'</c> for a literal slash.
+            </remarks>
         </member>
         <member name="M:MudBlazor.MudBaseDatePicker.DateFormatChangedAsync(System.String)">
             <summary>
             Occurs when the <see cref="P:MudBlazor.MudBaseDatePicker.DateFormat"/> has changed.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudBaseDatePicker.OnDateLimitsChanged">
+            <summary>
+            Occurs when <see cref="P:MudBlazor.MudBaseDatePicker.MinDate"/> or <see cref="P:MudBlazor.MudBaseDatePicker.MaxDate"/> has changed.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudBaseDatePicker.IsRangeSelectionPending">
+            <summary>
+            Whether a range has a first date and is waiting for its second.
             </summary>
         </member>
         <member name="P:MudBlazor.MudBaseDatePicker.FirstDayOfWeek">
@@ -14985,6 +15485,15 @@
             <remarks>
             Defaults to the current month.<br />
             When bound via <c>@bind-PickerMonth</c>, controls the initial month displayed.  This value is always the first day of a month.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.MudBaseDatePicker.MonthViewColumn">
+            <summary>
+            The column that shows the month or year view, or <c>0</c> in the date view.
+            </summary>
+            <remarks>
+            The columns to the left of the view show earlier months.
+            The first column is used instead when one of them would show the first supported month or earlier, because its date grid starts before that month and the date math would go out of range.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudBaseDatePicker.HighlightedDate">
@@ -15069,7 +15578,7 @@
             The function used to disable one or more dates.
             </summary>
             <remarks>
-            Defaults to <c>null</c>.<br />
+            Defaults to a function that always returns <c>false</c>.<br />
             When set, a date will be disabled if the function returns <c>true</c>.
             </remarks>
         </member>
@@ -15146,7 +15655,7 @@
             Adjacent-month days are always hidden when <see cref="P:MudBlazor.MudBaseDatePicker.ShowAdjacentMonthDays"/> is disabled.
             When it is enabled in a multi-month layout (e.g. <see cref="T:MudBlazor.MudDateRangePicker"/>), boundary days that belong to a month already rendered in a neighboring panel are hidden so the same date is not displayed twice across panels.
             </remarks>
-            <param name="month">The panel offset from the first displayed month.</param>
+            <param name="month">The month offset the panel is rendered with. In the month and year views it is relative to the column that shows the view.</param>
             <param name="day">The day being rendered.</param>
         </member>
         <member name="M:MudBlazor.MudBaseDatePicker.OnDayClickedAsync(System.DateTime)">
@@ -15170,6 +15679,12 @@
             <summary>
             user clicked on a month
             </summary>
+        </member>
+        <member name="M:MudBlazor.MudBaseDatePicker.GetFirstMonthKeepingColumn(System.DateTime)">
+            <summary>
+            Gets the first displayed month that keeps <paramref name="month"/> in the column where the month view was opened.
+            </summary>
+            <param name="month">The month the user selected.</param>
         </member>
         <member name="M:MudBlazor.MudBaseDatePicker.IsMonthDisabled(System.DateTime)">
             <summary>
@@ -15201,6 +15716,11 @@
         <member name="M:MudBlazor.MudBaseDatePicker.ScrollToYearAsync(System.Nullable{System.DateTime})">
             <summary>
             Scrolls to the current year.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudBaseDatePicker.ResetCalendarToStart">
+            <summary>
+            Returns the calendar to where an empty picker starts, after a reset has cleared the value.
             </summary>
         </member>
         <member name="M:MudBlazor.MudBaseDatePicker.GetDefaultConverter">
@@ -15520,7 +16040,7 @@
             The default options for this dialog.
             </summary>
             <remarks>
-            These options are used if none are provided during the <see cref="M:MudBlazor.MudDialog.ShowAsync(System.String,MudBlazor.DialogOptions)"/> method.  This is typically used for inline dialogs.
+            These options are the dialog's defaults.  Options passed when it is shown, through <see cref="M:MudBlazor.MudDialog.ShowAsync(System.String,MudBlazor.DialogOptions)"/> or <see cref="T:MudBlazor.IDialogService"/>, are layered over them one property at a time, so a property left unset there falls back to the value here.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudDialog.OnBackdropClick">
@@ -15705,6 +16225,17 @@
             The text that names the dialog when no element does: an explicit <see cref="P:MudBlazor.MudDialog.AriaLabel"/>, else the title while the header is hidden.
             </summary>
         </member>
+        <member name="P:MudBlazor.MudDialogContainer.GetDialogOptionsOrDefault">
+            <summary>
+            The options in effect for this dialog: the values passed to
+            <see cref="M:MudBlazor.DialogService.ShowAsync(System.Type,System.String,MudBlazor.DialogOptions)"/> layered over the
+            <see cref="P:MudBlazor.MudDialog.Options"/> of the dialog being shown, one property at a time.
+            </summary>
+            <remarks>
+            A dialog that does not set <see cref="P:MudBlazor.MudDialog.Options"/> keeps the instance it was
+            shown with, so only dialogs that declare their own defaults pay for the merge.
+            </remarks>
+        </member>
         <member name="M:MudBlazor.MudDialogContainer.DisposeAsync">
             <inheritdoc />
         </member>
@@ -15846,6 +16377,16 @@
             A thin line that groups content in lists and layouts. Only use dividers if items can't be grouped with open space. Use dividers to group things, not separate individual items.
             </summary>
         </member>
+        <member name="P:MudBlazor.MudDivider.ApplyDividerType">
+            <summary>
+            A vertical divider of type <see cref="F:MudBlazor.DividerType.FullWidth"/> must not get the "fullwidth" class, since it would force <c>width: 100%</c> on an element that is meant to be a thin vertical line.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudDivider.DividerTypeClass">
+            <summary>
+            Return the scss class corresponding to <see cref="P:MudBlazor.MudDivider.DividerType"/>.
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudDivider.Absolute">
             <summary>
             Uses an absolute position for this divider.
@@ -15885,6 +16426,11 @@
             <remarks>
             Defaults to <see cref="F:MudBlazor.DividerType.FullWidth"/>.
             </remarks>
+        </member>
+        <member name="P:MudBlazor.MudDivider.ChildContent">
+            <summary>
+            The content within this component.
+            </summary>
         </member>
         <member name="T:MudBlazor.MudDrawer">
             <summary>
@@ -15941,6 +16487,11 @@
             <remarks>
             Defaults to <see cref="F:MudBlazor.DrawerVariant.Responsive"/>.
             </remarks>
+        </member>
+        <member name="P:MudBlazor.MudDrawer.OnBreakpointChanged">
+            <summary>
+            Occurs when the current browser breakpoint observed by this drawer has changed.
+            </summary>
         </member>
         <member name="P:MudBlazor.MudDrawer.ChildContent">
             <summary>
@@ -16799,16 +17350,6 @@
             Defaults to <c>false</c>, allowing default actions.
             </remarks>
         </member>
-        <member name="M:MudBlazor.MudElement.CaptureRef(System.Action{Microsoft.AspNetCore.Components.ElementReference})">
-            <summary>
-            Creates a <see cref="P:MudBlazor.MudElement.RefChanged"/> callback that stores the captured reference without re-rendering the caller.
-            </summary>
-            <remarks>
-            The callback <c>@bind-Ref</c> emits is bound to the consuming component, so invoking it runs through <c>ComponentBase.HandleEventAsync</c> and calls <c>StateHasChanged</c> there.
-            Capturing an element reference is not a state change, and that extra render is a large share of the cost of building many items at once, such as opening a select with hundreds of options (#13519).
-            </remarks>
-            <param name="setter">Stores the captured reference.</param>
-        </member>
         <member name="T:MudBlazor.MudExitPrompt">
             <summary>
             Shows a confirmation dialog when the user tries to navigate away.
@@ -16885,6 +17426,8 @@
             </summary>
             <remarks>
             Defaults to <c>null</c>.  When set, overrides the <see cref="P:MudBlazor.MudExpansionPanel.Text"/> property.
+            The header is exposed as a button, so this content becomes its accessible name.
+            Put interactive controls in the panel content rather than here, since a control inside a button is not reliably reachable by assistive technology.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudExpansionPanel.Text">
@@ -17057,6 +17600,14 @@
             </summary>
             <remarks>
             Expansion panels are controlled by adding more <see cref="T:MudBlazor.MudExpansionPanel"/> components in the Razor page.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.MudExpansionPanels.RenderPanels">
+            <summary>
+            Renders every panel after a parameter that panels read from this component has changed.
+            </summary>
+            <remarks>
+            Panels read these values through a fixed cascade, so a panel without content of its own is not re-rendered when they change.
             </remarks>
         </member>
         <member name="M:MudBlazor.MudExpansionPanels.UpdateAllAsync">
@@ -17320,7 +17871,7 @@
         </member>
         <member name="P:MudBlazor.MudFileUpload`1.SuppressOnChangeWhenInvalid">
             <summary>
-            Prevents raising <see cref="P:MudBlazor.MudFileUpload`1.OnFilesChanged"/> when validation fails during an upload.
+            Prevents raising <see cref="P:MudBlazor.MudFileUpload`1.OnFilesChanged"/> and <see cref="P:MudBlazor.MudFileUpload`1.OnFolderFilesChanged"/> when validation fails during an upload.
             </summary>
             <remarks>
             Defaults to <c>false</c>.
@@ -17380,6 +17931,8 @@
             </summary>
             <remarks>
             Defaults to <c>10</c>.  This does not limit the total number of files; enforce overall limits in <see cref="P:MudBlazor.MudFileUpload`1.FilesChanged"/>.
+            A larger selection is rejected with a validation error.
+            With <see cref="P:MudBlazor.MudFileUpload`1.AppendMultipleFiles"/>, the files already selected are kept; otherwise the selection is cleared.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudFileUpload`1.MaxFileSize">
@@ -17396,6 +17949,30 @@
             </summary>
             <remarks>
             Defaults to <c>false</c>.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.MudFileUpload`1.Folder">
+            <summary>
+            Selects a whole folder, including its subfolders, instead of individual files.
+            </summary>
+            <remarks>
+            Defaults to <c>false</c>.
+            Only applies when <c>T</c> is <see cref="T:System.Collections.Generic.IReadOnlyList`1">IReadOnlyList&lt;IBrowserFile&gt;</see>.
+            Browsers ignore <see cref="P:MudBlazor.MudFileUpload`1.Accept"/> in folder mode, so every file in the folder is selected.
+            <see cref="P:MudBlazor.MudFileUpload`1.MaximumFileCount"/> counts every file in the folder and its subfolders, so raise it to fit the folders you expect.
+            Use <see cref="P:MudBlazor.MudFileUpload`1.OnFolderFilesChanged"/> to get each file's path within the folder.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.MudFileUpload`1.OnFolderFilesChanged">
+            <summary>
+            Occurs when the user selects or drops a folder, with each accepted file and its path relative to the selected folder.
+            </summary>
+            <remarks>
+            Only raised when <see cref="P:MudBlazor.MudFileUpload`1.Folder"/> applies.
+            Like <see cref="P:MudBlazor.MudFileUpload`1.OnFilesChanged"/>, it reports each selection on its own: it isn't raised when files are cleared or removed, and with <see cref="P:MudBlazor.MudFileUpload`1.AppendMultipleFiles"/> it reports only the new files.
+            Use <see cref="P:MudBlazor.MudFileUpload`1.Files"/> for the current selection.
+            Files rejected by validation are left out, and an empty list means none were accepted.
+            Not raised when <see cref="P:MudBlazor.MudFileUpload`1.SuppressOnChangeWhenInvalid"/> is <c>true</c> and validation fails.
             </remarks>
         </member>
         <member name="M:MudBlazor.MudFileUpload`1.GetFilenames">
@@ -17444,6 +18021,31 @@
         </member>
         <member name="M:MudBlazor.MudFileUpload`1.ResetValidationAsync">
             <inheritdoc />
+        </member>
+        <member name="T:MudBlazor.MudFileWithFolderPath">
+            <summary>
+            A file from a folder selection, paired with its path relative to the selected folder.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudFileWithFolderPath.#ctor(Microsoft.AspNetCore.Components.Forms.IBrowserFile,System.String)">
+            <summary>
+            Creates a new instance.
+            </summary>
+            <param name="file">The selected file.</param>
+            <param name="relativePath">The file's path relative to the selected folder.</param>
+        </member>
+        <member name="P:MudBlazor.MudFileWithFolderPath.File">
+            <summary>
+            The selected file.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudFileWithFolderPath.RelativePath">
+            <summary>
+            The file's path relative to the selected folder, including the folder name, such as <c>Photos/2024/beach.jpg</c>.
+            </summary>
+            <remarks>
+            Empty when the browser didn't provide the path.
+            </remarks>
         </member>
         <member name="T:MudBlazor.MudFocusTrap">
             <summary>
@@ -17577,8 +18179,12 @@
         </member>
         <member name="P:MudBlazor.MudForm.OnEnterPressed">
             <summary>
-            Occurs when <c>Enter</c> is pressed on any child input of this form.
+            Occurs when <c>Enter</c> is released after being pressed on any child input of this form.
             </summary>
+            <remarks>
+            A value that an input commits synchronously on <c>change</c> is already applied when this occurs.
+            A commit that is still awaiting an asynchronous callback, such as <c>TextChanged</c>, is not.
+            </remarks>
         </member>
         <member name="P:MudBlazor.MudForm.Validation">
             <summary>
@@ -17884,7 +18490,7 @@
         <member name="M:MudBlazor.Components.Highlighter.Splitter.HtmlTagMatcher">
             <remarks>
             Pattern:<br/>
-            <code>(&lt;\\s*/?\\s*\\w+[^&gt;]*?/?&gt;)</code><br/>
+            <code>(&lt;\s*/?\s*\w+[^&gt;]*?/?&gt;)</code><br/>
             Options:<br/>
             <code>RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline</code><br/>
             Explanation:<br/>
@@ -17904,7 +18510,7 @@
         <member name="M:MudBlazor.Components.Highlighter.Splitter.HtmlTagParser">
             <remarks>
             Pattern:<br/>
-            <code>^&lt;\\s*(/)?\\s*(\\w+)[^&gt;]*?(\\/)?\\s*&gt;$</code><br/>
+            <code>^&lt;\s*(/)?\s*(\w+)[^&gt;]*?(\/)?\s*&gt;$</code><br/>
             Options:<br/>
             <code>RegexOptions.IgnoreCase | RegexOptions.Compiled</code><br/>
             Explanation:<br/>
@@ -18390,6 +18996,19 @@
             Every consumer-supplied attribute must move there — event handlers such as <c>@onfocus</c>, <c>data-*</c>, and accessibility attributes alike — or it silently stops working once a value is selected.
             The hidden input can no longer fire them, so forwarding them here does not double up.
             Caller-provided <c>UserAttributes</c> take precedence over the computed accessibility fallbacks. Returns <c>null</c> for every other render so the always-emitted (but hidden) presenter <c>div</c> does not get spurious attributes or allocate on the common input path.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.MudInput`1.GetInputElementUserAttributes">
+            <summary>
+            Builds the attributes splatted onto the <c>&lt;input&gt;</c> element.
+            </summary>
+            <remarks>
+            Returns <c>UserAttributes</c> unchanged for every render except hidden-input rendering with child content.
+            In that render <see cref="M:MudBlazor.MudInput`1.GetDisplayUserAttributes"/> already moves the consumer attributes to the focusable display element.
+            Splatting them onto the hidden input as well would duplicate selectors such as <c>data-testid</c> across two elements.
+            The hidden input keeps only <c>id</c>, <c>name</c>, and <c>form</c>.
+            It is still the element that posts the value in a native form, so it needs <c>name</c> and <c>form</c>.
+            The explicit <c>id</c> attribute after the splat takes precedence, so keeping <c>id</c> here only preserves the previous attribute set.
             </remarks>
         </member>
         <member name="M:MudBlazor.MudInput`1.ShowClearButton">
@@ -18957,6 +19576,14 @@
             <seealso cref="T:MudBlazor.MudListItem`1"/>
             <seealso cref="T:MudBlazor.MudListSubheader"/>
         </member>
+        <member name="P:MudBlazor.MudList`1.IsTree">
+            <summary>
+            Whether this list uses tree semantics because a top-level item owns a nested list.
+            </summary>
+            <remarks>
+            An option allows no <c>aria-expanded</c> and a listbox allows no nested listbox, so expandable items need the tree pattern (#13981).
+            </remarks>
+        </member>
         <member name="P:MudBlazor.MudList`1.HasSingleSelection">
             <summary>
             Whether a single selection actually exists, as opposed to <see cref="P:MudBlazor.MudList`1.SelectedValue"/> merely sitting at its default.
@@ -19107,6 +19734,14 @@
             Called when the SelectedValues parameter was changed outside the component
             </summary>
         </member>
+        <member name="M:MudBlazor.MudList`1.SetOwnsNestedList(MudBlazor.MudListItem{`0},System.Boolean)">
+            <summary>
+            Records whether a top-level item owns a nested list, which decides <see cref="P:MudBlazor.MudList`1.IsTree"/>.
+            </summary>
+            <remarks>
+            Items report this from <c>OnParametersSet</c>, so a <see cref="P:MudBlazor.MudListItem`1.NestedList"/> that appears or goes away later is tracked too.
+            </remarks>
+        </member>
         <member name="M:MudBlazor.MudList`1.UpdateSelectedItem(`0)">
             <summary>
             Updates items and child lists with the current single selection
@@ -19122,7 +19757,7 @@
             Builds fallback accessibility attributes for the list container.
             </summary>
             <remarks>
-            <see cref="T:MudBlazor.MudList`1"/> derives its container semantics from its selection behavior.
+            <see cref="T:MudBlazor.MudList`1"/> derives its container semantics from its selection behavior and nesting.
             </remarks>
         </member>
         <member name="M:MudBlazor.MudList`1.Dispose">
@@ -19320,6 +19955,15 @@
             When <see cref="P:MudBlazor.MudListItem`1.OnClickPreventDefault"/> is set the link should not be followed thus it is rendered as div
             </summary>
         </member>
+        <member name="M:MudBlazor.MudListItem`1.OpenRow(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder)">
+            <summary>
+            Opens the row element with its attributes; the Razor file renders the content and closes it.
+            </summary>
+            <remarks>
+            The tag is chosen at runtime, so the element is opened by name rather than written as markup.
+            class and style come before the splat so a class or style supplied through <see cref="P:MudBlazor.MudComponentBase.UserAttributes"/> still wins, which is the precedence the MudElement boundary gave them.
+            </remarks>
+        </member>
         <member name="T:MudBlazor.MudListSubheader">
             <summary>
             A header displayed as part of a <see cref="T:MudBlazor.MudList`1"/>.
@@ -19444,6 +20088,11 @@
             </summary>
             <param name="start">The index of the first selected character.</param>
             <param name="end">The index of the last selected character.</param>
+        </member>
+        <member name="M:MudBlazor.MudMask.CallOnBlurredAsync">
+            <summary>
+            Called from JS when the input lost focus without Blazor observing the native blur event.
+            </summary>
         </member>
         <member name="M:MudBlazor.MudMask.DisposeAsyncCore">
             <inheritdoc />
@@ -20105,6 +20754,15 @@
             Hides the submenu arrow if the item is being populated from the activator content.
             </summary>
         </member>
+        <member name="M:MudBlazor.MudMenuItem.OpenRow(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder)">
+            <summary>
+            Opens the row element with its attributes; the Razor file renders the content and closes it.
+            </summary>
+            <remarks>
+            The tag is chosen at runtime, so the element is opened by name rather than written as markup.
+            class and style come before the splat so a class or style supplied through <see cref="P:MudBlazor.MudComponentBase.UserAttributes"/> still wins, which is the precedence the MudElement boundary gave them.
+            </remarks>
+        </member>
         <member name="P:MudBlazor.MudMenuItem.RightToLeft">
             <summary>
             Enables right-to-left layout.
@@ -20247,6 +20905,226 @@
         <member name="M:MudBlazor.MudMessageBox.Close">
             <summary>
             Hides this message box.
+            </summary>
+        </member>
+        <member name="T:MudBlazor.MudNavigationBar">
+            <summary>
+            Represents a navigation bar component that allows for navigation between different sections of the application.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBar.SelectedClass">
+            <summary>
+            The CSS classes that applies on selected items if set.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBar.FabClass">
+            <summary>
+            Additional CSS classes applied to the floating action button container.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBar.Ripple">
+            <summary>
+            Shows a ripple effect when the user clicks on the navigation item.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBar.Hover">
+            <summary>
+            If true, changes background color slightly on hover.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBar.Underline">
+            <summary>
+            Whether to underline the selected navigation item.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBar.Dense">
+            <summary>
+            If true, the navigation bar will have less height.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBar.Color">
+            <summary>
+            The color of the selected navigation item.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBar.Typo">
+            <summary>
+            The typography option of the item text.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBar.CustomHrefComparisonFunc">
+            <summary>
+            Determines whether the current location matches an item's Href.
+            </summary>
+            <remarks>
+            The first argument is the base-relative location, including its query string and fragment. The second argument is the item's Href.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBar.OnSelectionChange">
+            <summary>
+            Fires when the navigation item changes.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBar.ChildContent">
+            <summary>
+            Custom content to be rendered inside the navigation bar.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBar.FabContent">
+            <summary>
+            Custom content to be rendered as primary action right next to navigation bar.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudNavigationBar.DisposeAsync">
+            <summary>
+            Releases resources used by this component.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudNavigationBar.NavigateAdjacentAsync(System.Int32)">
+            <summary>
+            Navigates to an adjacent enabled navigation item.
+            </summary>
+            <param name="adjacentValue">
+            The relative offset from the currently selected item.
+            A positive value moves forward; a negative value moves backward.
+            </param>
+        </member>
+        <member name="M:MudBlazor.MudNavigationBar.GetSelectedItemId">
+            <summary>
+            Returns the Id (Text if id is null) of the selected item.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MudBlazor.MudNavigationBar.ResetAsync">
+            <summary>
+            Clears the selection.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MudBlazor.MudNavigationBar.FocusAsync">
+            <summary>
+            Obtains focus for component.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudNavigationBar.BlurAsync">
+            <summary>
+            Obtains blur for component.
+            </summary>
+        </member>
+        <member name="T:MudBlazor.MudNavigationBarItem">
+            <summary>
+            Represents a navigation item within a navigation bar.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBarItem.BadgeParameters">
+            <summary>
+            The grouped parameter that contains the badge parameters.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBarItem.Parent">
+            <summary>
+            The navigation bar containing this item.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBarItem.SelectedClass">
+            <summary>
+            The CSS classes that applies on selected items if set.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBarItem.ChildContent">
+            <summary>
+            The custom content displayed inside the navigation item.
+            </summary>
+            <remarks>
+            When <see cref="P:MudBlazor.MudNavigationBarItem.Href"/> is not set, custom content is rendered inside a non-interactive container, allowing interactive child components.
+            When <see cref="P:MudBlazor.MudNavigationBarItem.Href"/> is set, the item renders as a native link; avoid nesting buttons, links, or other interactive elements.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBarItem.Disabled">
+            <summary>
+            If true, the navigation item will be disabled and not clickable or selectable.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBarItem.Icon">
+            <summary>
+            The icon to display in the navigation item.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBarItem.Text">
+            <summary>
+            The text displayed for the navigation item.
+            </summary>
+            <remarks>
+            For icon-only items, provide an accessible name using <c>aria-label</c> or <c>aria-labelledby</c>.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBarItem.Id">
+            <summary>
+            The id of the navigation item. Used for identify to the selected item. If not set, the Text property will be used instead.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBarItem.Href">
+            <summary>
+            The navigation item href. If set, the navigation item will be treated as a link and will navigate to the specified href when clicked.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavigationBarItem.OnClick">
+            <summary>
+            Fires when the navigation item is clicked.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudNavigationBarItem.DisposeAsync">
+            <summary>
+            Releases resources used by this component.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudNavigationBarItem.FocusAsync">
+            <summary>
+            Obtains focus for component.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudNavigationBarItem.BlurAsync">
+            <summary>
+            Obtains blur for component.
+            </summary>
+        </member>
+        <member name="T:MudBlazor.NavigationBarBadgeParameters">
+            <summary>
+            Defines badge settings for a navigation bar item.
+            </summary>
+            <remarks>
+            By default, badges overlap their content and use the Error color.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.NavigationBarBadgeParameters.Dot">
+            <summary>
+            Shows the badge as a dot.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.NavigationBarBadgeParameters.Content">
+            <summary>
+            The content displayed by the badge.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.NavigationBarBadgeParameters.Overlap">
+            <summary>
+            Places the badge over its content.
+            </summary>
+            <remarks>
+            Defaults to <c>true</c>.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.NavigationBarBadgeParameters.Color">
+            <summary>
+            The color of the badge.
+            </summary>
+            <remarks>
+            Defaults to <see cref="F:MudBlazor.Color.Error"/>.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.NavigationBarBadgeParameters.#ctor">
+            <summary>
+            Creates badge settings with the default values.
             </summary>
         </member>
         <member name="T:MudBlazor.MudNavGroup">
@@ -20439,6 +21317,14 @@
             <summary>
             The URL to navigate to when this link is clicked.
             </summary>
+        </member>
+        <member name="P:MudBlazor.MudNavLink.RelativeToCurrentUri">
+            <summary>
+            Resolves a relative <see cref="P:MudBlazor.MudNavLink.Href"/> against the current page instead of the app's base path.
+            </summary>
+            <remarks>
+            Defaults to <c>false</c>. Available on .NET 11 and later.
+            </remarks>
         </member>
         <member name="P:MudBlazor.MudNavLink.ForceLoad">
             <summary>
@@ -22006,7 +22892,7 @@
             The size of this component.
             </summary>
             <remarks>
-            Defaults to <see cref="F:MudBlazor.Size.Medium"/>.
+            Defaults to <see cref="F:MudBlazor.Size.Small"/>.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudProgressLinear.Indeterminate">
@@ -22127,6 +23013,24 @@
             <seealso cref="T:MudBlazor.MudCheckBox`1" />
             <seealso cref="T:MudBlazor.MudRadioGroup`1" />
             <seealso cref="T:MudBlazor.MudSwitch`1"/>
+        </member>
+        <member name="P:MudBlazor.MudRadio`1.GroupName">
+            <summary>
+            The <c>name</c> shared by every radio in the parent group.
+            </summary>
+            <remarks>
+            Pushed by the group rather than read off it, so a radio re-renders when it changes without the group having to notify every radio on every render.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.MudRadio`1.GroupHasErrors">
+            <summary>
+            Whether the parent group is showing a validation error.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudRadio`1.GroupErrorId">
+            <summary>
+            The id of the parent group's error text, used to describe each radio.
+            </summary>
         </member>
         <member name="P:MudBlazor.MudRadio`1.IMudRadioGroup">
             <summary>
@@ -22525,9 +23429,6 @@
             <summary>
             The content within this component.
             </summary>
-        </member>
-        <member name="M:MudBlazor.MudRTLProvider.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder)">
-            <inheritdoc />
         </member>
         <member name="T:MudBlazor.MudScrollToTop">
             <summary>
@@ -23076,6 +23977,9 @@
             Internal method for the context to access the current selected values.
             </summary>
         </member>
+        <member name="M:MudBlazor.MudSelect`1.SetParametersAsync(Microsoft.AspNetCore.Components.ParameterView)">
+            <inheritdoc />
+        </member>
         <member name="M:MudBlazor.MudSelect`1.GetModal">
             <summary>
             Gets the resolved modal overlay value, using the global default from <see cref="T:MudBlazor.PopoverOptions"/> if not explicitly set.
@@ -23144,6 +24048,16 @@
             Gets whether multi-selection is enabled.
             </summary>
         </member>
+        <member name="P:MudBlazor.MudSelectContext`1.CheckedIcon">
+            <summary>
+            Gets the icon for selected items when multi-selection is enabled.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudSelectContext`1.UncheckedIcon">
+            <summary>
+            Gets the icon for unselected items when multi-selection is enabled.
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudSelectContext`1.SelectedValues">
             <summary>
             Gets the current selected values.
@@ -23160,6 +24074,13 @@
             </summary>
             <param name="item">The item to register.</param>
             <returns><c>true</c> if the item is currently selected; otherwise <c>false</c>.</returns>
+        </member>
+        <member name="M:MudBlazor.MudSelectContext`1.IsItemSelected(MudBlazor.MudSelectItem{`0})">
+            <summary>
+            Check if this item's value is currently selected using the select comparer if specified
+            </summary>
+            <param name="item">The item to check</param>
+            <returns></returns>
         </member>
         <member name="M:MudBlazor.MudSelectContext`1.UnregisterItem(MudBlazor.MudSelectItem{`0})">
             <summary>
@@ -23325,7 +24246,7 @@
             The icon to display whether this item is selected.
             </summary>
             <remarks>
-            When <see cref="P:MudBlazor.MudSelectItem`1.Selected"/> is <c>true</c>, <see cref="F:MudBlazor.Icons.Material.Filled.CheckBox"/> is returned.  Otherwise, <see cref="F:MudBlazor.Icons.Material.Filled.CheckBoxOutlineBlank"/>.
+            When <see cref="P:MudBlazor.MudSelectItem`1.Selected"/> is <c>true</c>, the parent's <see cref="P:MudBlazor.MudSelect`1.CheckedIcon"/> is returned.  Otherwise, its <see cref="P:MudBlazor.MudSelect`1.UncheckedIcon"/>.
             </remarks>
         </member>
         <member name="M:MudBlazor.MudSelectItem`1.OnMudShadowSelectChanged(MudBlazor.State.ParameterChangedEventArgs{MudBlazor.IMudShadowSelect})">
@@ -23981,7 +24902,7 @@
             The custom icon to display for the snackbar.
             </summary>
             <remarks>
-            Defaults to <c>null</c>.  Will be set to match the <see cref="P:MudBlazor.SnackbarOptions.Severity"/>.
+            Defaults to the icon matching the <see cref="P:MudBlazor.SnackbarOptions.Severity"/>.  Setting this to <c>null</c> restores that default.  Use <see cref="P:MudBlazor.CommonSnackbarOptions.HideIcon"/> to hide the icon.
             </remarks>
         </member>
         <member name="P:MudBlazor.SnackbarOptions.IconColor">
@@ -24168,6 +25089,10 @@
             <summary>
             Resets the divider position to its initial value.
             </summary>
+            <remarks>
+            Calls made before the panel is ready, such as from a parent's first <c>OnAfterRenderAsync</c>, are applied once it is.
+            Only the last of those reset or set calls takes effect.
+            </remarks>
         </member>
         <member name="M:MudBlazor.MudSplitPanel.SetDividerPositionAsync(System.Int32)">
             <summary>
@@ -24175,6 +25100,8 @@
             </summary>
             <remarks>
             Note that this function ignores <see cref="P:MudBlazor.MudSplitPanel.MinPanelSize"/>.
+            Calls made before the panel is ready, such as from a parent's first <c>OnAfterRenderAsync</c>, are applied once it is.
+            Only the last of those reset or set calls takes effect.
             </remarks>
             <param name="offset">The offset in pixels from the left or top border.</param>
         </member>
@@ -24740,7 +25667,7 @@
             Displays a ripple effect when a step is clicked.
             </summary>
             <remarks>
-            Defaults to <c>false</c>.  Only applies when <see cref="P:MudBlazor.MudStepper.NonLinear"/> is <c>true</c>.
+            Defaults to <c>true</c>.  Only applies when <see cref="P:MudBlazor.MudStepper.NonLinear"/> is <c>true</c>.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudStepper.ShowSkip">
@@ -25269,6 +26196,29 @@
             The current item and row index are provided to the function.
             </remarks>
         </member>
+        <member name="P:MudBlazor.MudTable`1.RowHref">
+            <summary>
+            The function which returns the URL a row links to.
+            </summary>
+            <remarks>
+            Defaults to <c>null</c>.
+            When the function returns a URL, the first cell of the row renders a link that covers the whole row, so the browser handles navigation, opening in a new tab (Ctrl/Cmd+click or middle click) and copying the link.
+            The link is named after the first cell's content.
+            Return <c>null</c> to keep a row unlinked.
+            <see cref="P:MudBlazor.MudTable`1.OnRowClick"/> is still raised when a linked row is clicked.
+            Use <see cref="P:MudBlazor.MudTable`1.RowTarget"/> to control where the URL is opened.
+            No link is rendered for disabled rows, the row being edited, or when a row click already edits or selects the row (<see cref="P:MudBlazor.MudTable`1.RowEditingTemplate"/> with <see cref="F:MudBlazor.TableEditTrigger.RowClick"/>, or <see cref="P:MudBlazor.MudTableBase.MultiSelection"/> with <see cref="P:MudBlazor.MudTableBase.SelectOnRowClick"/>).
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.MudTable`1.RowTarget">
+            <summary>
+            The target to open row URLs in when <see cref="P:MudBlazor.MudTable`1.RowHref"/> is set.
+            </summary>
+            <remarks>
+            Defaults to <c>null</c>, which opens the URL in the current tab.
+            <c>_blank</c> adds <c>rel="noopener"</c>.
+            </remarks>
+        </member>
         <member name="P:MudBlazor.MudTable`1.SelectedItem">
             <summary>
             The currently selected item when <c>MultiSelection</c> is <c>false</c>.
@@ -25541,7 +26491,7 @@
             Shows borders around the table.
             </summary>
             <remarks>
-            Defaults to <c>true</c>.
+            Defaults to <c>false</c>.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudTableBase.Bordered">
@@ -25634,7 +26584,10 @@
             The maximum rows to display per page.
             </summary>
             <remarks>
-            Defaults to <c>null</c>.  When set, rows beyond this number will overflow into separate pages.  Requires a <see cref="T:MudBlazor.MudTablePager"/> in the <see cref="P:MudBlazor.MudTableBase.PagerContent"/>.
+            Defaults to <c>10</c> before pager initialization.
+            If no page size has been set, <see cref="T:MudBlazor.MudTablePager"/> initializes it from the first <see cref="P:MudBlazor.MudTablePager.PageSizeOptions"/> entry, or <c>0</c> when the list is empty.
+            When set, rows beyond this number will overflow into separate pages.
+            Requires a <see cref="T:MudBlazor.MudTablePager"/> in the <see cref="P:MudBlazor.MudTableBase.PagerContent"/>.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudTableBase.RowsPerPageChanged">
@@ -26410,6 +27363,16 @@
             The current state of the <see cref="T:MudBlazor.MudTable`1"/> containing this group.
             </summary>
         </member>
+        <member name="P:MudBlazor.MudTd.Row">
+            <summary>
+            The data row containing this cell, when it is a cell of a <see cref="T:MudBlazor.MudTr"/>.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.MudTd.LinkLabelId">
+            <summary>
+            The id of this cell, which the row link uses as its accessible name.
+            </summary>
+        </member>
         <member name="P:MudBlazor.MudTd.ChildContent">
             <summary>
             The content within this cell.
@@ -26705,6 +27668,31 @@
         <member name="P:MudBlazor.MudTr.Checked">
             <summary>
             The state of the checkbox when <see cref="P:MudBlazor.MudTr.Checkable"/> is <c>true</c>.
+            </summary>
+        </member>
+        <member name="T:MudBlazor.MudTr.RowLink">
+            <summary>
+            A row link: the URL from <see cref="P:MudBlazor.MudTable`1.RowHref"/> and the target from <see cref="P:MudBlazor.MudTable`1.RowTarget"/>.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudTr.RowLink.#ctor(System.String,System.String)">
+            <summary>
+            A row link: the URL from <see cref="P:MudBlazor.MudTable`1.RowHref"/> and the target from <see cref="P:MudBlazor.MudTable`1.RowTarget"/>.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudTr.ResolveLink">
+            <summary>
+            Works out this row's link for the current render and lets the first cell rendered claim it.
+            </summary>
+            <remarks>
+            No link while the row is disabled or being edited, so it never covers inputs or disabled content.
+            No link either when a row click already edits or selects the row, so a click never does both and navigates away.
+            Clearing the claim on every render keeps the link on the leftmost cell when columns are hidden or shown again.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.MudTr.ClaimLink(MudBlazor.MudTd)">
+            <summary>
+            Returns the row link when <paramref name="cell"/> is the first cell rendered in this row, so the row renders one link.
             </summary>
         </member>
         <member name="M:MudBlazor.MudTr.OnRowClickedAsync(Microsoft.AspNetCore.Components.Web.MouseEventArgs)">
@@ -27035,6 +28023,14 @@
             <summary>
             The label for this group.
             </summary>
+        </member>
+        <member name="P:MudBlazor.TableGroupDefinition`1.GroupHeaderClass">
+            <summary>
+            The CSS classes applied to the header row of this group.
+            </summary>
+            <remarks>
+            Applies only to this grouping level.  Nested groups use their own <see cref="P:MudBlazor.TableGroupDefinition`1.GroupHeaderClass"/> value.
+            </remarks>
         </member>
         <member name="P:MudBlazor.TableGroupDefinition`1.Selector">
             <summary>
@@ -28017,7 +29013,7 @@
         </member>
         <member name="M:MudBlazor.MudTabs.ScrollBy(System.Boolean)">
             <summary>
-            Scroll by page; isNext is true to scroll forward (right or down), false to scroll backward (left or up), depending on tab orientation.
+            Scroll by page; isNext is true to scroll toward the last panel, false toward the first, whatever the tab orientation or text direction.
             </summary>
         </member>
         <member name="M:MudBlazor.MudTabs.HandleTabKeyDownAsync(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs,MudBlazor.MudTabPanel)">
@@ -29086,10 +30082,13 @@
         </member>
         <member name="P:MudBlazor.MudTooltip.ShowOnFocus">
             <summary>
-            Shows this tooltip when its content is focused.
+            Shows this tooltip when its content receives keyboard focus.
             </summary>
             <remarks>
             Defaults to <c>true</c>.
+            Only keyboard focus opens this tooltip, such as focus moved with the Tab key.
+            A click or tap, including on a text input, does not open it, and neither does focus that returns after a pointer action, such as switching back to the browser tab or closing a dialog.
+            To show this tooltip from code, set <see cref="P:MudBlazor.MudTooltip.Visible"/> instead of focusing its content.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudTooltip.ShowOnClick">
@@ -29137,9 +30136,11 @@
         </member>
         <member name="T:MudBlazor.MudTooltipChildContainer">
             <summary>
-            This component is used to prevent re-rendering of the child content when the tooltip's internal state changes.
-            It only re-renders when the parent component of the tooltip re-renders (signaled by UpdateCount).
+            Renders its child content only when <see cref="P:MudBlazor.MudTooltipChildContainer.UpdateCount"/> changes, so a host's internal state changes do not rebuild that content.
             </summary>
+            <remarks>
+            <see cref="T:MudBlazor.MudTooltip"/> and <see cref="T:MudBlazor.MudSelect`1"/> increment the count when their own parent renders them.
+            </remarks>
         </member>
         <member name="P:MudBlazor.MudTooltipChildContainer.ChildContent">
             <summary>
@@ -29298,6 +30299,42 @@
             Defaults to <c>false</c>.
             </remarks>
         </member>
+        <member name="P:MudBlazor.MudTreeView`1.Virtualize">
+            <summary>
+            Renders only visible items instead of all items.
+            </summary>
+            <remarks>
+            Defaults to <c>false</c>.  Only works when <see cref="P:MudBlazor.MudTreeView`1.Height"/> or <see cref="P:MudBlazor.MudTreeView`1.MaxHeight"/> is set, and <see cref="P:MudBlazor.MudTreeView`1.Items"/> and <see cref="P:MudBlazor.MudTreeView`1.ItemTemplate"/> are used.  This feature can improve performance for large data sets.
+            The item template must bind <see cref="P:MudBlazor.MudTreeViewItem`1.Expanded"/> and <see cref="P:MudBlazor.MudTreeViewItem`1.Selected"/> to the backing item, and child items must come from <see cref="P:MudBlazor.TreeItemData`1.Children"/>.
+            Items which are not rendered follow <see cref="P:MudBlazor.ITreeItemData`1.Expandable"/>, so bind <see cref="P:MudBlazor.MudTreeViewItem`1.CanExpand"/> to it when customizing expansion permissions.
+            All virtualized rows have the same fixed height, controlled by <see cref="P:MudBlazor.MudTreeView`1.ItemSize"/>. Labels are truncated, and custom content must fit within the configured height for accurate scrolling.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.MudTreeView`1.OverscanCount">
+            <summary>
+            The number of additional items rendered outside the visible region when <see cref="P:MudBlazor.MudTreeView`1.Virtualize"/> is <c>true</c>.
+            </summary>
+            <remarks>
+            Defaults to <c>3</c>.  This value can reduce the amount of rendering during scrolling, but higher values can affect performance.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.MudTreeView`1.ItemSize">
+            <summary>
+            The height of each item, in pixels, when <see cref="P:MudBlazor.MudTreeView`1.Virtualize"/> is <c>true</c>.
+            </summary>
+            <remarks>
+            Defaults to <c>0</c>, which uses <c>40</c>, or <c>26</c> when <see cref="P:MudBlazor.MudTreeView`1.Dense"/> is <c>true</c>.
+            Sets both the rendered row height and the virtualizer's item size. Custom content must fit within this height; increase it for taller content.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.MudTreeView`1.MaxItemCount">
+            <summary>
+            The maximum number of items rendered when <see cref="P:MudBlazor.MudTreeView`1.Virtualize"/> is <c>true</c>.
+            </summary>
+            <remarks>
+            Defaults to <see cref="F:System.Int32.MaxValue"/>.  Only applies on .NET 9 and later.
+            </remarks>
+        </member>
         <member name="P:MudBlazor.MudTreeView`1.Height">
             <summary>
             Sets a fixed height.
@@ -29402,6 +30439,7 @@
             <remarks>
             When set, the function will be called to load the children of a parent item.
             When the parent node is <c>null</c>, top-level items should be returned.
+            When items come from <see cref="P:MudBlazor.MudTreeView`1.Items"/> and <see cref="P:MudBlazor.MudTreeView`1.ItemTemplate"/>, the loaded children are also written to the parent's <see cref="P:MudBlazor.TreeItemData`1.Children"/>.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudTreeView`1.ReadOnly">
@@ -29436,6 +30474,9 @@
             <remarks>
             Defaults to <see cref="F:MudBlazor.Icons.Material.Filled.IndeterminateCheckBox"/>. Only applies when <see cref="P:MudBlazor.MudTreeView`1.TriState"/> is <c>true</c>.
             </remarks>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.OnParametersSet">
+            <inheritdoc />
         </member>
         <member name="M:MudBlazor.MudTreeView`1.OnAfterRenderAsync(System.Boolean)">
             <inheritdoc />
@@ -29479,11 +30520,70 @@
             MultiSelection: SelectedValues was updated via binding
             </summary>
         </member>
+        <member name="M:MudBlazor.MudTreeView`1.GetVirtualizeAttributes">
+            <summary>
+            The attributes splatted onto the virtualizer, which carry <see cref="P:MudBlazor.MudTreeView`1.MaxItemCount"/> on .NET 9 and later.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.EnsureProjection">
+            <summary>
+            Rebuilds the flattened rows and the selection projection when the backing data changed since the last build.
+            </summary>
+            <remarks>
+            Rebuilding is deferred until the rows are needed, so that several changes made during one operation are projected once.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.LogConflictingExpansionPermission">
+            <summary>
+            Logs once that a row's <see cref="P:MudBlazor.MudTreeViewItem`1.CanExpand"/> disagrees with its backing <see cref="P:MudBlazor.ITreeItemData`1.Expandable"/>.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.GetRows">
+            <summary>
+            Returns the flattened visible rows rendered by the virtualized tree.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.ToggleProjection(MudBlazor.TreeViewItemContext{`0},System.Boolean)">
+            <summary>
+            Applies an item's expansion change to the projection, splicing only the rows below the toggled row when the projection is current.
+            </summary>
+            <param name="row">The row context of the toggled item, which is null when the item is not rendered by the virtualizer.</param>
+            <param name="expanded">The expansion state the item moved to.</param>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.RefreshProjection(System.Boolean)">
+            <summary>
+            Marks the projection stale and re-renders the tree.
+            </summary>
+            <param name="alwaysRender">Whether the tree re-renders even when it is not virtualized.</param>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.ResetsItemContext">
+            <summary>
+            Whether this tree hides the row context of the virtualized row it is rendered in.
+            </summary>
+            <remarks>
+            Only a virtualized tree renders rows, and a tree inside one of its rows is nested in it, so other trees have no row context to hide.
+            </remarks>
+        </member>
         <member name="M:MudBlazor.MudTreeView`1.UpdateParentItem(MudBlazor.MudTreeViewItem{`0})">
             <summary>
             This changes the parent item's state based on the selection state of its children in multi-selection mode
             But only if the items are clicked, not when the selection is modified via SelectedValues
             </summary>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.SetVirtualizedSelection(`0,System.Boolean)">
+            <summary>
+            Applies a single value's selection change to the projection of a virtualized tree.
+            </summary>
+            <returns>Whether <see cref="P:MudBlazor.MudTreeView`1.AutoExpand"/> expanded an ancestor, which requires re-projecting the rows.</returns>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.ApplyVirtualizedSelection(System.Collections.Generic.IReadOnlyCollection{`0})">
+            <summary>
+            Changes the selection of a virtualized tree's projection to the specified values.
+            </summary>
+            <remarks>
+            The projection keeps its own record of what it selected, because a parameter change handler already sees the new selected value.
+            </remarks>
+            <returns>Whether <see cref="P:MudBlazor.MudTreeView`1.AutoExpand"/> expanded an ancestor, which requires re-projecting the rows.</returns>
         </member>
         <member name="M:MudBlazor.MudTreeView`1.SetSelectedValueAsync(`0)">
              <summary>
@@ -29500,12 +30600,39 @@
             Discard any values which are not represented by child values.
              </summary>
         </member>
-        <member name="M:MudBlazor.MudTreeView`1.UpdateItemsAsync(System.Boolean)">
+        <member name="M:MudBlazor.MudTreeView`1.UpdateItemsAsync(System.Boolean,System.Boolean)">
             <summary>
             Let the items update their selection state visualization and state according to
             the selection in the tree view
             </summary>
+            <param name="synchronizeVirtualized">Whether the backing items of a virtualized tree are synchronized with the selection first.</param>
             <param name="forceRender">Renders every item regardless of whether its state changed.</param>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.ReconcileVirtualizedSelectionAsync">
+            <summary>
+            Applies backing <see cref="P:MudBlazor.ITreeItemData`1.Selected"/> changes made outside the tree to the selected values.
+            </summary>
+            <returns>The reconciled selection and whether the selected values or the backing items changed.</returns>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.ExpandAncestors(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Expands the ancestors of newly selected values in a virtualized tree when <see cref="P:MudBlazor.MudTreeView`1.AutoExpand"/> is set.
+            </summary>
+            <remarks>
+            Only newly selected values are passed in, matching a standard tree which expands an item when one of its descendants becomes selected.
+            </remarks>
+            <returns>Whether any expansion changed.</returns>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.Dispose">
+            <summary>
+            Marks this component as disposed so that a <see cref="P:MudBlazor.MudTreeView`1.ServerData"/> load which completes afterwards is discarded.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudTreeView`1.Dispose(System.Boolean)">
+            <summary>
+            Releases resources used by this tree.
+            </summary>
+            <param name="disposing">When <c>true</c>, managed resources should be released.</param>
         </member>
         <member name="T:MudBlazor.MudTreeViewItem`1">
             <summary>
@@ -29581,6 +30708,7 @@
             </summary>
             <remarks>
             Defaults to <c>true</c>.
+            Ignored for a row of a virtualized tree, which reads <see cref="P:MudBlazor.TreeItemData`1.Visible"/> from the backing data instead.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudTreeViewItem`1.Disabled">
@@ -29605,6 +30733,10 @@
             </summary>
             <remarks>
             Defaults to <c>true</c>. A value of <c>false</c> is typically used for lazy-loaded items via <see cref="P:MudBlazor.MudTreeView`1.ServerData" />.
+            In virtualized trees, items which are not rendered follow the backing item's <see cref="P:MudBlazor.ITreeItemData`1.Expandable"/>, so bind this parameter to it to keep both in agreement.
+            A rendered item can only be expanded from its own row when both allow it, and a disagreement is logged as a warning.
+            Tree-wide expansion through <see cref="M:MudBlazor.MudTreeView`1.ExpandAllAsync"/> and <see cref="P:MudBlazor.MudTreeView`1.AutoExpand"/> follows <see cref="P:MudBlazor.ITreeItemData`1.Expandable"/>.
+            Filtering preserves standard TreeView behavior and expands visible/matching paths.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudTreeViewItem`1.ChildContent">
@@ -29738,6 +30870,9 @@
             <summary>
             Occurs when <see cref="P:MudBlazor.MudTreeViewItem`1.Selected"/> has changed.
             </summary>
+            <remarks>
+            In a virtualized tree only rendered rows raise this event, so use <see cref="P:MudBlazor.MudTreeView`1.SelectedValuesChanged"/> for the complete selection.
+            </remarks>
         </member>
         <member name="P:MudBlazor.MudTreeViewItem`1.OnClick">
             <summary>
@@ -29747,6 +30882,19 @@
         <member name="P:MudBlazor.MudTreeViewItem`1.OnDoubleClick">
             <summary>
             Occurs when this item has been double-clicked.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.MudTreeViewItem`1.GetServerLoadEntry">
+            <summary>
+            Returns the server-load state of this item.
+            </summary>
+            <remarks>
+            Items bound to a backing data item share state through the tree so that it survives re-rendering and mode switches.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.MudTreeViewItem`1.FindServerLoadEntry">
+            <summary>
+            Returns the server-load state of this item without creating it, so rendering an item that never loaded allocates nothing.
             </summary>
         </member>
         <member name="M:MudBlazor.MudTreeViewItem`1.GetCheckBoxStateTriState">
@@ -29776,6 +30924,16 @@
             Clears the children under this item.
             </summary>
         </member>
+        <member name="M:MudBlazor.MudTreeViewItem`1.TryInvokeServerLoadFunc(System.Nullable{System.Int64})">
+            <summary>
+            Loads children through <see cref="P:MudBlazor.MudTreeView`1.ServerData"/> unless the item already has children or a load is in progress.
+            </summary>
+            <param name="reservedVersion">A generation reserved by <see cref="M:MudBlazor.MudTreeViewItem`1.ReloadAsync"/>; the load is skipped when a newer request superseded it.</param>
+            <remarks>
+            The result is written to the backing data item when there is one, so it is visible to both renderers.
+            A completion whose generation was superseded by a reload is discarded, including its failure.
+            </remarks>
+        </member>
         <member name="M:MudBlazor.MudTreeViewItem`1.UpdateSelectionStateAsync(System.Collections.Generic.HashSet{`0},System.Boolean)">
             <summary>
             Updates the selection state of all items and sub-items.
@@ -29792,6 +30950,7 @@
             The tree walks every item whenever the selection changes, and it does so once per item while the tree mounts.
             Rendering unconditionally therefore rebuilt every item twice just to mount, and rebuilt the whole tree when a single item was clicked.
             Multi-selection also renders when the tri-state checkbox no longer matches what was rendered, because that value is derived from the sub-items and can go stale without this item's own state changing.
+            A virtualized row always renders, because its selection and checkbox state come from the projection which was rebuilt for the same change.
             </remarks>
             <param name="selectedValues">The values that are currently selected.</param>
             <param name="forceRender">
@@ -29971,6 +31130,326 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:MudBlazor.TreeViewHierarchy`1">
+            <summary>
+            Traversals over a backing <see cref="T:MudBlazor.ITreeItemData`1"/> hierarchy.
+            </summary>
+            <typeparam name="T">The type of value associated with each item.</typeparam>
+            <remarks>
+            Every traversal visits each item instance once, so hierarchies which reference the same instance more than once are safe.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.TreeViewHierarchy`1.GetItemValue(MudBlazor.ITreeItemData{`0})">
+            <summary>
+            Returns the selectable value of an item, using the text as a fallback for string trees.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.TreeViewHierarchy`1.ExpandAll(System.Collections.Generic.IReadOnlyCollection{MudBlazor.ITreeItemData{`0}})">
+            <summary>
+            Expands every expandable item which has children.
+            </summary>
+            <returns>Whether any expansion changed.</returns>
+        </member>
+        <member name="M:MudBlazor.TreeViewHierarchy`1.CollapseAll(System.Collections.Generic.IReadOnlyCollection{MudBlazor.ITreeItemData{`0}})">
+            <summary>
+            Collapses every item.
+            </summary>
+            <returns>Whether any expansion changed.</returns>
+        </member>
+        <member name="M:MudBlazor.TreeViewHierarchy`1.ResetFilter(System.Collections.Generic.IReadOnlyCollection{MudBlazor.ITreeItemData{`0}})">
+            <summary>
+            Makes every item visible without changing expansion.
+            </summary>
+            <returns>Whether any visibility changed.</returns>
+        </member>
+        <member name="M:MudBlazor.TreeViewHierarchy`1.FilterAsync(System.Collections.Generic.IReadOnlyCollection{MudBlazor.ITreeItemData{`0}},System.Func{MudBlazor.ITreeItemData{`0},System.Threading.Tasks.Task{System.Boolean}})">
+            <summary>
+            Filters the hierarchy in post-order: an item is visible and expanded when it or any descendant matches.
+            </summary>
+            <returns>Whether any visibility or expansion changed.</returns>
+        </member>
+        <member name="T:MudBlazor.TreeViewItemContext`1">
+            <summary>
+            Represents a visible row in a flattened <see cref="T:MudBlazor.MudTreeView`1"/>.
+            </summary>
+            <typeparam name="T">The type of value associated with each item.</typeparam>
+        </member>
+        <member name="P:MudBlazor.TreeViewItemContext`1.Item">
+            <summary>
+            The tree item being displayed.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewItemContext`1.Depth">
+            <summary>
+            The zero-based depth of this row in the tree.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewItemContext`1.PositionInSet">
+            <summary>
+            The one-based position of this row among its visible siblings.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewItemContext`1.SetSize">
+            <summary>
+            The number of visible rows in this row's sibling set.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewItemContext`1.HasVisibleChildren">
+            <summary>
+            Whether this row has any visible direct children.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewItemContext`1.HasSelectableValues">
+            <summary>
+            Whether this row or any of its descendants has a selectable value.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewItemContext`1.IsSelected">
+            <summary>
+            Whether this row's own selectable value is selected.
+            </summary>
+            <remarks>
+            Updated in place when the selection changes, so that a selection change does not re-project the hierarchy.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.TreeViewItemContext`1.CheckState">
+            <summary>
+            The checkbox state derived from this row and all of its descendants.
+            </summary>
+            <remarks>
+            Updated in place when the selection changes, so that a selection change does not re-project the hierarchy.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.TreeViewItemContext`1.RowKey">
+            <summary>
+            The key which identifies the rendered row across renders.
+            </summary>
+            <remarks>
+            Rows are keyed by backing item reference so that a row component always stays bound to the same item.
+            </remarks>
+        </member>
+        <member name="T:MudBlazor.TreeViewRowKey`1">
+            <summary>
+            Identifies a rendered row by backing item reference.
+            </summary>
+            <remarks>
+            <see cref="P:MudBlazor.TreeViewRowKey`1.Ordinal"/> is zero for the first visible row of an item and increments for repeated references to the same instance, so that repeated references never produce duplicate render keys.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.TreeViewRowKey`1.#ctor(MudBlazor.ITreeItemData{`0},System.Int32)">
+            <summary>
+            Identifies a rendered row by backing item reference.
+            </summary>
+            <remarks>
+            <see cref="P:MudBlazor.TreeViewRowKey`1.Ordinal"/> is zero for the first visible row of an item and increments for repeated references to the same instance, so that repeated references never produce duplicate render keys.
+            </remarks>
+        </member>
+        <member name="T:MudBlazor.TreeViewProjection`1">
+            <summary>
+            Flattens a backing <see cref="T:MudBlazor.ITreeItemData`1"/> hierarchy into the visible rows rendered by a virtualized <see cref="T:MudBlazor.MudTreeView`1"/>.
+            </summary>
+            <typeparam name="T">The type of value associated with each item.</typeparam>
+            <remarks>
+            <see cref="M:MudBlazor.TreeViewProjection`1.Rebuild(System.Collections.Generic.IReadOnlyCollection{MudBlazor.ITreeItemData{`0}},System.Collections.Generic.IReadOnlyCollection{`0},System.Collections.Generic.IEqualityComparer{`0})"/> projects the whole hierarchy so that check-box state and selection can account for collapsed descendants, and records only expanded, visible items as <see cref="P:MudBlazor.TreeViewProjection`1.Rows"/>.
+            Selection changes are applied to the projected nodes in place through <see cref="M:MudBlazor.TreeViewProjection`1.SetSelected(`0,System.Boolean)"/>, so that selecting an item costs time proportional to the items it affects rather than to the whole hierarchy.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.TreeViewProjection`1.Rows">
+            <summary>
+            The current flattened visible rows.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.TreeViewProjection`1.Rebuild(System.Collections.Generic.IReadOnlyCollection{MudBlazor.ITreeItemData{`0}},System.Collections.Generic.IReadOnlyCollection{`0},System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+            Rebuilds the visible rows and selection projection from the backing hierarchy.
+            </summary>
+            <param name="items">The root backing items.</param>
+            <param name="selectedValues">The selected values, including values whose item is not in the hierarchy.</param>
+            <param name="comparer">The comparer used for values.</param>
+        </member>
+        <member name="M:MudBlazor.TreeViewProjection`1.TrySpliceExpansion(MudBlazor.TreeViewRowKey{`0},System.Boolean)">
+            <summary>
+            Applies an expansion change by inserting or removing only the visible rows below the toggled row, instead of rebuilding.
+            </summary>
+            <param name="key">The row key of the toggled row.</param>
+            <param name="expanded">The expansion state the row moved to.</param>
+            <returns>Whether the change was spliced; false leaves the caller to rebuild the projection.</returns>
+            <remarks>
+            A repeated item shares one row between its occurrences, so its expansion cannot be settled by a splice, and a row which is not projected cannot be located in the row list.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.TreeViewProjection`1.HasChanged(System.Collections.Generic.IReadOnlyCollection{MudBlazor.ITreeItemData{`0}})">
+            <summary>
+            Whether the backing hierarchy differs from what was last projected.
+            </summary>
+            <remarks>
+            The application can change the backing items in place, so a parent render compares them with what was projected instead of rebuilding every time.
+            The walk reads each item once and allocates nothing for list-backed children, which keeps it far cheaper than a rebuild.
+            Children are compared by count and element identity rather than collection identity, because an implementation can return a new wrapper on every read.
+            </remarks>
+            <param name="items">The root backing items.</param>
+        </member>
+        <member name="M:MudBlazor.TreeViewProjection`1.Represents(`0)">
+            <summary>
+            Whether an item in the projected hierarchy has a value.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewProjection`1.SelectedValues">
+            <summary>
+            The values which the projection last applied as selected, including values whose item is not in the hierarchy.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.TreeViewProjection`1.IsSelected(`0)">
+            <summary>
+            Whether the projected items with a value are selected.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.TreeViewProjection`1.ApplySelection(System.Collections.Generic.IReadOnlyCollection{`0})">
+            <summary>
+            Changes the projected selection to the specified values by applying only the difference.
+            </summary>
+            <param name="selectedValues">The values which should be selected; values without an item are ignored.</param>
+            <returns>The values which became selected.</returns>
+        </member>
+        <member name="M:MudBlazor.TreeViewProjection`1.FindRow(MudBlazor.TreeViewRowKey{`0})">
+            <summary>
+            Finds the visible row with a render key.
+            </summary>
+            <returns>The row, or <c>null</c> when no visible row has the key.</returns>
+        </member>
+        <member name="M:MudBlazor.TreeViewProjection`1.ReconcileSelection(System.Boolean,`0,System.Collections.Generic.IReadOnlyCollection{`0})">
+            <summary>
+            Reconciles externally changed backing selection with the selected-value state.
+            </summary>
+            <param name="multiSelection">Whether multiple values may be selected.</param>
+            <param name="selectedValue">The current single selected value.</param>
+            <param name="selectedValues">The current multiple selected values.</param>
+            <returns>The reconciled selected-value state and change flags.</returns>
+        </member>
+        <member name="M:MudBlazor.TreeViewProjection`1.SynchronizeSelection(System.Collections.Generic.IReadOnlyCollection{MudBlazor.ITreeItemData{`0}},System.Collections.Generic.IReadOnlyCollection{`0},System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+            Traverses the backing hierarchy while synchronizing every item's <see cref="P:MudBlazor.ITreeItemData`1.Selected"/> with the selected values.
+            </summary>
+            <param name="items">The root backing items.</param>
+            <param name="selectedValues">The selected values.</param>
+            <param name="comparer">The comparer used for values.</param>
+            <returns>The selected values which are represented by the hierarchy.</returns>
+        </member>
+        <member name="M:MudBlazor.TreeViewProjection`1.ToggleSubtreeSelection(MudBlazor.TreeViewItemContext{`0},System.Collections.Generic.HashSet{`0},System.Boolean)">
+            <summary>
+            Toggles the selectable values of a row's subtree and optionally updates its ancestors.
+            </summary>
+            <param name="row">The row at the root of the subtree.</param>
+            <param name="selection">The selected values, which are updated in place.</param>
+            <param name="autoSelectParent">Whether ancestor selection follows direct children.</param>
+            <returns>The values which became selected.</returns>
+        </member>
+        <member name="M:MudBlazor.TreeViewProjection`1.ExpandAncestors(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Expands the expandable ancestors of every projected item with one of the specified values.
+            </summary>
+            <remarks>
+            Only the ancestors of the specified values are touched, so a branch the user collapsed stays collapsed when an unrelated value is selected.
+            Every occurrence of a repeated item is followed, so each branch which contains it expands.
+            </remarks>
+            <returns>Whether any expansion changed.</returns>
+        </member>
+        <member name="M:MudBlazor.TreeViewProjection`1.SetSelected(`0,System.Boolean)">
+            <summary>
+            Selects or deselects every projected item with a value, updating the backing items and the check-box state of their ancestors.
+            </summary>
+            <returns>Whether any backing item changed.</returns>
+        </member>
+        <member name="T:MudBlazor.TreeViewSelectionResult`1">
+            <summary>
+            Describes selected-value state reconciled from backing items.
+            </summary>
+            <typeparam name="T">The type of value associated with each item.</typeparam>
+            <param name="SelectedValue">The reconciled single selected value.</param>
+            <param name="SelectedValues">The reconciled multiple selected values.</param>
+            <param name="AddedValues">The values which the reconciliation selected.</param>
+            <param name="SelectionChanged">Whether the selected-value state changed.</param>
+            <param name="BackingItemsChanged">Whether any backing item's selection was written.</param>
+        </member>
+        <member name="M:MudBlazor.TreeViewSelectionResult`1.#ctor(`0,System.Collections.Generic.IReadOnlyCollection{`0},System.Collections.Generic.IReadOnlyList{`0},System.Boolean,System.Boolean)">
+            <summary>
+            Describes selected-value state reconciled from backing items.
+            </summary>
+            <typeparam name="T">The type of value associated with each item.</typeparam>
+            <param name="SelectedValue">The reconciled single selected value.</param>
+            <param name="SelectedValues">The reconciled multiple selected values.</param>
+            <param name="AddedValues">The values which the reconciliation selected.</param>
+            <param name="SelectionChanged">Whether the selected-value state changed.</param>
+            <param name="BackingItemsChanged">Whether any backing item's selection was written.</param>
+        </member>
+        <member name="P:MudBlazor.TreeViewSelectionResult`1.SelectedValue">
+            <summary>The reconciled single selected value.</summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewSelectionResult`1.SelectedValues">
+            <summary>The reconciled multiple selected values.</summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewSelectionResult`1.AddedValues">
+            <summary>The values which the reconciliation selected.</summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewSelectionResult`1.SelectionChanged">
+            <summary>Whether the selected-value state changed.</summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewSelectionResult`1.BackingItemsChanged">
+            <summary>Whether any backing item's selection was written.</summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewSelectionResult`1.Changed">
+            <summary>
+            Whether selected-value state or backing selection changed.
+            </summary>
+        </member>
+        <member name="T:MudBlazor.TreeViewServerLoadEntry">
+            <summary>
+            The <see cref="P:MudBlazor.MudTreeView`1.ServerData"/> load state of one tree item.
+            </summary>
+            <remarks>
+            <see cref="P:MudBlazor.TreeViewServerLoadEntry.Version"/> increments whenever a new load or reload is started, so a completion whose version no longer matches has been superseded and must be ignored.
+            </remarks>
+        </member>
+        <member name="P:MudBlazor.TreeViewServerLoadEntry.IsLoaded">
+            <summary>
+            Whether children have been loaded successfully.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewServerLoadEntry.IsLoading">
+            <summary>
+            Whether a load is in progress.
+            </summary>
+        </member>
+        <member name="P:MudBlazor.TreeViewServerLoadEntry.Version">
+            <summary>
+            The generation of the most recent load request.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.TreeViewServerLoadEntry.Reset">
+            <summary>
+            Marks the entry as unloaded and supersedes any pending load.
+            </summary>
+            <returns>The reserved generation for the next load.</returns>
+        </member>
+        <member name="T:MudBlazor.TreeViewServerLoadState`1">
+            <summary>
+            Tracks server-load state per backing item instance.
+            </summary>
+            <typeparam name="T">The type of value associated with each item.</typeparam>
+            <remarks>
+            State belongs to the backing item rather than to a rendered component, so it survives virtualization, mode switches and re-rendering, and disappears together with the item.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.TreeViewServerLoadState`1.GetEntry(MudBlazor.ITreeItemData{`0})">
+            <summary>
+            Returns the load entry for an item, creating it on first use.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.TreeViewServerLoadState`1.FindEntry(MudBlazor.ITreeItemData{`0})">
+            <summary>
+            Returns the load entry for an item, or <c>null</c> when nothing was loaded for it yet.
+            </summary>
+        </member>
         <member name="T:MudBlazor.MudText">
             <summary>
             A customizable piece of text.
@@ -30018,7 +31497,10 @@
             Whether this text continues on the same line.
             </summary>
             <remarks>
-            Defaults to <c>false</c>.  When <c>false</c>, text will start on a new line.
+            Defaults to <c>false</c>.
+            When <c>true</c>, the <c>d-inline</c> class is added so block elements such as headings and paragraphs stay on the same line.
+            When <c>false</c>, the element keeps its default display, so typos rendered as <c>span</c> (such as <see cref="F:MudBlazor.Typo.caption"/>) remain inline.
+            Use <see cref="P:MudBlazor.MudText.HtmlTag"/> to render those as a block element.
             </remarks>
         </member>
         <member name="P:MudBlazor.MudText.ChildContent">
@@ -30037,6 +31519,11 @@
             specify the type of content for accessibility and SEO more accurately</see>.<br />
             The tag affects the display type and the applicability of properties like <see cref="P:MudBlazor.MudText.Align"/> and <see cref="P:MudBlazor.MudText.GutterBottom"/>.
             </remarks>
+        </member>
+        <member name="P:MudBlazor.MudText.Truncate">
+            <summary>
+            Truncates the text with an ellipsis if it overflows its container.
+            </summary>
         </member>
         <member name="M:MudBlazor.MudText.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder)">
             <inheritdoc />
@@ -30105,6 +31592,18 @@
              Do not set this to a smaller number than you expect to fit on a realistic-sized window, because
              that will leave a blank gap below and the user may not be able to see the rest of the content.
              </summary>
+        </member>
+        <member name="P:MudBlazor.MudVirtualize`1.ItemComparer">
+            <summary>
+            Compares items from <see cref="P:MudBlazor.MudVirtualize`1.ItemsProvider"/> so the list can tell whether new items were inserted above the ones already shown.
+            </summary>
+            <remarks>
+            Defaults to <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+            When the total item count grows, the list compares an item it already loaded with the item now at the same index.
+            If they differ, it treats the new items as inserted above and keeps the visible items in place.
+            Set a comparer that matches items by a unique key when <typeparamref name="T"/> is a class without value equality and the provider returns new instances, otherwise every growth looks like an insertion.
+            Available on .NET 11 and later.
+            </remarks>
         </member>
         <member name="P:MudBlazor.MudVirtualize`1.SpacerElement">
             <summary>
@@ -32201,6 +33700,18 @@
             <param name="args">JSON-serializable arguments.</param>
             <returns>An instance of <typeparamref name="TValue"/> obtained by JSON-deserializing the return value into a tuple. The first item (sucess) is true in case where there was no exception, otherwise fall.</returns>
         </member>
+        <member name="M:MudBlazor.IJSRuntimeExtensions.InvokeVoidAsyncIgnoreDisconnected(Microsoft.JSInterop.IJSRuntime,System.String,System.Object[])">
+            <summary>
+            Invokes the specified JavaScript function asynchronously and catches only <see cref="T:Microsoft.JSInterop.JSDisconnectedException"/> and <see cref="T:System.Threading.Tasks.TaskCanceledException"/>.
+            </summary>
+            <remarks>
+            For public APIs whose callers expect JavaScript and pre-rendering errors to surface in every build configuration.
+            </remarks>
+            <param name="jsRuntime">The <see cref="T:Microsoft.JSInterop.IJSRuntime"/>.</param>
+            <param name="identifier">An identifier for the function to invoke. For example, the value <c>"someScope.someFunction"</c> will invoke the function <c>window.someScope.someFunction</c>.</param>
+            <param name="args">JSON-serializable arguments.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.ValueTask"/> that represents the asynchronous invocation operation.</returns>
+        </member>
         <member name="M:MudBlazor.IJSRuntimeExtensions.IsUnsupportedJavaScriptRuntime(Microsoft.JSInterop.IJSRuntime)">
             <summary>
             Checks if the IJSRuntime instance is of type UnsupportedJavaScriptRuntime or RemoteJSRuntime.
@@ -32932,6 +34443,16 @@
             </remarks>
             <param name="hook">The method to call on every key up event.</param>
             <returns>The builder for chaining.</returns>
+        </member>
+        <member name="M:MudBlazor.Services.KeyMapBuilder.IsAnyKey(System.String)">
+            <summary>
+            Matches the keys the pattern <c>/./</c> matches: any key name with a character other than a line feed.
+            </summary>
+        </member>
+        <member name="M:MudBlazor.Services.KeyMapBuilder.IsSingleNonSpaceCharacter(System.String)">
+            <summary>
+            Matches the browser key names the pattern <c>/^[^ ]$/</c> matches: a single character that is not a space.
+            </summary>
         </member>
         <member name="T:MudBlazor.Services.KeyOptions">
             <summary>
@@ -36158,7 +37679,7 @@
             The rate at which the <see cref="T:MudBlazor.IScrollListener"/> will report scroll position changes (in milliseconds).
             </summary>
             <remarks>
-            Defaults to <c>100</c>.
+            Defaults to <c>10</c>.
             </remarks>
         </member>
         <member name="E:MudBlazor.IScrollListener.OnScroll">
@@ -37984,7 +39505,7 @@
         <member name="M:MudBlazor.DateMask.ValidDigitRegularExpression">
             <remarks>
             Pattern:<br/>
-            <code>^\\d+$</code><br/>
+            <code>^\d+$</code><br/>
             Explanation:<br/>
             <code>
             ○ Match if at the beginning of the string.<br/>
@@ -38111,6 +39632,13 @@
             </summary>
             <param name="c">The mask character to create.</param>
             <returns>A character with a regular expression of <c>\p{L}|\d</c> for any letter or digit.</returns>
+        </member>
+        <member name="M:MudBlazor.MaskChar.IsMatch(System.Char)">
+            <summary>
+            Gets whether a typed character is allowed for this mask character.
+            </summary>
+            <param name="textChar">The typed character.</param>
+            <returns><c>true</c> when the character matches <see cref="P:MudBlazor.MaskChar.Regex"/>.</returns>
         </member>
         <member name="M:MudBlazor.MaskChar.Equals(MudBlazor.MaskChar)">
             <inheritdoc />
@@ -38417,6 +39945,53 @@
             </summary>
             <param name="mask">Defaults to <c>Ex. user@domain.com</c>.  The mask to display.</param>
         </member>
+        <member name="M:MudBlazor.RegexMask.UsZipCode(System.Char)">
+            <summary>
+            Gets a mask for United States ZIP codes with an optional four-digit extension.
+            </summary>
+            <param name="maskChar">Defaults to <c>0</c>.  The mask character for ZIP code digits.</param>
+            <remarks>
+            Accepts a five-digit ZIP code such as <c>90210</c> and the ZIP+4 form such as <c>90210-0123</c>.  The dash is inserted automatically as soon as a sixth digit is typed.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.RegexMask.MacAddress(System.Char,System.Char)">
+            <summary>
+            Gets a mask for MAC addresses (EUI-48) such as <c>1A:2B:3C:4D:5E:6F</c>.
+            </summary>
+            <param name="separator">Defaults to <c>:</c>.  The character between each pair of hexadecimal digits.</param>
+            <param name="maskChar">Defaults to <c>X</c>.  The mask character for address digits.</param>
+            <remarks>
+            The separator is inserted automatically when hexadecimal digits are typed without it.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.RegexMask.Guid(System.Char)">
+            <summary>
+            Gets a mask for globally unique identifiers such as <c>2f9d8e7a-1b3c-4d5e-6f70-8192a3b4c5d6</c>.
+            </summary>
+            <param name="maskChar">Defaults to <c>X</c>.  The mask character for identifier digits.</param>
+            <remarks>
+            Accepts the canonical 8-4-4-4-12 hexadecimal form in upper or lower case.  Dashes are inserted automatically when hexadecimal digits are typed without them.  The braced form <c>{...}</c> is not accepted.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.RegexMask.HexColor(System.Char)">
+            <summary>
+            Gets a mask for hexadecimal colors such as <c>#1A2B3C</c>.
+            </summary>
+            <param name="maskChar">Defaults to <c>X</c>.  The mask character for color digits.</param>
+            <remarks>
+            The leading <c>#</c> is inserted automatically.  Up to eight hexadecimal digits are accepted, which covers the CSS <c>#RGB</c>, <c>#RGBA</c>, <c>#RRGGBB</c>, and <c>#RRGGBBAA</c> forms.
+            </remarks>
+        </member>
+        <member name="M:MudBlazor.RegexMask.Time24(System.Boolean,System.Char)">
+            <summary>
+            Gets a mask for times on a 24-hour clock such as <c>07:30</c>.
+            </summary>
+            <param name="includeSeconds">Defaults to <c>false</c>.  When <c>true</c>, seconds are allowed.</param>
+            <param name="maskChar">Defaults to <c>0</c>.  The mask character for time digits.</param>
+            <remarks>
+            Hours are limited to <c>0</c> through <c>23</c>, and minutes and seconds to <c>0</c> through <c>59</c>.  Colons are inserted automatically when digits are typed without them, so typing <c>2400</c> yields <c>2:40</c>.
+            </remarks>
+        </member>
         <member name="F:MudBlazor.Resources.LanguageResource.MudDataGrid_Apply">
             <summary>Apply</summary>
         </member>
@@ -38531,6 +40106,9 @@
         <member name="F:MudBlazor.Resources.LanguageResource.MudDataGrid_IsNot">
             <summary>is not</summary>
         </member>
+        <member name="F:MudBlazor.Resources.LanguageResource.MudDataGrid_IsAnyOf">
+            <summary>is any of</summary>
+        </member>
         <member name="F:MudBlazor.Resources.LanguageResource.MudDataGrid_IsAfter">
             <summary>is after</summary>
         </member>
@@ -38599,6 +40177,30 @@
         </member>
         <member name="F:MudBlazor.Resources.LanguageResource.MudColorPicker_ModeSwitch">
             <summary>Switch mode</summary>
+        </member>
+        <member name="F:MudBlazor.Resources.LanguageResource.MudColorPicker_Red">
+            <summary>Red</summary>
+        </member>
+        <member name="F:MudBlazor.Resources.LanguageResource.MudColorPicker_Green">
+            <summary>Green</summary>
+        </member>
+        <member name="F:MudBlazor.Resources.LanguageResource.MudColorPicker_Blue">
+            <summary>Blue</summary>
+        </member>
+        <member name="F:MudBlazor.Resources.LanguageResource.MudColorPicker_Hue">
+            <summary>Hue</summary>
+        </member>
+        <member name="F:MudBlazor.Resources.LanguageResource.MudColorPicker_Saturation">
+            <summary>Saturation</summary>
+        </member>
+        <member name="F:MudBlazor.Resources.LanguageResource.MudColorPicker_Lightness">
+            <summary>Lightness</summary>
+        </member>
+        <member name="F:MudBlazor.Resources.LanguageResource.MudColorPicker_Hex">
+            <summary>Hex</summary>
+        </member>
+        <member name="F:MudBlazor.Resources.LanguageResource.MudColorPicker_Alpha">
+            <summary>Alpha</summary>
         </member>
         <member name="F:MudBlazor.Resources.LanguageResource.MudBaseDatePicker_PrevYear">
             <summary>Previous year {0}</summary>
@@ -38773,6 +40375,9 @@
         </member>
         <member name="F:MudBlazor.Resources.LanguageResource.MudDataGrid_ShowColumnOptions">
             <summary>Column options</summary>
+        </member>
+        <member name="F:MudBlazor.Resources.LanguageResource.MudDataGrid_ReorderColumn">
+            <summary>Reorder column</summary>
         </member>
         <member name="F:MudBlazor.Resources.LanguageResource.MudFileUpload_DragAndDrop">
             <summary>Drag files here or click to browse</summary>
