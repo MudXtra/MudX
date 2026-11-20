@@ -108,6 +108,22 @@ for (const modulePath of modules) {
                 assert.equal(await active(), 'after');
                 assert.deepEqual(await page.evaluate(() => calls.map(x => x.slice(1))), [['a', 'Backspace']]);
             });
+            await t.test('paste sends at most 256 UTF-16 code units to .NET without splitting a surrogate pair', async () => {
+                await setup();
+                const paste = text => page.evaluate(text => {
+                    const data = new DataTransfer();
+                    data.setData('text/plain', text);
+                    document.getElementById('a').dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+                    return calls[calls.length - 1];
+                }, text);
+                assert.deepEqual(await paste('1234'), ['ClipboardPasteEvent', 'a', '1234'], 'short paste is unchanged');
+                assert.equal((await paste('1'.repeat(256)))[2].length, 256, 'exactly the maximum is unchanged');
+                const oversized = await paste('1'.repeat(5_000_000));
+                assert.equal(oversized[2].length, 256);
+                assert.equal(oversized[2], '1'.repeat(256));
+                const split = await paste('x'.repeat(255) + '\u{1F600}' + 'tail');
+                assert.equal(split[2], 'x'.repeat(255), 'a surrogate pair cut by the bound is dropped whole');
+            });
             await t.test('cleanup cancels pending focus and queue; reinitialization has fresh ownership', async () => {
                 await setup();
                 await page.locator('#a').focus();

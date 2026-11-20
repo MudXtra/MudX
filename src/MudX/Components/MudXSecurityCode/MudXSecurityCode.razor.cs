@@ -28,6 +28,10 @@ namespace MudX
         private string HelperTextId => $"{Id}-helper-text";
         private string ErrorTextId => $"{Id}-error-text";
         private string? FirstEditableInputId => CodeItems.FirstOrDefault(item => item.IsEditable)?.InputId;
+        /// <summary>
+        /// The maximum number of characters of pasted text that are considered. Mirrors <c>maxPasteLength</c> in <c>mudxSecurityCode.js</c>.
+        /// </summary>
+        internal const int MaxClipboardPasteLength = 256;
         private const string DefaultSegmentAriaLabelFormat = "Character {0} of {1}";
 
         private Dictionary<string, object?> GetContainerAttributes()
@@ -567,42 +571,47 @@ namespace MudX
         /// <c>OnCompleted</c> handler is provided, it is awaited and owns follow-up behavior; otherwise, focus advances to
         /// the next focusable element.</remarks>
         /// <param name="fullid">The exact identifier of an editable input owned by this component.</param>
-        /// <param name="text">The text pasted from the clipboard. Cannot be null, empty, or consist only of whitespace.</param>
+        /// <param name="text">The text pasted from the clipboard. Cannot be null, empty, or consist only of whitespace.
+        /// Only the first <see cref="MaxClipboardPasteLength"/> characters are considered; the remainder is ignored.</param>
         /// <returns></returns>
         [JSInvokable]
         public async Task ClipboardPasteEvent(string fullid, string text)
         {
-            if (_isDisposed || Disabled || string.IsNullOrWhiteSpace(text))
+            if (_isDisposed || Disabled || string.IsNullOrEmpty(text))
+                return;
+
+            // Do not trust the JS bridge to have bounded the payload; only a bounded prefix is ever scanned or copied.
+            var pasted = text.Length > MaxClipboardPasteLength ? text[..MaxClipboardPasteLength] : text;
+            if (string.IsNullOrWhiteSpace(pasted))
                 return;
 
             var index = CodeItems.FindIndex(item => item.IsEditable && string.Equals(item.InputId, fullid, StringComparison.Ordinal));
             if (index < 0)
                 return;
 
-            var chars = text.ToCharArray();
             int charIndex = 0;
             int changedEditableCount = 0;
 
-            for (int i = index; i < CodeItems.Count && charIndex < chars.Length; i++)
+            for (int i = index; i < CodeItems.Count && charIndex < pasted.Length; i++)
             {
                 var patternChar = CodeItems[i].PatternChar;
 
                 var isEditable = CodeItems[i].IsEditable;
-                var pasteChar = chars[charIndex].ToString();
+                var pasteChar = pasted[charIndex].ToString();
 
                 if (isEditable)
                 {
                     // Skip any invalid characters until we find a match
-                    while (charIndex < chars.Length &&
-                           !IsValidInput(patternChar, chars[charIndex].ToString()))
+                    while (charIndex < pasted.Length &&
+                           !IsValidInput(patternChar, pasted[charIndex].ToString()))
                     {
                         charIndex++;
                     }
 
-                    if (charIndex >= chars.Length)
+                    if (charIndex >= pasted.Length)
                         break;
 
-                    pasteChar = chars[charIndex].ToString();
+                    pasteChar = pasted[charIndex].ToString();
                     if (CodeItems[i].Value != pasteChar)
                         changedEditableCount++;
                     CodeItems[i].Value = pasteChar;
@@ -611,10 +620,10 @@ namespace MudX
                 else
                 {
                     // Fixed character like '/', or '1', '9'
-                    if (charIndex >= chars.Length)
+                    if (charIndex >= pasted.Length)
                         break;
 
-                    if (chars[charIndex] == patternChar)
+                    if (pasted[charIndex] == patternChar)
                     {
                         // Match – consume and move forward
                         CodeItems[i].Value = patternChar.ToString();

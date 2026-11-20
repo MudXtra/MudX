@@ -1,5 +1,9 @@
 const handledKeys = new Set(["Backspace", "Delete", "ArrowLeft", "ArrowRight"]);
 const deleteDedupeWindowMs = 100;
+// Maximum number of UTF-16 code units of clipboard text sent to .NET. Patterns are short, but pasted text may carry
+// separators or invalid characters that are skipped, so this leaves room beyond the slot count while keeping interop
+// small. Mirrors MudXSecurityCode.MaxClipboardPasteLength; the .NET handler enforces the same bound.
+const maxPasteLength = 256;
 // Mirrors MudXSecurityCode.IsValidInput (char.IsDigit / IsLetter / IsLetterOrDigit / IsSymbol or IsPunctuation).
 const slotKindPatterns = new Map([
     ["numeric", /^\p{Nd}$/u],
@@ -76,8 +80,13 @@ function handlePaste(event, input, dotNetObjRef) {
     if (!event || !input || !dotNetObjRef) return;
     event.preventDefault();
 
-    const paste = (event.clipboardData || window.clipboardData)?.getData("Text");
+    let paste = (event.clipboardData || window.clipboardData)?.getData("Text");
     if (paste) {
+        if (paste.length > maxPasteLength) {
+            paste = paste.slice(0, maxPasteLength);
+            // Do not leave half of a surrogate pair at the cut.
+            if (/[\uD800-\uDBFF]$/.test(paste)) paste = paste.slice(0, -1);
+        }
         dotNetObjRef.invokeMethodAsync("ClipboardPasteEvent", input.id, paste);
     }
 }

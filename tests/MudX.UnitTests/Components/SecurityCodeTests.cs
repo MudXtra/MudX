@@ -513,6 +513,107 @@ namespace MudX.UnitTests.Components
         }
 
         [Test]
+        public async Task SecurityCode_ShouldIgnoreOversizedPasteBeyondMaxLength()
+        {
+            var comp = Context.Render<MudXSecurityCode>(parameters => parameters.Add(p => p.Pattern, "####"));
+
+            // The remaining digits sit past the bound, so only the first one can be used.
+            var text = "1" + new string('x', MudXSecurityCode.MaxClipboardPasteLength) + "234";
+            await comp.InvokeAsync(() => comp.Instance.ClipboardPasteEvent(comp.Instance.CodeItems[0].InputId, text));
+
+            comp.Instance._codeState.Value.Should().Be("1");
+            comp.Instance.CodeItems.Select(item => item.Value).Should().Equal("1", "", "", "");
+        }
+
+        [Test]
+        public async Task SecurityCode_ShouldIgnoreOversizedWhitespacePrefixedPaste()
+        {
+            var comp = Context.Render<MudXSecurityCode>(parameters => parameters.Add(p => p.Pattern, "####"));
+
+            var text = new string(' ', 1_000_000) + "1234";
+            await comp.InvokeAsync(() => comp.Instance.ClipboardPasteEvent(comp.Instance.CodeItems[0].InputId, text));
+
+            comp.Instance._codeState.Value.Should().BeNullOrEmpty();
+            comp.Instance.CodeItems.Should().OnlyContain(item => string.IsNullOrEmpty(item.Value));
+        }
+
+        [Test]
+        public async Task SecurityCode_ShouldAcceptLastCharacterWithinBoundAndNotOneBeyond()
+        {
+            var comp = Context.Render<MudXSecurityCode>(parameters => parameters.Add(p => p.Pattern, "##"));
+            var inputId = comp.Instance.CodeItems[0].InputId;
+
+            var text = new string('x', MudXSecurityCode.MaxClipboardPasteLength - 1) + "1" + "2";
+            await comp.InvokeAsync(() => comp.Instance.ClipboardPasteEvent(inputId, text));
+
+            comp.Instance._codeState.Value.Should().Be("1");
+            comp.Instance.CodeItems.Select(item => item.Value).Should().Equal("1", "");
+        }
+
+        [Test]
+        public async Task SecurityCode_ShouldCompleteWhenOversizedPasteStartsWithValidCode()
+        {
+            var completed = new List<string?>();
+            var comp = Context.Render<MudXSecurityCode>(
+                parameters => parameters
+                    .Add(p => p.Pattern, "####")
+                    .Add(p => p.OnCompleted, EventCallback.Factory.Create<string?>(this, value => completed.Add(value))));
+
+            var text = "1234" + new string('9', 2_000_000);
+            await comp.InvokeAsync(() => comp.Instance.ClipboardPasteEvent(comp.Instance.CodeItems[0].InputId, text));
+
+            comp.Instance._codeState.Value.Should().Be("1234");
+            completed.Should().Equal("1234");
+        }
+
+        [Test]
+        public async Task SecurityCode_ShouldRejectOversizedInvalidPaste()
+        {
+            var comp = Context.Render<MudXSecurityCode>(parameters => parameters.Add(p => p.Pattern, "####"));
+
+            var text = new string('x', 1_000_000);
+            await comp.InvokeAsync(() => comp.Instance.ClipboardPasteEvent(comp.Instance.CodeItems[0].InputId, text));
+
+            comp.Instance._codeState.Value.Should().BeNullOrEmpty();
+            comp.Instance.CodeItems.Should().OnlyContain(item => string.IsNullOrEmpty(item.Value));
+        }
+
+        [Test]
+        public async Task SecurityCode_ShouldNotRepublishIdenticalOversizedPasteIntoCompleteCode()
+        {
+            var publishedValues = new List<string?>();
+            var completionCount = 0;
+            var comp = Context.Render<MudXSecurityCode>(
+                parameters => parameters
+                    .Add(p => p.Pattern, "####")
+                    .Add(p => p.CodeChanged, EventCallback.Factory.Create<string?>(this, value => publishedValues.Add(value)))
+                    .Add(p => p.OnCompleted, EventCallback.Factory.Create<string?>(this, _ => completionCount++)));
+            var inputId = comp.Instance.CodeItems[0].InputId;
+
+            await comp.InvokeAsync(() => comp.Instance.ClipboardPasteEvent(inputId, "1234"));
+            await comp.InvokeAsync(() => comp.Instance.ClipboardPasteEvent(inputId, "1234" + new string('x', 1_000_000)));
+
+            publishedValues.Should().Equal("1234");
+            comp.Instance._codeState.Value.Should().Be("1234");
+            completionCount.Should().Be(1);
+        }
+
+        [Test]
+        public async Task SecurityCode_ShouldKeepPartialPasteWhenPasteIsShort()
+        {
+            var completionCount = 0;
+            var comp = Context.Render<MudXSecurityCode>(
+                parameters => parameters
+                    .Add(p => p.Pattern, "####")
+                    .Add(p => p.OnCompleted, EventCallback.Factory.Create<string?>(this, _ => completionCount++)));
+
+            await comp.InvokeAsync(() => comp.Instance.ClipboardPasteEvent(comp.Instance.CodeItems[0].InputId, "12"));
+
+            comp.Instance._codeState.Value.Should().Be("12");
+            completionCount.Should().Be(0);
+        }
+
+        [Test]
         public async Task SecurityCode_ShouldPublishAndCompleteChangedValidPasteIntoCompleteCode()
         {
             var publishedValues = new List<string?>();
