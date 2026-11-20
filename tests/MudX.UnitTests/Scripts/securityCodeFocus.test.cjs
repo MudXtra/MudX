@@ -124,6 +124,47 @@ for (const modulePath of modules) {
                 const split = await paste('x'.repeat(255) + '\u{1F600}' + 'tail');
                 assert.equal(split[2], 'x'.repeat(255), 'a surrogate pair cut by the bound is dropped whole');
             });
+            const advance = async (html, start = 'a') => {
+                await setup();
+                await page.evaluate(html => document.getElementById('after').insertAdjacentHTML('beforebegin', html), html);
+                await page.locator('#' + start).focus();
+                await page.evaluate(() => bridge.focusNextAfterContainer(document.getElementById('code')));
+                await page.waitForTimeout(50);
+                return active();
+            };
+            await t.test('advancing focus: normal next element is focused', async () => {
+                assert.equal(await advance('<button id="next">Next</button>', 'c'), 'next');
+            });
+            await t.test('advancing focus: skips visibility: hidden candidates', async () => {
+                assert.equal(await advance('<button id="skip" style="visibility:hidden">Hidden</button><button id="target">Target</button>', 'c'), 'target');
+            });
+            await t.test('advancing focus: skips focusable descendants of an inert subtree', async () => {
+                assert.equal(await advance('<div inert><button id="skip">Inert</button></div><button id="target">Target</button>', 'c'), 'target');
+            });
+            await t.test('advancing focus: skips a descendant that inherits visibility: hidden, but not one that restores visible', async () => {
+                assert.equal(await advance('<div style="visibility:hidden"><button id="skip">Inherited</button><button id="target" style="visibility:visible">Restored</button></div>', 'c'), 'target');
+            });
+            await t.test('advancing focus: still skips layout-hidden and disabled candidates', async () => {
+                assert.equal(await advance('<button id="s1" style="display:none">A</button><button id="s2" disabled>B</button><button id="target">Target</button>', 'c'), 'target');
+            });
+            await t.test('advancing focus: stays put when only ineligible candidates remain', async () => {
+                // #after is the only eligible control; hide it too, so nothing is eligible.
+                assert.equal(await advance('<style>#after{visibility:hidden}</style><div inert><button id="s1">Inert</button></div>', 'c'), 'c');
+            });
+            await t.test('advancing focus: an empty container does nothing', async () => {
+                await setup();
+                await page.evaluate(() => { const empty = document.createElement('div'); document.body.append(empty); bridge.focusNextAfterContainer(empty); });
+                await page.locator('#before').focus();
+                await page.waitForTimeout(50);
+                assert.equal(await active(), 'before');
+            });
+            await t.test('advancing focus: a newer focus before the deferred advance wins', async () => {
+                await setup();
+                await page.locator('#c').focus();
+                await page.evaluate(() => { bridge.focusNextAfterContainer(document.getElementById('code')); document.getElementById('before').focus(); });
+                await page.waitForTimeout(50);
+                assert.equal(await active(), 'before');
+            });
             await t.test('cleanup cancels pending focus and queue; reinitialization has fresh ownership', async () => {
                 await setup();
                 await page.locator('#a').focus();

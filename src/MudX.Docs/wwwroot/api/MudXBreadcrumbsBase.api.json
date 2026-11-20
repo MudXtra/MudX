@@ -7,7 +7,7 @@
       "Name": "AriaLabel",
       "Type": "String",
       "Default": "null",
-      "Description": null
+      "Description": "The accessible name of the breadcrumb navigation landmark.\nRemarks: Defaults to null, which uses the localized Breadcrumb label. Use distinct labels when displaying multiple breadcrumb trails."
     },
     {
       "Name": "Class",
